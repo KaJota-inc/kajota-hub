@@ -1,0 +1,60 @@
+# kajota-hub reverse proxy.
+#
+# `handle_path` STRIPS the matched prefix, so each app receives requests at
+# its own root (/healthz, /chat, /api/v1/...) exactly as it does today when
+# deployed standalone. We also forward X-Forwarded-Prefix so any app that
+# later wants to generate absolute self-URLs (e.g. coach-okx's x402 pay URL)
+# can honor its mount point via FastAPI root_path — see README "Known limits".
+{
+	admin off
+	auto_https off
+}
+
+:{$PORT:10000} {
+	# Proxy-level liveness — this is what Render's healthCheckPath hits.
+	handle /healthz {
+		respond "ok" 200
+	}
+
+	handle_path /coach-okx/* {
+		reverse_proxy 127.0.0.1:8101 {
+			header_up X-Forwarded-Prefix /coach-okx
+		}
+	}
+	handle_path /mesh-okx/* {
+		reverse_proxy 127.0.0.1:8102 {
+			header_up X-Forwarded-Prefix /mesh-okx
+		}
+	}
+	handle_path /concierge/* {
+		reverse_proxy 127.0.0.1:8103 {
+			header_up X-Forwarded-Prefix /concierge
+		}
+	}
+	handle_path /slack/* {
+		reverse_proxy 127.0.0.1:8104 {
+			header_up X-Forwarded-Prefix /slack
+		}
+	}
+	handle_path /mesh-skill/* {
+		reverse_proxy 127.0.0.1:8105 {
+			header_up X-Forwarded-Prefix /mesh-skill
+		}
+	}
+	handle_path /witness/* {
+		reverse_proxy 127.0.0.1:8106 {
+			header_up X-Forwarded-Prefix /witness
+		}
+	}
+
+	# Landing page = route map.
+	handle / {
+		root * /srv
+		rewrite * /index.html
+		file_server
+	}
+
+	handle {
+		respond "kajota-hub: unknown route. GET / for the map." 404
+	}
+}

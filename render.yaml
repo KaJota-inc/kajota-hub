@@ -1,0 +1,86 @@
+# kajota-hub — single Standard (2 GB) Render service hosting six apps behind
+# Caddy. Deploy: connect this repo, point Render at this render.yaml.
+#
+# Env vars are NAMESPACED per app so services that share generic names
+# (MONGODB_URI, GEMINI_MODEL, MESH_*) don't clobber each other:
+#   COKX_*  -> coach-okx      CONC_* -> concierge    SLK_* -> slack
+#   MOKX_*  -> mesh-okx       MSKL_* -> mesh-skill    (witness: unprefixed)
+# The per-app wrapper in scripts/run/ strips the prefix before launch.
+#
+# Secrets (sync: false) are entered in the Render dashboard. GCP service
+# account JSON goes in as a Secret File; point the *_GOOGLE_APPLICATION_
+# CREDENTIALS var at its mount path (e.g. /etc/secrets/cokx-gcp.json).
+services:
+  - type: web
+    name: kajota-hub
+    runtime: docker
+    plan: standard          # 2 GB / 1 CPU — six processes need the headroom
+    region: oregon
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
+    envVars:
+      # ---- coach-okx (OKX.AI Genesis ASP) ----------------------------
+      - { key: COKX_GEMINI_MODEL, value: gemini-2.5-pro }
+      - { key: COKX_GCP_PROJECT_ID, sync: false }
+      - { key: COKX_GCP_REGION, value: us-central1 }
+      - { key: COKX_GOOGLE_APPLICATION_CREDENTIALS, value: /etc/secrets/cokx-gcp.json }
+      - { key: COKX_GOOGLE_GENAI_USE_VERTEXAI, value: "true" }
+      - { key: COKX_GOOGLE_CLOUD_LOCATION, value: global }
+      - { key: COKX_PARTNER, value: mongodb }
+      - { key: COKX_MONGODB_URI, sync: false }
+      - { key: COKX_X402_NETWORK, value: "eip155:195" }
+      - { key: COKX_X402_MAX_AMOUNT, value: "10000" }
+      - { key: COKX_X402_PAY_TO, sync: false }
+      - { key: COKX_X402_ASSET, sync: false }
+      - { key: COKX_X402_ASSET_NAME, value: KaJota USD }
+      - { key: COKX_X402_ASSET_DECIMALS, value: "6" }
+      - { key: COKX_X402_ASSET_VERSION, value: "2" }
+      - { key: COKX_X402_VERSION, value: "1" }
+      - { key: COKX_X402_FACILITATOR_URL, sync: false }
+      - { key: COKX_X402_FACILITATOR_API_KEY, sync: false }
+      - { key: COKX_COACH_BACKEND_URL, sync: false }
+
+      # ---- mesh-okx (XLayer escrow) ----------------------------------
+      - { key: MOKX_MESH_RPC_URL, value: https://testrpc.xlayer.tech }
+      - { key: MOKX_MESH_CHAIN_ID, value: "195" }
+      - { key: MOKX_MESH_DRY_RUN, value: "false" }
+      - { key: MOKX_MESH_RELEASE_AUTH_KEY, sync: false }
+      - { key: MOKX_MESH_ESCROW_ADDR, sync: false }
+      - { key: MOKX_MESH_REGISTRY_ADDR, sync: false }
+      - { key: MOKX_MESH_USDC_ADDR, sync: false }
+
+      # ---- concierge (rapid-agent) -----------------------------------
+      - { key: CONC_GEMINI_MODEL, value: gemini-2.5-pro }
+      - { key: CONC_GCP_PROJECT_ID, sync: false }
+      - { key: CONC_GCP_REGION, value: us-central1 }
+      - { key: CONC_GOOGLE_APPLICATION_CREDENTIALS, value: /etc/secrets/conc-gcp.json }
+      - { key: CONC_GOOGLE_GENAI_USE_VERTEXAI, value: "true" }
+      - { key: CONC_GOOGLE_CLOUD_LOCATION, value: global }
+      - { key: CONC_PARTNER, value: mongodb }
+      - { key: CONC_MONGODB_URI, sync: false }
+
+      # ---- slack -----------------------------------------------------
+      - { key: SLK_GEMINI_MODEL, value: gemini-2.5-pro }
+      - { key: SLK_GCP_PROJECT_ID, sync: false }
+      - { key: SLK_GCP_REGION, value: us-central1 }
+      - { key: SLK_GOOGLE_APPLICATION_CREDENTIALS, value: /etc/secrets/slk-gcp.json }
+      - { key: SLK_GOOGLE_GENAI_USE_VERTEXAI, value: "true" }
+      - { key: SLK_GOOGLE_CLOUD_LOCATION, value: global }
+      - { key: SLK_PARTNER, value: mongodb }
+      - { key: SLK_MONGODB_URI, sync: false }
+      - { key: SLK_SLACK_BOT_TOKEN, sync: false }
+
+      # ---- mesh-skill (rapid-agent) ----------------------------------
+      - { key: MSKL_MESH_RPC_URL, sync: false }
+      - { key: MSKL_MESH_CHAIN_ID, sync: false }
+      - { key: MSKL_MESH_DRY_RUN, value: "false" }
+      - { key: MSKL_MESH_RELEASE_AUTH_KEY, sync: false }
+
+      # ---- witness (unprefixed — no name collisions) -----------------
+      - { key: ZG_RPC_URL, sync: false }
+      - { key: ZG_INDEXER_URL, sync: false }
+      - { key: WITNESS_ANCHOR_ADDRESS, sync: false }
+      - { key: WITNESS_DEPLOYER_PK, sync: false }
+      - { key: GROQ_API_KEY, sync: false }
+      - { key: INDEX_PATH, value: /srv/apps/witness/.witness-index }

@@ -1,0 +1,393 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "usdc",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "treasury_",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "disputeId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "filer",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "refunded",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "slashed",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "ruling",
+        "type": "string"
+      }
+    ],
+    "name": "BondSettled",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "disputeId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "filer",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum BondedWitnessAnchor.Party",
+        "name": "filerParty",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "bondAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "ts",
+        "type": "uint64"
+      }
+    ],
+    "name": "DisputeFiled",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "disputeId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "verdictRoot",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "ruling",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "confidenceBps",
+        "type": "uint64"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint64",
+        "name": "ts",
+        "type": "uint64"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "anchoredBy",
+        "type": "address"
+      }
+    ],
+    "name": "VerdictAnchored",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "BOND_AMOUNT",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "USDC",
+    "outputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "disputeId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "verdictRoot",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "ruling",
+        "type": "string"
+      },
+      {
+        "internalType": "uint64",
+        "name": "confidenceBps",
+        "type": "uint64"
+      }
+    ],
+    "name": "anchor",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "bonds",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "filer",
+        "type": "address"
+      },
+      {
+        "internalType": "enum BondedWitnessAnchor.Party",
+        "name": "filerParty",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "settled",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "deployer",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "disputeId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "enum BondedWitnessAnchor.Party",
+        "name": "filerParty",
+        "type": "uint8"
+      }
+    ],
+    "name": "fileDispute",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "disputeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getBond",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "filer",
+            "type": "address"
+          },
+          {
+            "internalType": "enum BondedWitnessAnchor.Party",
+            "name": "filerParty",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "settled",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct BondedWitnessAnchor.DisputeBond",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "disputeId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getVerdict",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "verdictRoot",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "string",
+            "name": "ruling",
+            "type": "string"
+          },
+          {
+            "internalType": "uint64",
+            "name": "confidenceBps",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint64",
+            "name": "ts",
+            "type": "uint64"
+          },
+          {
+            "internalType": "address",
+            "name": "anchoredBy",
+            "type": "address"
+          }
+        ],
+        "internalType": "struct BondedWitnessAnchor.VerdictRecord",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "treasury",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "name": "verdicts",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "verdictRoot",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "string",
+        "name": "ruling",
+        "type": "string"
+      },
+      {
+        "internalType": "uint64",
+        "name": "confidenceBps",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "ts",
+        "type": "uint64"
+      },
+      {
+        "internalType": "address",
+        "name": "anchoredBy",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

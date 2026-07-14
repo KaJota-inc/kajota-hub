@@ -1,0 +1,68 @@
+# Render blueprint for Kajota Witness.
+#
+# Provisions a single web service:
+#   - Node 22 runtime
+#   - npm install + tsx-run (no compile step; tsx handles TS at runtime)
+#   - Auto-deploys from main branch on push
+#
+# Provision flow:
+#   1. https://dashboard.render.com → New → Blueprint
+#   2. Pick this repo + branch=main
+#   3. Render reads this file, creates the service
+#   4. Paste the four secret env vars (marked `sync: false` below)
+#      via the Render dashboard — they're NOT stored in this YAML
+#   5. First deploy takes ~3-5 min (npm install + cold-start embed model download)
+#
+# WALLET ROTATION REMINDER: WITNESS_DEPLOYER_PK must be a fresh wallet
+# not previously pasted in chat or committed anywhere. The deployed
+# WitnessAnchor contract is permissionless (anyone can call `anchor()`),
+# so any 0G-funded wallet works.
+#
+services:
+  - type: web
+    name: kajota-witness
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: npm install --include=dev && npx tsc --noEmit
+    startCommand: npm run start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+
+      - key: PORT
+        value: "4022"
+
+      # 0G Galileo testnet — public dev endpoints, safe to commit.
+      - key: ZG_RPC_URL
+        value: https://evmrpc-testnet.0g.ai
+      - key: ZG_INDEXER_URL
+        value: https://indexer-storage-testnet-turbo.0g.ai
+
+      # Already-deployed WitnessAnchor contract on 0G Galileo.
+      # If you re-deploy the contract, update this value in the
+      # Render dashboard (don't change here without re-deploy).
+      - key: WITNESS_ANCHOR_ADDRESS
+        value: "0x2f1D3a881cfbeA01Cf55f3cAd125aA32Bf8cEC94"
+
+      # Optional: where to persist the local embedding index. Render's
+      # disk is ephemeral on the free tier so this resets on every
+      # cold start. Acceptable for hackathon demo — judges write fresh
+      # chats via the UI and they land on 0G regardless.
+      - key: INDEX_PATH
+        value: ./data/index.json
+
+      # SECRETS — paste these in the Render UI after the service
+      # provisions. Render encrypts at rest; never commit values here.
+
+      # Fresh-rotated wallet PK with testnet 0G balance.
+      # Faucet: https://faucet.0g.ai (0.1 0G/day per address)
+      - key: WITNESS_DEPLOYER_PK
+        sync: false
+
+      # Groq API key (free tier). https://console.groq.com/keys
+      - key: GROQ_API_KEY
+        sync: false

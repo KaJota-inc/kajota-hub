@@ -1,0 +1,20 @@
+{
+  "_note": "Template ASP service manifest for `onchainos agent create --role asp --service '[...]'`. Fill the endpoint field with the live Render URL of the Coach service on `hackathon/okx-asp` before running the CLI. `serviceName` and `serviceDescription` are what appears in the OKX.AI marketplace listing.",
+  "services": [
+    {
+      "serviceName": "Kajota Coach — Premium Insight",
+      "serviceDescription": "Agent Service Provider that generates paid, deep-dive purchase insights over a user's shopping history and wishlist. Powered by a Gemini 2.5 Pro agent running on Google ADK with MongoDB and Fetch MCP tools. Every call settles a $0.01 USDC micropayment via x402 on XLayer — no wallet popup, no human sign-off. Discoverable as an A2MCP ASP; a companion A2A escrow flow is available for larger, negotiated deals.",
+      "serviceType": "A2MCP",
+      "fee": "0.01",
+      "endpoint": "https://kajota-coach-okx.onrender.com/coach/premium"
+    },
+    {
+      "_note": "Optional second service — A2A escrow flow via the Mesh SKILL. Uncomment once mesh contracts are live on XLayer (deployments/195.json) and the skill is deployed on Render.",
+      "serviceName": "Kajota Mesh — A2A Escrow",
+      "serviceDescription": "Companion escrow service for A2A deals surfaced via Coach. Locks buyer USDC in an on-chain CosellEscrow on XLayer, releases to the seller on proof of delivery, refunds otherwise. Same bytecode also live on Ethereum Sepolia and Arbitrum Sepolia for judges to inspect. release/refund is executed by a service-held authority key so the buyer wallet only signs the initial deposit.",
+      "serviceType": "A2A",
+      "fee": "0.00",
+      "endpoint": "https://kajota-mesh-okx.onrender.com/"
+    }
+  ]
+}

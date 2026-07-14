@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# venv
+.venv/
+venv/
+env/
+
+# Env files — agent-local copies live here. Real values stay out of git;
+# the templates live in the repo root (.env.rapid-agent.example).
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Node — when npx caches the MongoDB MCP server during dev
+node_modules/
+.npm/

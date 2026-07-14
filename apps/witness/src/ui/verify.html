@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Kajota Witness · Verify</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .mono, .cid { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .cid { font-size: 0.78rem; word-break: break-all; }
+  .pulse { animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.45 } }
+  .check { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; }
+  .check-ok { color: #047857; }
+  .check-fail { color: #be123c; }
+  .check-pending { color: #a8a29e; }
+  .ruling-refund_buyer { background: rgba(244,63,94,0.12); color: #be123c; border-color: #f43f5e; }
+  .ruling-release_to_seller { background: rgba(16,185,129,0.12); color: #047857; border-color: #10b981; }
+  .ruling-split_50_50 { background: rgba(245,158,11,0.12); color: #b45309; border-color: #f59e0b; }
+  .ruling-escalate_to_human { background: rgba(100,116,139,0.12); color: #475569; border-color: #64748b; }
+</style>
+</head>
+<body class="bg-stone-50 text-stone-900 min-h-screen">
+
+<header class="border-b border-stone-200 bg-white">
+  <div class="max-w-4xl mx-auto px-6 py-5 flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded bg-gradient-to-br from-indigo-500 to-emerald-500 flex items-center justify-center text-white font-bold">⌖</div>
+        <h1 class="text-xl font-semibold tracking-tight">Witness · Verify</h1>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">0G Galileo</span>
+      </div>
+      <p class="text-sm text-stone-500 mt-1">Cross-check any 0G Storage CID against the on-chain anchor — no server trust required.</p>
+    </div>
+    <a href="/ui" class="text-sm text-stone-500 hover:text-amber-600">← back to demo</a>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-6 py-8">
+
+  <section>
+    <form id="verify-form" class="bg-white border border-stone-200 rounded-lg p-4 shadow-sm">
+      <label class="block text-xs font-medium text-stone-600 mb-1">Paste a 0G CID (chat blob OR verdict blob — 0x + 64 hex chars)</label>
+      <div class="flex gap-2">
+        <input id="cid-input" required pattern="0x[0-9a-fA-F]{64}" class="flex-1 px-3 py-2 border border-stone-300 rounded text-sm mono focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="0x..." />
+        <button type="submit" id="verify-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded shadow-sm">Verify ↓</button>
+      </div>
+      <div class="mt-2 flex flex-wrap gap-1 text-[10px]">
+        <span class="text-stone-400 self-center mr-1">try one of our:</span>
+        <button type="button" data-fill="0x2911e0ec6405974bf3f626194ad8a50cfd31528fdd82e79141cd36cd6634dcff" class="px-2 py-0.5 bg-stone-100 hover:bg-amber-100 rounded mono text-stone-600">wedding-shoes chat</button>
+        <button type="button" data-fill="0xaf6e55e03d2b4d50b7b92e4ecd41207f3e9ce7a533feede3164409dbe79a43c9" class="px-2 py-0.5 bg-stone-100 hover:bg-amber-100 rounded mono text-stone-600">red-bag chat</button>
+        <button type="button" data-fill="0x4ad25660d1cec586b821d302aff42a8ef1b41af652753d457683f5a5ae81fd34" class="px-2 py-0.5 bg-stone-100 hover:bg-amber-100 rounded mono text-stone-600">verdict (red-bag)</button>
+      </div>
+    </form>
+
+    <div id="verify-result" class="mt-6"></div>
+  </section>
+
+  <section class="mt-12 text-xs text-stone-400">
+    <h3 class="text-sm font-semibold text-stone-600 mb-2">How verification works</h3>
+    <ol class="list-decimal list-inside space-y-1">
+      <li><strong>0G Storage check</strong> — we attempt to download the blob from the 0G storage nodes. Bytes-back = the CID exists permanently on chain, independent of our server.</li>
+      <li><strong>Local index match</strong> — our server records summaries + decryption keys; this shows what we recorded about this CID.</li>
+      <li><strong>0G Chain anchor</strong> (verdicts only) — we call the WitnessAnchor contract's <code class="mono">getVerdict(disputeId)</code>; the on-chain root hash must byte-match the CID you pasted.</li>
+      <li><strong>Decrypt</strong> (verdicts &amp; chats in our index) — we decrypt the downloaded blob using the local key and show the original content.</li>
+    </ol>
+    <p class="mt-2">If a third party stood up their own Witness server, only steps 1 and 3 would apply (no local key) — but those two alone prove "the verdict that was published is byte-identical to the blob anyone can fetch from 0G."</p>
+  </section>
+</main>
+
+<footer class="border-t border-stone-200 mt-8 py-6 text-center text-xs text-stone-400">
+  <a href="https://github.com/KaJota-inc/kajota-witness" target="_blank" class="hover:text-indigo-600">KaJota-inc/kajota-witness</a>
+  · 0G Zero Cup 2026
+</footer>
+
+<script>
+const RULING_LABELS = {
+  refund_buyer: '⚖ Refund the buyer',
+  release_to_seller: '⚖ Release to seller',
+  split_50_50: '⚖ Split 50/50',
+  escalate_to_human: '⚖ Escalate to human',
+}
+
+function shortCid(c) { return c ? c.slice(0, 16) + '…' + c.slice(-4) : '' }
+function fmtTs(ts) { return new Date(typeof ts === 'number' && ts < 1e12 ? ts * 1000 : ts).toLocaleString() }
+
+document.querySelectorAll('[data-fill]').forEach((b) => {
+  b.addEventListener('click', () => { document.getElementById('cid-input').value = b.dataset.fill })
+})
+
+document.getElementById('verify-form').addEventListener('submit', async (e) => {
+  e.preventDefault()
+  const cid = document.getElementById('cid-input').value.trim()
+  const btn = document.getElementById('verify-btn')
+  const out = document.getElementById('verify-result')
+  btn.disabled = true; btn.classList.add('opacity-60')
+  out.innerHTML = `<div class="bg-white border border-stone-200 rounded-lg p-6 text-sm text-stone-600 pulse">
+    <div>Step 1/3 · pulling from 0G Storage…</div>
+    <div>Step 2/3 · matching against local index…</div>
+    <div>Step 3/3 · cross-checking on-chain anchor…</div>
+  </div>`
+  try {
+    const r = await fetch('/verify/' + cid)
+    if (!r.ok) {
+      const err = await r.text()
+      throw new Error(`${r.status}: ${err}`)
+    }
+    const j = await r.json()
+    out.innerHTML = renderResult(j)
+  } catch (err) {
+    out.innerHTML = `<div class="text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded p-3">Error: ${err.message}</div>`
+  } finally {
+    btn.disabled = false; btn.classList.remove('opacity-60')
+  }
+})
+
+function renderResult(j) {
+  const storage = j.storage
+  const local = j.local
+  const chain = j.chain
+  const decrypted = j.decrypted
+
+  const storageBlock = `
+    <div class="bg-white border border-stone-200 rounded-lg p-4 shadow-sm">
+      <div class="flex items-center justify-between mb-1">
+        <h3 class="text-sm font-semibold">0G Storage</h3>
+        <a href="${j.storageScanUrl}" target="_blank" class="text-xs text-indigo-600 hover:underline">storagescan ↗</a>
+      </div>
+      <div class="check ${storage.exists ? 'check-ok' : 'check-fail'}">
+        ${storage.exists ? '✓' : '✗'}
+        <span>${storage.exists ? `Blob present on 0G — ${storage.bytes} bytes downloaded` : `Not found: ${storage.error ?? 'unknown error'}`}</span>
+      </div>
+      <div class="cid text-stone-500 mt-1">${j.cid}</div>
+    </div>`
+
+  const localBlock = local ? `
+    <div class="bg-white border border-stone-200 rounded-lg p-4 shadow-sm mt-3">
+      <div class="flex items-center justify-between mb-1">
+        <h3 class="text-sm font-semibold">Local index match</h3>
+        <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-stone-100 text-stone-600">${local.kind}</span>
+      </div>
+      <div class="check check-ok">✓ <span>Recorded by this Witness instance</span></div>
+      <dl class="text-xs grid grid-cols-3 gap-x-3 gap-y-1 mt-2">
+        <dt class="text-stone-400">Seller</dt><dd class="col-span-2 mono">${local.sellerId}</dd>
+        <dt class="text-stone-400">Recorded</dt><dd class="col-span-2">${fmtTs(local.ts)}</dd>
+        <dt class="text-stone-400">Summary</dt><dd class="col-span-2 text-stone-700">${local.summary ?? ''}</dd>
+        ${local.ruling ? `<dt class="text-stone-400">Ruling</dt><dd class="col-span-2"><span class="inline-block px-2 py-0.5 rounded ruling-${local.ruling} text-xs font-semibold">${RULING_LABELS[local.ruling] || local.ruling}</span> · ${Math.round((local.confidence ?? 0) * 100)}%</dd>` : ''}
+      </dl>
+    </div>` : `
+    <div class="bg-white border border-dashed border-stone-200 rounded-lg p-4 mt-3 text-sm text-stone-500">
+      Not in this Witness instance's local index. The blob still exists on 0G if Storage check passed — try the same CID against the originating Witness server for decryption.
+    </div>`
+
+  const chainBlock = chain ? `
+    <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4 shadow-sm mt-3">
+      <div class="flex items-center justify-between mb-1">
+        <h3 class="text-sm font-semibold text-indigo-900">0G Chain anchor</h3>
+        <span class="text-xs text-indigo-700">WitnessAnchor contract</span>
+      </div>
+      <div class="check ${chain.matchesStorageCid ? 'check-ok' : 'check-fail'}">
+        ${chain.matchesStorageCid ? '✓' : '✗'}
+        <span>${chain.matchesStorageCid ? 'On-chain verdictRoot is byte-identical to your CID' : 'MISMATCH — on-chain verdictRoot differs from your CID'}</span>
+      </div>
+      <dl class="text-xs grid grid-cols-3 gap-x-3 gap-y-1 mt-2">
+        <dt class="text-indigo-700">Ruling</dt><dd class="col-span-2"><span class="inline-block px-2 py-0.5 rounded ruling-${chain.ruling} text-xs font-semibold">${RULING_LABELS[chain.ruling] || chain.ruling}</span> · ${chain.confidenceBps / 100}%</dd>
+        <dt class="text-indigo-700">Anchored at</dt><dd class="col-span-2">${fmtTs(chain.ts)}</dd>
+        <dt class="text-indigo-700">Anchored by</dt><dd class="col-span-2 mono text-[11px]">${chain.anchoredBy}</dd>
+        <dt class="text-indigo-700">Contract</dt><dd class="col-span-2 mono text-[11px]"><a href="${chain.chainScanUrl}" target="_blank" class="text-indigo-700 hover:underline">${chain.contractAddress}</a></dd>
+      </dl>
+    </div>` : (local && local.kind === 'verdict' ? `
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-3 text-sm text-amber-800">
+      ⚠ Verdict recorded locally but not found on-chain. Either WITNESS_ANCHOR_ADDRESS isn't set, or the anchor tx failed.
+    </div>` : '')
+
+  const decBlock = decrypted ? `
+    <div class="bg-white border border-stone-200 rounded-lg p-4 shadow-sm mt-3">
+      <h3 class="text-sm font-semibold mb-2">Decrypted content</h3>
+      <pre class="text-[11px] bg-stone-50 border border-stone-200 rounded p-3 overflow-x-auto mono">${escape(JSON.stringify(decrypted, null, 2))}</pre>
+    </div>` : ''
+
+  return storageBlock + localBlock + chainBlock + decBlock
+}
+
+function escape(s) {
+  return String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
+}
+</script>
+</body>
+</html>

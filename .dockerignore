@@ -1,0 +1,12 @@
+**/.git
+**/node_modules
+**/.venv
+**/__pycache__
+**/*.pyc
+**/*.egg-info
+**/dist
+**/build
+**/.env
+**/.env.*
+scripts/vendor.sh
+README.md

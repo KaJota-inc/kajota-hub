@@ -1,0 +1,16 @@
+{
+  "contract": "BondedWitnessAnchor",
+  "address": "0x9AB71BAA32d91661aA6c35dFdba7F68c030456b2",
+  "txHash": "0x8343a88ce621a29f7978476b0dbc7b9855d5a126b1b52cdba3c383c30b8be28d",
+  "chainId": 5042002,
+  "rpcUrl": "https://rpc.testnet.arc.network",
+  "usdc": "0x3600000000000000000000000000000000000000",
+  "treasury": "0x3BB538d5Aa482b82d583fc0c025B271E7925EB34",
+  "deployer": "0x3BB538d5Aa482b82d583fc0c025B271E7925EB34",
+  "deployElapsedMs": 5970,
+  "bytecodeSize": 5287,
+  "solcVersion": "0.8.35+commit.47b9dedd.Emscripten.clang",
+  "deployedAt": "2026-07-05T22:41:53.191Z",
+  "arcscanUrl": "https://testnet.arcscan.app/address/0x9AB71BAA32d91661aA6c35dFdba7F68c030456b2",
+  "txUrl": "https://testnet.arcscan.app/tx/0x8343a88ce621a29f7978476b0dbc7b9855d5a126b1b52cdba3c383c30b8be28d"
+}

@@ -1,0 +1,17 @@
+{
+  "name": "kajota-coach-x402-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Casper x402 client signer for KaJota Coach's /coach/premium endpoint",
+  "scripts": {
+    "pay": "node x402_client.mjs",
+    "bridge": "node x402_signer_bridge.mjs"
+  },
+  "dependencies": {
+    "@make-software/casper-x402": "^1.0.0",
+    "@x402/fetch": "^2.14.0",
+    "casper-js-sdk": "^5.0.10",
+    "dotenv": "^16.4.7"
+  }
+}

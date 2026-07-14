@@ -1,0 +1,78 @@
+{
+  "id": "kajota:mesh-escrow-skill-v1",
+  "agent_name": "urn:agent:kajota:MeshEscrow",
+  "label": "KaJota Mesh Escrow",
+  "description": "On-chain USDC escrow for AI agents on Ethereum Sepolia. Lock funds against a listing, release on proof of delivery, or refund. No wallet keys required on the calling agent's side.",
+  "version": "0.1.0",
+  "documentation_url": "https://github.com/KaJota-inc/kajota-coach/blob/hackathon/nanda-mesh-skill/skill/SKILL.md",
+  "jurisdiction": "Internet",
+  "provider": {
+    "name": "KaJota, Inc.",
+    "url": "https://kajota.com"
+  },
+  "endpoints": {
+    "static": [
+      "https://kajota-mesh-skill.onrender.com"
+    ]
+  },
+  "capabilities": {
+    "modalities": ["text"],
+    "streaming": false,
+    "batch": false,
+    "authentication": {
+      "methods": ["none"],
+      "required_scopes": []
+    }
+  },
+  "skills": [
+    {
+      "id": "escrow.quote",
+      "label": "Convert USD to USDC base units",
+      "description": "Pure compute: convert a human-readable USD amount into USDC base units (6 decimals).",
+      "languages": ["en"],
+      "input_modes": ["text"],
+      "output_modes": ["text"]
+    },
+    {
+      "id": "escrow.deposit.lookup",
+      "label": "Read deposit state",
+      "description": "Read the on-chain state for a deposit by id (status, amounts, buyer, seller).",
+      "languages": ["en"],
+      "input_modes": ["text"],
+      "output_modes": ["text"]
+    },
+    {
+      "id": "escrow.release",
+      "label": "Release escrow to seller",
+      "description": "Release escrowed USDC to the seller. Authorised by the service wallet matching the deployed escrow's releaseAuth.",
+      "languages": ["en"],
+      "input_modes": ["text"],
+      "output_modes": ["text"]
+    },
+    {
+      "id": "escrow.refund",
+      "label": "Refund escrow to buyer",
+      "description": "Refund escrowed USDC to the buyer. Authorised by the service wallet.",
+      "languages": ["en"],
+      "input_modes": ["text"],
+      "output_modes": ["text"]
+    }
+  ],
+  "stack": {
+    "chain": "Ethereum Sepolia",
+    "chain_id": 11155111,
+    "usdc": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+    "cosell_registry": "0xfce6bd68d8d6f858d447f537d206c1e354b44315",
+    "cosell_escrow": "0x599869cef2e4c52e2c9074caaf8f9fb0cb191776"
+  },
+  "telemetry": {
+    "metrics": ["health"],
+    "sampling": "always"
+  },
+  "certification": {
+    "level": "self-attested",
+    "issuer": "KaJota, Inc.",
+    "valid_from": "2026-06-14",
+    "valid_to": "2026-12-31"
+  }
+}

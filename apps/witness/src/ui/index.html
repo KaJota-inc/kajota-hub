@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Kajota Witness</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .cid { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.78rem; }
+  .pulse { animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.45 } }
+  .juror-card { border-left: 3px solid; }
+  .juror-prosecutor { border-color: #f43f5e; background: rgba(244,63,94,0.05); }
+  .juror-defender { border-color: #10b981; background: rgba(16,185,129,0.05); }
+  .juror-neutral { border-color: #64748b; background: rgba(100,116,139,0.05); }
+  .ruling-refund_buyer { background: rgba(244,63,94,0.12); color: #be123c; border-color: #f43f5e; }
+  .ruling-release_to_seller { background: rgba(16,185,129,0.12); color: #047857; border-color: #10b981; }
+  .ruling-split_50_50 { background: rgba(245,158,11,0.12); color: #b45309; border-color: #f59e0b; }
+  .ruling-escalate_to_human { background: rgba(100,116,139,0.12); color: #475569; border-color: #64748b; }
+  .preset-btn { font-size: 0.65rem; padding: 0.15rem 0.4rem; border: 1px solid #e7e5e4; border-radius: 4px; background: #fafaf9; color: #57534e; cursor: pointer; transition: all 0.15s; }
+  .preset-btn:hover { background: #fef3c7; border-color: #fbbf24; color: #92400e; }
+  .stage-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0; font-size: 0.75rem; }
+  .stage-pending { color: #a8a29e; }
+  .stage-active { color: #b45309; font-weight: 600; }
+  .stage-done { color: #047857; }
+  .stage-dot { width: 0.625rem; height: 0.625rem; border-radius: 9999px; flex-shrink: 0; }
+  .stage-dot-pending { background: #e7e5e4; }
+  .stage-dot-active { background: #f59e0b; animation: pulse 1.2s ease-in-out infinite; }
+  .stage-dot-done { background: #10b981; }
+</style>
+</head>
+<body class="bg-stone-50 text-stone-900 min-h-screen">
+
+<header class="border-b border-stone-200 bg-white">
+  <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+    <div>
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded bg-gradient-to-br from-amber-500 to-rose-500 flex items-center justify-center text-white font-bold">W</div>
+        <h1 class="text-xl font-semibold tracking-tight">Kajota Witness</h1>
+        <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-medium">0G Galileo · chainId 16602</span>
+      </div>
+      <p class="text-sm text-stone-500 mt-1">Encrypted seller memory + AI jury for African micro-commerce disputes.</p>
+    </div>
+    <div class="text-right text-xs text-stone-400">
+      <a href="/verify" class="inline-block px-3 py-1.5 mb-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium rounded border border-indigo-200">Verify any CID →</a>
+      <div class="mono"><a href="https://storagescan-galileo.0g.ai" target="_blank" class="hover:text-amber-600">storagescan-galileo.0g.ai</a></div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+  <!-- LEFT: MEMORY -->
+  <section>
+    <div class="flex items-baseline justify-between mb-3">
+      <h2 class="text-lg font-semibold flex items-center gap-2">
+        <span class="text-amber-600 font-bold">1</span>
+        Memory <span class="text-stone-400 text-sm font-normal">— encrypted chats on 0G</span>
+      </h2>
+      <span id="chat-count" class="text-xs text-stone-500"></span>
+    </div>
+    <details class="bg-white border border-stone-200 rounded-lg mb-3 group">
+      <summary class="cursor-pointer px-3 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50 rounded-lg list-none flex items-center gap-2">
+        <span class="text-amber-600 text-base group-open:rotate-45 transition-transform">+</span>
+        Seed a new conversation
+        <span class="text-xs text-stone-400 ml-auto">~20s · writes to 0G</span>
+      </summary>
+      <form id="seed-form" class="px-3 pb-3 pt-1 space-y-2 border-t border-stone-100">
+        <div class="flex flex-wrap gap-1 pb-1">
+          <span class="text-[10px] uppercase font-semibold text-stone-400 self-center mr-1">presets:</span>
+          <button type="button" data-preset="sandals" class="preset-btn">sandals haggling</button>
+          <button type="button" data-preset="returns" class="preset-btn">return policy</button>
+          <button type="button" data-preset="delivery" class="preset-btn">delivery dispute</button>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] uppercase font-semibold text-stone-500 mb-0.5">Seller</label>
+            <input id="s-seller" required value="seller-amaka-fashion" class="w-full px-2 py-1 border border-stone-300 rounded text-xs mono focus:outline-none focus:ring-1 focus:ring-amber-500" />
+          </div>
+          <div>
+            <label class="block text-[10px] uppercase font-semibold text-stone-500 mb-0.5">Buyer</label>
+            <input id="s-buyer" value="buyer-tunde" class="w-full px-2 py-1 border border-stone-300 rounded text-xs mono focus:outline-none focus:ring-1 focus:ring-amber-500" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-semibold text-stone-500 mb-0.5">Topic <span class="text-stone-400 normal-case">(kebab-case)</span></label>
+          <input id="s-topic" placeholder="e.g. refund-discussion" class="w-full px-2 py-1 border border-stone-300 rounded text-xs mono focus:outline-none focus:ring-1 focus:ring-amber-500" />
+        </div>
+        <div>
+          <label class="block text-[10px] uppercase font-semibold text-stone-500 mb-0.5">Messages <span class="text-stone-400 normal-case">(one per line, format: <code class="mono">role: text</code>)</span></label>
+          <textarea id="s-messages" rows="4" required class="w-full px-2 py-1 border border-stone-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-amber-500" placeholder="buyer: Hi, do you still have the red bag?
+seller: Yes, ₦8,500.
+buyer: Can you do ₦7k?
+seller: ₦7.5k flat."></textarea>
+        </div>
+        <div class="flex items-center justify-between">
+          <span id="seed-status" class="text-xs text-stone-500"></span>
+          <button type="submit" id="seed-btn" class="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded">Save to 0G →</button>
+        </div>
+      </form>
+    </details>
+
+    <div id="chats" class="space-y-2"></div>
+    <p class="mt-3 text-xs text-stone-400">
+      Each card represents an end-to-end encrypted conversation blob. Click the CID to verify it on 0G storagescan.
+    </p>
+  </section>
+
+  <!-- RIGHT: COURT -->
+  <section>
+    <div class="flex items-baseline justify-between mb-3">
+      <h2 class="text-lg font-semibold flex items-center gap-2">
+        <span class="text-amber-600 font-bold">2</span>
+        Court <span class="text-stone-400 text-sm font-normal">— file a dispute</span>
+      </h2>
+    </div>
+
+    <form id="dispute-form" class="bg-white border border-stone-200 rounded-lg p-4 space-y-3 shadow-sm">
+      <div>
+        <label class="block text-xs font-medium text-stone-600 mb-1">Seller</label>
+        <input id="f-seller" name="sellerId" required value="seller-amaka-fashion"
+          class="w-full px-3 py-1.5 border border-stone-300 rounded text-sm mono focus:outline-none focus:ring-2 focus:ring-amber-500" />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-stone-600 mb-1">Buyer <span class="text-stone-400">(optional)</span></label>
+        <input id="f-buyer" name="buyerId" value="buyer-tunde"
+          class="w-full px-3 py-1.5 border border-stone-300 rounded text-sm mono focus:outline-none focus:ring-2 focus:ring-amber-500" />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-stone-600 mb-1">Buyer's claim</label>
+        <textarea id="f-claim" name="claim" required rows="3"
+          class="w-full px-3 py-1.5 border border-stone-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          placeholder="e.g. I ordered 6 pairs of wedding heels but only received 4."></textarea>
+      </div>
+      <div class="flex items-center justify-between">
+        <p class="text-xs text-stone-400">3 LLM jurors deliberate · verdict anchored on 0G</p>
+        <button type="submit" id="submit-btn"
+          class="px-4 py-2 bg-gradient-to-br from-amber-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white text-sm font-semibold rounded shadow-sm">
+          Convene jury →
+        </button>
+      </div>
+    </form>
+
+    <div id="dispute-status" class="mt-4"></div>
+    <div id="verdict-card" class="mt-4"></div>
+  </section>
+</main>
+
+<!-- PAST VERDICTS -->
+<section class="max-w-6xl mx-auto px-6 pb-12">
+  <h2 class="text-lg font-semibold mb-3 flex items-center gap-2">
+    <span class="text-amber-600 font-bold">3</span>
+    Past verdicts <span class="text-stone-400 text-sm font-normal">— anchored on 0G</span>
+  </h2>
+  <div id="verdicts" class="space-y-2"></div>
+</section>
+
+<footer class="border-t border-stone-200 mt-8 py-6 text-center text-xs text-stone-400">
+  <a href="https://github.com/KaJota-inc/kajota-witness" target="_blank" class="hover:text-amber-600">KaJota-inc/kajota-witness</a>
+  · 0G Zero Cup 2026
+  · built in 36 hours
+</footer>
+
+<script>
+const RULING_LABELS = {
+  refund_buyer: '⚖ Refund the buyer',
+  release_to_seller: '⚖ Release to seller',
+  split_50_50: '⚖ Split 50/50',
+  escalate_to_human: '⚖ Escalate to human',
+}
+
+function shortCid(c) { return c ? c.slice(0, 16) + '…' + c.slice(-4) : '' }
+function fmtTs(ts) { return new Date(ts).toLocaleString() }
+function scanUrl(cid) { return 'https://storagescan-galileo.0g.ai/tx/' + cid }
+
+function chatCard(e) {
+  const topicMatch = (e.summary || '').match(/^\[(.+?)\]/)
+  const topic = topicMatch ? topicMatch[1] : ''
+  const rest = (e.summary || '').replace(/^\[.+?\]\s*/, '')
+  return `
+    <div class="bg-white border border-stone-200 rounded-lg p-3 shadow-sm hover:border-amber-300 transition">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0 flex-1">
+          ${topic ? `<div class="text-[10px] uppercase tracking-wider text-amber-600 font-semibold">${topic.replace(/-/g, ' ')}</div>` : ''}
+          <div class="text-sm text-stone-700 truncate">${rest}</div>
+          <div class="text-xs text-stone-400 mt-1">${fmtTs(e.ts)}</div>
+        </div>
+        <a href="${e.storageScanUrl}" target="_blank" rel="noopener" class="cid text-amber-600 hover:text-amber-700 shrink-0" title="${e.cid}">${shortCid(e.cid)}</a>
+      </div>
+    </div>`
+}
+
+function verdictCard(v, onChain, evidence, timings) {
+  const r = v.ruling
+  const label = RULING_LABELS[r] || r
+  const conf = Math.round((v.confidence ?? 0) * 100)
+  const jurorBlock = (j) => {
+    const cls = j.juror === 'prosecutor' ? 'juror-prosecutor' : j.juror === 'defender' ? 'juror-defender' : 'juror-neutral'
+    return `
+      <div class="juror-card ${cls} p-3 rounded">
+        <div class="flex items-center justify-between mb-1">
+          <div class="text-xs font-semibold uppercase tracking-wider">${j.juror}</div>
+          <div class="text-[10px] text-stone-500">leans <span class="font-semibold">${j.leansToward}</span></div>
+        </div>
+        <p class="text-xs text-stone-700 leading-relaxed">${j.argument}</p>
+      </div>`
+  }
+  const evBlock = (e) => `
+    <a href="${e.storageScanUrl}" target="_blank" class="block bg-stone-50 hover:bg-amber-50 border border-stone-200 rounded p-2 text-xs">
+      <div class="cid text-amber-600">${shortCid(e.cid)}</div>
+      <div class="text-stone-600 truncate">${e.summary || ''}</div>
+    </a>`
+
+  return `
+    <div class="bg-white border border-stone-200 rounded-lg shadow-sm overflow-hidden">
+      <div class="ruling-${r} px-4 py-3 border-b-2 flex items-center justify-between">
+        <div class="text-base font-bold">${label}</div>
+        <div class="text-xs">${conf}% confident · jury ${timings.juryMs}ms · evidence ${timings.evidenceMs}ms</div>
+      </div>
+      <div class="p-4 space-y-4">
+        <div>
+          <div class="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-1">Reasoning</div>
+          <p class="text-sm text-stone-700 leading-relaxed">${v.reasoning}</p>
+        </div>
+        <div>
+          <div class="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-2">Jury</div>
+          <div class="grid gap-2">${v.jury.map(jurorBlock).join('')}</div>
+        </div>
+        <div>
+          <div class="text-xs font-semibold uppercase tracking-wider text-stone-500 mb-2">Evidence pulled from 0G</div>
+          <div class="grid gap-1">${evidence.map(evBlock).join('')}</div>
+        </div>
+        <div class="bg-emerald-50 border border-emerald-200 rounded p-3">
+          <div class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Verdict blob on 0G Storage</div>
+          <a href="${onChain.verdictStorageScanUrl}" target="_blank" class="cid text-emerald-700 hover:text-emerald-800 break-all">${onChain.verdictCid}</a>
+          <div class="text-[11px] text-emerald-600 mt-1">storage tx: <a href="${onChain.verdictChainScanUrl}" target="_blank" class="hover:underline cid">${shortCid(onChain.verdictTxHash)}</a> · wrote in ${timings.verdictWriteMs}ms</div>
+        </div>
+        ${onChain.chainAnchor ? `
+        <div class="bg-indigo-50 border border-indigo-200 rounded p-3">
+          <div class="text-xs font-semibold uppercase tracking-wider text-indigo-700 mb-1">Verdict anchored on 0G Chain</div>
+          <div class="text-[11px] text-indigo-600">contract <a href="https://chainscan-galileo.0g.ai/address/${onChain.chainAnchor.contractAddress ?? ''}" target="_blank" class="hover:underline cid">WitnessAnchor</a> · block ${onChain.chainAnchor.blockNumber ?? '?'} · ${timings.anchorMs ?? 0}ms</div>
+          <a href="${onChain.chainAnchor.chainScanUrl}" target="_blank" class="cid text-indigo-700 hover:text-indigo-800 break-all">${onChain.chainAnchor.txHash}</a>
+          <div class="text-[10px] text-indigo-500 mt-1 cid">disputeId: ${shortCid(onChain.chainAnchor.disputeId)}</div>
+        </div>` : ''}
+      </div>
+    </div>`
+}
+
+function pastVerdictCard(e) {
+  const r = e.ruling || 'unknown'
+  const label = RULING_LABELS[r] || r
+  const conf = Math.round((e.confidence ?? 0) * 100)
+  return `
+    <a href="${e.storageScanUrl}" target="_blank" class="block bg-white border border-stone-200 rounded p-3 hover:border-emerald-300 transition">
+      <div class="flex items-center justify-between gap-3">
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2">
+            <span class="text-xs px-2 py-0.5 rounded-full ruling-${r} font-semibold">${label}</span>
+            <span class="text-xs text-stone-400">${conf}%</span>
+          </div>
+          <div class="text-sm text-stone-700 truncate mt-1">${(e.summary || '').replace(/^\[verdict:[^\]]+\]\s*/, '')}</div>
+          <div class="text-xs text-stone-400">${fmtTs(e.ts)}</div>
+        </div>
+        <div class="cid text-emerald-600 shrink-0">${shortCid(e.cid)}</div>
+      </div>
+    </a>`
+}
+
+async function loadChats() {
+  const r = await fetch('/memory?kind=chat')
+  const j = await r.json()
+  const list = j.entries || []
+  document.getElementById('chat-count').textContent = `${list.length} chat${list.length === 1 ? '' : 's'}`
+  document.getElementById('chats').innerHTML = list.length
+    ? list.map(chatCard).join('')
+    : `<div class="text-sm text-stone-400 italic p-4 text-center bg-white border border-dashed border-stone-200 rounded">No chats yet. POST a ChatBlob to /memory to seed.</div>`
+}
+
+async function loadVerdicts() {
+  const r = await fetch('/memory?kind=verdict')
+  const j = await r.json()
+  const list = j.entries || []
+  document.getElementById('verdicts').innerHTML = list.length
+    ? list.map(pastVerdictCard).join('')
+    : `<div class="text-sm text-stone-400 italic p-4 text-center bg-white border border-dashed border-stone-200 rounded">No verdicts yet. File a dispute above to convene the jury.</div>`
+}
+
+const STAGES = [
+  { id: 'evidence', label: 'Pulling evidence from 0G',     after: 0 },
+  { id: 'jury',     label: 'Convening 3-LLM jury (Groq)',  after: 6500 },
+  { id: 'storage',  label: 'Writing verdict to 0G Storage', after: 8500 },
+  { id: 'anchor',   label: 'Anchoring on 0G Chain',         after: 22500 },
+]
+let stageTimers = []
+
+function renderStageProgress(current) {
+  return STAGES.map((s, i) => {
+    const state = i < current ? 'done' : i === current ? 'active' : 'pending'
+    return `<div class="stage-row stage-${state}">
+      <div class="stage-dot stage-dot-${state}"></div>
+      ${state === 'done' ? '<span>✓</span>' : '<span class="w-3"></span>'}
+      <span>${s.label}</span>
+    </div>`
+  }).join('')
+}
+
+function startStageProgress() {
+  const status = document.getElementById('dispute-status')
+  status.innerHTML = `<div class="bg-amber-50 border border-amber-200 rounded p-3">${renderStageProgress(0)}</div>`
+  for (const t of stageTimers) clearTimeout(t)
+  stageTimers = []
+  STAGES.forEach((s, i) => {
+    stageTimers.push(setTimeout(() => {
+      const el = document.getElementById('dispute-status')
+      if (el && el.querySelector('.stage-row')) {
+        el.innerHTML = `<div class="bg-amber-50 border border-amber-200 rounded p-3">${renderStageProgress(i)}</div>`
+      }
+    }, s.after))
+  })
+}
+
+function stopStageProgress() {
+  for (const t of stageTimers) clearTimeout(t)
+  stageTimers = []
+}
+
+document.getElementById('dispute-form').addEventListener('submit', async (e) => {
+  e.preventDefault()
+  const btn = document.getElementById('submit-btn')
+  const status = document.getElementById('dispute-status')
+  const card = document.getElementById('verdict-card')
+  card.innerHTML = ''
+  btn.disabled = true
+  btn.classList.add('opacity-60', 'cursor-not-allowed')
+  startStageProgress()
+  try {
+    const body = {
+      sellerId: document.getElementById('f-seller').value.trim(),
+      buyerId: document.getElementById('f-buyer').value.trim() || undefined,
+      claim: document.getElementById('f-claim').value.trim(),
+    }
+    const r = await fetch('/dispute', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!r.ok) {
+      const err = await r.text()
+      throw new Error(`${r.status}: ${err}`)
+    }
+    const j = await r.json()
+    stopStageProgress()
+    status.innerHTML = ''
+    card.innerHTML = verdictCard(j.verdict, j.onChain, j.evidence, j.timings)
+    loadVerdicts()
+  } catch (err) {
+    stopStageProgress()
+    status.innerHTML = `<div class="text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded p-3">Error: ${err.message}</div>`
+  } finally {
+    btn.disabled = false
+    btn.classList.remove('opacity-60', 'cursor-not-allowed')
+  }
+})
+
+function parseMessages(raw) {
+  const ROLES = new Set(['buyer', 'seller', 'agent'])
+  const messages = []
+  const errs = []
+  for (const [i, line] of raw.split('\n').entries()) {
+    const trimmed = line.trim()
+    if (!trimmed) continue
+    const m = trimmed.match(/^(\w+)\s*:\s*(.+)$/)
+    if (!m) { errs.push(`line ${i + 1}: missing "role: text" format`); continue }
+    const role = m[1].toLowerCase()
+    if (!ROLES.has(role)) { errs.push(`line ${i + 1}: role "${m[1]}" must be buyer|seller|agent`); continue }
+    messages.push({ role, text: m[2].trim() })
+  }
+  return { messages, errs }
+}
+
+document.getElementById('seed-form').addEventListener('submit', async (e) => {
+  e.preventDefault()
+  const btn = document.getElementById('seed-btn')
+  const status = document.getElementById('seed-status')
+  const raw = document.getElementById('s-messages').value
+  const { messages, errs } = parseMessages(raw)
+  if (errs.length) { status.innerHTML = `<span class="text-rose-600">${errs.join('; ')}</span>`; return }
+  if (messages.length === 0) { status.innerHTML = `<span class="text-rose-600">No messages parsed</span>`; return }
+
+  const body = {
+    kind: 'chat',
+    sellerId: document.getElementById('s-seller').value.trim(),
+    buyerId: document.getElementById('s-buyer').value.trim() || undefined,
+    topic: document.getElementById('s-topic').value.trim() || undefined,
+    ts: Date.now(),
+    messages,
+  }
+  btn.disabled = true; btn.classList.add('opacity-60', 'cursor-not-allowed')
+  status.innerHTML = `<span class="pulse text-amber-600">Encrypting · uploading to 0G…</span>`
+  try {
+    const r = await fetch('/memory', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!r.ok) {
+      const errText = await r.text()
+      throw new Error(`${r.status}: ${errText}`)
+    }
+    const j = await r.json()
+    status.innerHTML = `<a href="${j.storageScanUrl}" target="_blank" class="text-emerald-700 hover:underline mono">✓ ${j.cid.slice(0, 14)}… on 0G</a>`
+    document.getElementById('s-messages').value = ''
+    document.getElementById('s-topic').value = ''
+    loadChats()
+  } catch (err) {
+    status.innerHTML = `<span class="text-rose-600">Error: ${err.message}</span>`
+  } finally {
+    btn.disabled = false; btn.classList.remove('opacity-60', 'cursor-not-allowed')
+  }
+})
+
+const PRESETS = {
+  sandals: {
+    topic: 'sandals-haggling',
+    buyer: 'buyer-tunde',
+    messages: [
+      'buyer: Hi, do you have the leather sandals in size 39?',
+      'seller: Yes, ₦6,000 with same-day Lagos delivery.',
+      'buyer: Can you do ₦5k?',
+      'seller: ₦5.5k flat — that\'s my final.',
+      'buyer: OK deal. Sending now.',
+    ].join('\n'),
+  },
+  returns: {
+    topic: 'return-policy-question',
+    buyer: 'buyer-amina',
+    messages: [
+      'buyer: If the dress doesn\'t fit, can I return it?',
+      'seller: Returns within 48 hours, item must be unworn with tags. Buyer pays return shipping.',
+      'buyer: That works. Sending payment now.',
+      'seller: Got it. Will dispatch today.',
+    ].join('\n'),
+  },
+  delivery: {
+    topic: 'delivery-eta-promise',
+    buyer: 'buyer-femi',
+    messages: [
+      'buyer: I need this for Friday. Can you guarantee delivery?',
+      'seller: Yes, Thursday at the latest. GIG Logistics overnight.',
+      'buyer: Perfect. Confirmed.',
+      'seller: Tracking: GIG-CONFIRM-77241. Goes out today.',
+    ].join('\n'),
+  },
+}
+
+document.querySelectorAll('[data-preset]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const p = PRESETS[btn.dataset.preset]
+    if (!p) return
+    document.getElementById('s-buyer').value = p.buyer
+    document.getElementById('s-topic').value = p.topic
+    document.getElementById('s-messages').value = p.messages
+    document.getElementById('seed-status').innerHTML = '<span class="text-amber-600">↳ preset loaded — click Save to 0G</span>'
+  })
+})
+
+loadChats()
+loadVerdicts()
+</script>
+</body>
+</html>

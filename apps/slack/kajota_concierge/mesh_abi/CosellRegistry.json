@@ -1,0 +1,374 @@
+[
+  {
+    "inputs": [],
+    "name": "EmptyCurrency",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "EmptyProductId",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint16",
+        "name": "supplied",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "max",
+        "type": "uint16"
+      }
+    ],
+    "name": "InvalidCommissionBps",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidCoseller",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidWholesaler",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "listingId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ListingAlreadyExists",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "listingId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ListingNotActive",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "listingId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ListingNotFound",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "caller",
+        "type": "address"
+      }
+    ],
+    "name": "NotWholesaler",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "listingId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "by",
+        "type": "address"
+      }
+    ],
+    "name": "ListingDeactivated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "listingId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": true,
+        "internalType": "string",
+        "name": "productId",
+        "type": "string"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "wholesaler",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "coseller",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "commissionBps",
+        "type": "uint16"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "currency",
+        "type": "string"
+      }
+    ],
+    "name": "ListingRegistered",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "BPS_DENOMINATOR",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MAX_COMMISSION_BPS",
+    "outputs": [
+      {
+        "internalType": "uint16",
+        "name": "",
+        "type": "uint16"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "productId",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "wholesaler",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "coseller",
+        "type": "address"
+      }
+    ],
+    "name": "computeListingId",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "grossAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "listingId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "computeSplit",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "cosellerShare",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "wholesalerShare",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "listingId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "deactivate",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "listingId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getListing",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "productId",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "wholesaler",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "coseller",
+            "type": "address"
+          },
+          {
+            "internalType": "uint16",
+            "name": "commissionBps",
+            "type": "uint16"
+          },
+          {
+            "internalType": "string",
+            "name": "currency",
+            "type": "string"
+          },
+          {
+            "internalType": "uint64",
+            "name": "registeredAt",
+            "type": "uint64"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct CosellRegistry.Listing",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "coseller",
+        "type": "address"
+      }
+    ],
+    "name": "listingsForCoseller",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "productId",
+        "type": "string"
+      }
+    ],
+    "name": "listingsForProduct",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "productId",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "wholesaler",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "coseller",
+        "type": "address"
+      },
+      {
+        "internalType": "uint16",
+        "name": "commissionBps",
+        "type": "uint16"
+      },
+      {
+        "internalType": "string",
+        "name": "currency",
+        "type": "string"
+      }
+    ],
+    "name": "register",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "listingId",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

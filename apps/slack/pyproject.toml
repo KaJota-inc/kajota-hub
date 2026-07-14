@@ -1,0 +1,72 @@
+[project]
+name = "kajota-concierge-agent"
+version = "0.1.0"
+description = "KaJota Concierge — Rapid Agent hackathon submission (Gemini 3 + ADK + MongoDB MCP)"
+requires-python = ">=3.11"
+
+dependencies = [
+    # Google Agent Development Kit — the agent runtime + MCP client.
+    # Pinned to >=1.2 because McpToolset + StdioConnectionParams stabilised
+    # in that release per the ADK release notes.
+    "google-adk>=1.2.0",
+
+    # Vertex AI client for Gemini 3 inference. ADK uses this under the hood
+    # when GEMINI_USE_VERTEXAI=true; listed explicitly so a fresh
+    # `pip install` doesn't surprise us.
+    "google-cloud-aiplatform>=1.65.0",
+
+    # MCP Python SDK — used two ways:
+    #  1. StdioServerParameters to launch the MongoDB MCP + Fetch MCP
+    #     servers as subprocesses the agent talks to over stdio (client
+    #     role).
+    #  2. mcp.server.fastmcp.FastMCP + streamable_http_app() to expose
+    #     Kajota Coach's OWN capabilities as an MCP server under /mcp
+    #     on the FastAPI process (server role). Requires >=1.6 for the
+    #     streamable-http transport.
+    "mcp>=1.6.0",
+
+    # Anthropic's reference Fetch MCP server — the agent's second MCP
+    # partner. Launched as a Python module (`python -m mcp_server_fetch`)
+    # by the agent at boot; gives the agent a `fetch` tool over public
+    # HTTP(S). No auth.
+    "mcp-server-fetch>=2024.11.0",
+
+    # MongoDB driver — used by the seed script. The agent itself reaches
+    # MongoDB via the MCP server, not directly.
+    "pymongo>=4.10.0",
+
+    # FastAPI — wraps the agent as an HTTP server for the mobile coach
+    # to call. ADK also ships `adk web` for interactive dev; this is for
+    # the deployed Render service.
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "python-dotenv>=1.0.0",
+
+    # Slack transport — Bolt async SDK. Mounted inside the same FastAPI
+    # process; only activates when SLACK_BOT_TOKEN + SLACK_SIGNING_SECRET
+    # are both set. Bolt handles the URL-verification challenge, signing-
+    # secret verification, retries, and ack budgeting so the agent-turn
+    # coroutine only ever sees a validated payload.
+    "slack-bolt>=1.21.0",
+
+    # web3 + eth-account power the on-chain settlement path used by the
+    # /kajota pay Slack command. Talks to the Mesh CosellRegistry +
+    # CosellEscrow on Mantle Sepolia (chain 5003) by default; env vars
+    # override for Amoy or Ethereum Sepolia.
+    "web3>=7.5.0",
+    "eth-account>=0.13.0",
+]
+
+[project.scripts]
+# `kajota-agent` runs the FastAPI server; `kajota-agent-seed` seeds the
+# demo MongoDB collections.
+kajota-agent = "kajota_concierge.server:main"
+kajota-agent-seed = "kajota_concierge.seed:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["kajota_concierge*"]
