@@ -59,6 +59,18 @@ services:
       - { key: CONC_GOOGLE_CLOUD_LOCATION, value: global }
       - { key: CONC_PARTNER, value: mongodb }
       - { key: CONC_MONGODB_URI, sync: false }
+      # concierge (rapid-agent) settles x402 on Casper testnet
+      - { key: CONC_X402_FACILITATOR_URL, value: https://x402-facilitator.cspr.cloud }
+      - { key: CONC_X402_NETWORK, value: "casper:casper-test" }
+      - { key: CONC_X402_MAX_AMOUNT, value: "1000000" }
+      - { key: CONC_X402_PAY_TO, value: "000de60d3acb6caba35e66e90a62ebf2707a0e04286de203fb316179c1f2c9ed84" }
+      - { key: CONC_X402_ASSET, value: "354ca0ad7ef8c97a02b195a1f39e96908fd3bf20d6ec4255850d05f1784fb404" }
+      - { key: CONC_X402_ASSET_NAME, value: KaJota USD }
+      - { key: CONC_X402_ASSET_DECIMALS, value: "9" }
+      - { key: CONC_X402_FEE_PAYER, value: "81d557c9dcaadea97c34d79bf7b6af07aa9d760e5dd1aabf78a45fb39e072c3a" }
+      - { key: CONC_X402_FACILITATOR_API_KEY, sync: false }
+      - { key: CONC_CASPER_MCP_ENABLED, value: "0" }
+      - { key: CONC_COACH_BACKEND_URL, sync: false }
 
       # ---- slack -----------------------------------------------------
       - { key: SLK_GEMINI_MODEL, value: gemini-2.5-pro }
@@ -69,18 +81,23 @@ services:
       - { key: SLK_GOOGLE_CLOUD_LOCATION, value: global }
       - { key: SLK_PARTNER, value: mongodb }
       - { key: SLK_MONGODB_URI, sync: false }
+      - { key: SLK_COACH_BACKEND_URL, sync: false }
+      # BOTH token + signing secret are required or the Slack routes don't mount
       - { key: SLK_SLACK_BOT_TOKEN, sync: false }
+      - { key: SLK_SLACK_SIGNING_SECRET, sync: false }
+      - { key: SLK_MESH_CHAIN, value: mantle-sepolia }
+      - { key: SLK_MESH_RELAYER_PRIVATE_KEY, sync: false }
 
-      # ---- mesh-skill (rapid-agent) ----------------------------------
-      - { key: MSKL_MESH_RPC_URL, sync: false }
-      - { key: MSKL_MESH_CHAIN_ID, sync: false }
+      # ---- mesh-skill (rapid-agent, Sepolia) -------------------------
+      - { key: MSKL_MESH_CHAIN_ID, value: "11155111" }
       - { key: MSKL_MESH_DRY_RUN, value: "false" }
+      - { key: MSKL_MESH_RPC_URL, sync: false }
       - { key: MSKL_MESH_RELEASE_AUTH_KEY, sync: false }
 
       # ---- witness (unprefixed — no name collisions) -----------------
-      - { key: ZG_RPC_URL, sync: false }
-      - { key: ZG_INDEXER_URL, sync: false }
-      - { key: WITNESS_ANCHOR_ADDRESS, sync: false }
+      - { key: ZG_RPC_URL, value: https://evmrpc-testnet.0g.ai }
+      - { key: ZG_INDEXER_URL, value: https://indexer-storage-testnet-turbo.0g.ai }
+      - { key: WITNESS_ANCHOR_ADDRESS, value: "0x2f1D3a881cfbeA01Cf55f3cAd125aA32Bf8cEC94" }
+      - { key: INDEX_PATH, value: ./data/index.json }
       - { key: WITNESS_DEPLOYER_PK, sync: false }
       - { key: GROQ_API_KEY, sync: false }
-      - { key: INDEX_PATH, value: /srv/apps/witness/.witness-index }
