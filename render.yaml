@@ -9,7 +9,7 @@
 #
 # Secrets (sync: false) are entered in the Render dashboard. GCP service
 # account JSON goes in as a Secret File; point the *_GOOGLE_APPLICATION_
-# CREDENTIALS var at its mount path (e.g. /etc/secrets/cokx-gcp.json).
+# CREDENTIALS var at its mount path (e.g. /etc/secrets/gcp-service-account.json).
 services:
   - type: web
     name: kajota-hub
@@ -24,7 +24,7 @@ services:
       - { key: COKX_GEMINI_MODEL, value: gemini-2.5-pro }
       - { key: COKX_GCP_PROJECT_ID, sync: false }
       - { key: COKX_GCP_REGION, value: us-central1 }
-      - { key: COKX_GOOGLE_APPLICATION_CREDENTIALS, value: /etc/secrets/cokx-gcp.json }
+      - { key: COKX_GOOGLE_APPLICATION_CREDENTIALS, value: /etc/secrets/gcp-service-account.json }
       - { key: COKX_GOOGLE_GENAI_USE_VERTEXAI, value: "true" }
       - { key: COKX_GOOGLE_CLOUD_LOCATION, value: global }
       - { key: COKX_PARTNER, value: mongodb }
@@ -54,7 +54,7 @@ services:
       - { key: CONC_GEMINI_MODEL, value: gemini-2.5-pro }
       - { key: CONC_GCP_PROJECT_ID, sync: false }
       - { key: CONC_GCP_REGION, value: us-central1 }
-      - { key: CONC_GOOGLE_APPLICATION_CREDENTIALS, value: /etc/secrets/conc-gcp.json }
+      - { key: CONC_GOOGLE_APPLICATION_CREDENTIALS, value: /etc/secrets/gcp-service-account.json }
       - { key: CONC_GOOGLE_GENAI_USE_VERTEXAI, value: "true" }
       - { key: CONC_GOOGLE_CLOUD_LOCATION, value: global }
       - { key: CONC_PARTNER, value: mongodb }
@@ -76,7 +76,7 @@ services:
       - { key: SLK_GEMINI_MODEL, value: gemini-2.5-pro }
       - { key: SLK_GCP_PROJECT_ID, sync: false }
       - { key: SLK_GCP_REGION, value: us-central1 }
-      - { key: SLK_GOOGLE_APPLICATION_CREDENTIALS, value: /etc/secrets/slk-gcp.json }
+      - { key: SLK_GOOGLE_APPLICATION_CREDENTIALS, value: /etc/secrets/gcp-service-account.json }
       - { key: SLK_GOOGLE_GENAI_USE_VERTEXAI, value: "true" }
       - { key: SLK_GOOGLE_CLOUD_LOCATION, value: global }
       - { key: SLK_PARTNER, value: mongodb }
