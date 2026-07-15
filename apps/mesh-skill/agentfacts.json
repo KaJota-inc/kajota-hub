@@ -12,7 +12,7 @@
   },
   "endpoints": {
     "static": [
-      "https://kajota-mesh-skill.onrender.com"
+      "https://kajota-hub.onrender.com/mesh-skill"
     ]
   },
   "capabilities": {

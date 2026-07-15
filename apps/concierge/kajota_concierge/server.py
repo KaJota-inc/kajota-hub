@@ -337,7 +337,7 @@ async def coach_premium_info(request: Request) -> JSONResponse:
     endpoint is self-documenting and visibly live: the price tag, asset, and
     network are right there, exactly what a paying agent would receive.
     """
-    resource = str(request.url).split("?", 1)[0]
+    resource = f"{request.headers.get('x-forwarded-proto') or request.url.scheme}://{request.headers.get('x-forwarded-host') or request.headers.get('host') or request.url.netloc}{request.headers.get('x-forwarded-prefix', '')}{request.url.path}"
     requirements = build_payment_requirements(_X402, resource)
     body = {
         "x402Version": 2,

@@ -2,7 +2,7 @@
 
 **Encrypted seller memory + AI jury for African micro-commerce disputes — all on 0G Galileo.**
 
-> 🌐 **Live demo:** https://kajota-witness.onrender.com · [`/ui`](https://kajota-witness.onrender.com/ui) · [`/verify`](https://kajota-witness.onrender.com/verify)
+> 🌐 **Live demo:** https://kajota-hub.onrender.com/witness · [`/ui`](https://kajota-hub.onrender.com/witness/ui) · [`/verify`](https://kajota-hub.onrender.com/witness/verify)
 > 📜 **Anchor contract:** [`0x2f1D3a88…cEC94`](https://chainscan-galileo.0g.ai/address/0x2f1D3a881cfbeA01Cf55f3cAd125aA32Bf8cEC94) on 0G Galileo
 > ⌖ **Try /verify yourself:** paste `0xa9183d1ac0e9558fbac8501ce6034383122d36b4955259cf14d02448c092e5fb` into the live `/verify` page — all 4 cross-checks go green including `matchesStorageCid=true`
 

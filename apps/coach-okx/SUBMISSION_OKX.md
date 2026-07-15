@@ -35,10 +35,10 @@ escrows real trades on-chain for A2A deals larger than a coffee.
 ## Links
 
 - **ASP on OKX.AI marketplace:** [link once approved]
-- **Live Coach ASP:** https://kajota-coach-okx.onrender.com/ ·
-  discovery: https://kajota-coach-okx.onrender.com/coach/premium
+- **Live Coach ASP:** https://kajota-hub.onrender.com/coach-okx/ ·
+  discovery: https://kajota-hub.onrender.com/coach-okx/coach/premium
   (returns a 402 with an x402 price tag — proof the paywall is live)
-- **Live Mesh SKILL:** https://kajota-mesh-okx.onrender.com/healthz
+- **Live Mesh SKILL:** https://kajota-hub.onrender.com/mesh-okx/healthz
 - **Repo (branch `hackathon/okx-asp`):**
   https://github.com/KaJota-inc/kajota-coach/tree/hackathon/okx-asp
 - **Mesh contracts repo (branch `hackathon/okx-genesis`):**
@@ -124,7 +124,7 @@ git clone https://github.com/KaJota-inc/kajota-coach.git
 git clone https://github.com/KaJota-inc/kajota-mesh.git
 
 # 2. Confirm the paywall answers 402 (no OKX login needed)
-curl -s https://kajota-coach-okx.onrender.com/coach/premium | jq
+curl -s https://kajota-hub.onrender.com/coach-okx/coach/premium | jq
 
 # 3. Verify contract addresses
 cat kajota-mesh/packages/contracts/deployments/195.json         # XLayer testnet

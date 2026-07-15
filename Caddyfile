@@ -8,6 +8,13 @@
 {
 	admin off
 	auto_https off
+	# Trust Render's TLS-terminating proxy (private IP) so the ORIGINAL
+	# X-Forwarded-Proto (https) is preserved to the backends instead of being
+	# overwritten with Caddy's own http listener scheme. Apps build their x402
+	# `resource` URL from X-Forwarded-Proto + X-Forwarded-Prefix.
+	servers {
+		trusted_proxies static private_ranges
+	}
 }
 
 :{$PORT:10000} {

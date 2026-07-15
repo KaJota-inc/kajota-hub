@@ -100,7 +100,7 @@ def make_outro(path: str) -> None:
     footer_y = 600
     urls = [
         ("Repo:", "github.com/KaJota-inc/kajota-witness"),
-        ("Live:", "kajota-witness.onrender.com"),
+        ("Live:", "kajota-hub.onrender.com/witness"),
         ("Anchor:", "0x2f1D3a881cfbeA01Cf55f3cAd125aA32Bf8cEC94"),
     ]
     for label, url in urls:

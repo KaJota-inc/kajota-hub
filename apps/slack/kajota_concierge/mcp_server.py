@@ -14,7 +14,7 @@ build, or Slack's own Agent Builder runtime — can call:
 Transport is HTTP (Streamable HTTP) so the server can be reached
 without a local pipe. Mounted at `/mcp` on the FastAPI process by
 server.py — clients hit
-`https://kajota-concierge-slack.onrender.com/mcp`.
+`https://kajota-hub.onrender.com/slack/mcp`.
 
 The MCP surface deliberately mirrors the Slack surface: same
 capabilities, different transport. That's the "one agent, three

@@ -75,9 +75,9 @@ Also mount `/etc/secrets/gcp-service-account.json` as a Secret File.
 
 After both boot, verify:
 ```bash
-curl -s https://kajota-coach-okx.onrender.com/ | jq
-curl -s https://kajota-coach-okx.onrender.com/coach/premium | jq
-curl -s https://kajota-mesh-okx.onrender.com/healthz | jq
+curl -s https://kajota-hub.onrender.com/coach-okx/ | jq
+curl -s https://kajota-hub.onrender.com/coach-okx/coach/premium | jq
+curl -s https://kajota-hub.onrender.com/mesh-okx/healthz | jq
 ```
 
 Coach's `GET /coach/premium` should return a 402 with the XLayer payment

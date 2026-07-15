@@ -325,7 +325,7 @@ async def require_payment(request: Request, cfg: X402Config) -> SettlementResult
     Fails closed on an unconfigured server: still demand payment, but the
     402 explains what's missing.
     """
-    resource = str(request.url)
+    resource = f"{request.headers.get('x-forwarded-proto') or request.url.scheme}://{request.headers.get('x-forwarded-host') or request.headers.get('host') or request.url.netloc}{request.headers.get('x-forwarded-prefix', '')}{request.url.path}"
     raw = _read_payment_header(request)
 
     if not cfg.configured:

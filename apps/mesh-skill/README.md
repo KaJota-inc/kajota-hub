@@ -50,7 +50,7 @@ NANDA adapter SDK:
 ```bash
 pip install nanda-adapter
 # Provide the agentfacts.json URL once the service is up:
-nanda register --agentfacts https://kajota-mesh-skill.onrender.com/agentfacts.json
+nanda register --agentfacts https://kajota-hub.onrender.com/mesh-skill/agentfacts.json
 ```
 
 (The `/agentfacts.json` route serves the file from the repo statically —

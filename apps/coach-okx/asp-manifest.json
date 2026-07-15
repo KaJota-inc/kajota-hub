@@ -6,7 +6,9 @@
       "serviceDescription": "Agent Service Provider that generates paid, deep-dive purchase insights over a user's shopping history and wishlist. Powered by a Gemini 2.5 Pro agent running on Google ADK with MongoDB and Fetch MCP tools. Every call settles a $0.01 USDC micropayment via x402 on XLayer — no wallet popup, no human sign-off. Discoverable as an A2MCP ASP; a companion A2A escrow flow is available for larger, negotiated deals.",
       "serviceType": "A2MCP",
       "fee": "0.01",
-      "endpoint": "https://kajota-coach-okx.onrender.com/coach/premium"
+      "endpoint": "https://kajota-hub.onrender.com/coach-okx/coach/premium",
+      "endpoint_previous": "https://kajota-coach-okx.onrender.com/coach/premium",
+      "_endpoint_note": "Now served via the consolidated kajota-hub at /coach-okx. NOTE: the x402 challenge's `resource` field is generated from the request URL and does not yet honor the /coach-okx prefix or https (returns http://kajota-hub.onrender.com/coach/premium) — until that forwarded-header fix ships, keep the OKX ASP registration on endpoint_previous for the settlement flow."
     },
     {
       "_note": "Optional second service — A2A escrow flow via the Mesh SKILL. Uncomment once mesh contracts are live on XLayer (deployments/195.json) and the skill is deployed on Render.",
@@ -14,7 +16,8 @@
       "serviceDescription": "Companion escrow service for A2A deals surfaced via Coach. Locks buyer USDC in an on-chain CosellEscrow on XLayer, releases to the seller on proof of delivery, refunds otherwise. Same bytecode also live on Ethereum Sepolia and Arbitrum Sepolia for judges to inspect. release/refund is executed by a service-held authority key so the buyer wallet only signs the initial deposit.",
       "serviceType": "A2A",
       "fee": "0.00",
-      "endpoint": "https://kajota-mesh-okx.onrender.com/"
+      "endpoint": "https://kajota-hub.onrender.com/mesh-okx/",
+      "endpoint_previous": "https://kajota-mesh-okx.onrender.com/"
     }
   ]
 }

@@ -68,9 +68,9 @@ https://github.com/KaJota-inc/kajota-witness
 
 ## Live build / demo
 
-- **Live URL:** **https://kajota-witness.onrender.com**
-  - [`/ui`](https://kajota-witness.onrender.com/ui) — file disputes, watch the jury, see verdicts land on chain
-  - [`/verify`](https://kajota-witness.onrender.com/verify) — paste any of the sample CIDs below and see the 4-way cross-check
+- **Live URL:** **https://kajota-hub.onrender.com/witness**
+  - [`/ui`](https://kajota-hub.onrender.com/witness/ui) — file disputes, watch the jury, see verdicts land on chain
+  - [`/verify`](https://kajota-hub.onrender.com/witness/verify) — paste any of the sample CIDs below and see the 4-way cross-check
 - **Demo video (3 min):** [YOUR LOOM/YOUTUBE URL HERE — record per `docs/DEMO.md`]
 - **Local run instructions:** see `README.md` Quick Start section
 
@@ -78,7 +78,7 @@ https://github.com/KaJota-inc/kajota-witness
 
 ## On-chain artifacts (verifiable now)
 
-All produced by the **deployed Render instance** — judges can paste these into [the live `/verify` page](https://kajota-witness.onrender.com/verify) and watch all 4 cross-checks pass.
+All produced by the **deployed Render instance** — judges can paste these into [the live `/verify` page](https://kajota-hub.onrender.com/witness/verify) and watch all 4 cross-checks pass.
 
 | Artifact | Link |
 |---|---|
@@ -122,7 +122,7 @@ $0. 0G testnet + Groq free tier.
 - [x] Repo public on GitHub (`KaJota-inc/kajota-witness`)
 - [x] WitnessAnchor contract deployed on 0G Galileo
 - [x] Companion Coach integration branch + PR (`KaJota-inc/kajota-coach#2`)
-- [x] **Live build deployed at https://kajota-witness.onrender.com**
+- [x] **Live build deployed at https://kajota-hub.onrender.com/witness**
 - [x] Sample CIDs on-chain + verifiable via deployed `/verify`
 - [x] DEMO.md + SUBMISSION.md ready
 - [ ] Recorded 3-min demo per `docs/DEMO.md`
