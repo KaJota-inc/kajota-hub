@@ -64,6 +64,27 @@ if _sa_json_inline:
         _f.write(_sa_json_inline)
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = _sa_path
 
+# ---- Startup credential check (kajota-hub deploy) -----------------
+# Fail LOUDLY at boot if Vertex mode is on but the service-account credential
+# isn't actually resolvable, rather than dying mid-turn with an opaque
+# DefaultCredentialsError. Non-fatal so health + non-Gemini routes still work.
+_use_vertex = os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "").lower() in ("1", "true", "yes")
+_creds_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")
+if _use_vertex and not _sa_json_inline:
+    if not _creds_path:
+        print("[kajota_concierge] STARTUP WARNING: Vertex mode is on but neither "
+              "GOOGLE_APPLICATION_CREDENTIALS nor GCP_SERVICE_ACCOUNT_JSON is set - "
+              "Gemini calls will fail with DefaultCredentialsError.", flush=True)
+    elif not os.path.isfile(_creds_path):
+        print("[kajota_concierge] STARTUP WARNING: GOOGLE_APPLICATION_CREDENTIALS="
+              + _creds_path + " but that file does NOT exist. Upload the GCP "
+              "service-account JSON as a Render Secret File at that path (or set "
+              "GCP_SERVICE_ACCOUNT_JSON to the raw JSON). Gemini calls will fail "
+              "until this is fixed.", flush=True)
+    else:
+        print("[kajota_concierge] startup: GCP credentials found at " + _creds_path, flush=True)
+
+
 from google.adk.agents import Agent  # noqa: E402  imported after env set
 from google.adk.tools.mcp_tool import McpToolset, StdioConnectionParams  # noqa: E402
 from mcp import StdioServerParameters  # noqa: E402

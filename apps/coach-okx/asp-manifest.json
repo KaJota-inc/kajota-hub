@@ -8,7 +8,7 @@
       "fee": "0.01",
       "endpoint": "https://kajota-hub.onrender.com/coach-okx/coach/premium",
       "endpoint_previous": "https://kajota-coach-okx.onrender.com/coach/premium",
-      "_endpoint_note": "Now served via the consolidated kajota-hub at /coach-okx. NOTE: the x402 challenge's `resource` field is generated from the request URL and does not yet honor the /coach-okx prefix or https (returns http://kajota-hub.onrender.com/coach/premium) — until that forwarded-header fix ships, keep the OKX ASP registration on endpoint_previous for the settlement flow."
+      "_endpoint_note": "Served via the consolidated kajota-hub at /coach-okx. The x402 challenge/settlement `resource` is built from X-Forwarded-Proto/Prefix and verified live as https://kajota-hub.onrender.com/coach-okx/coach/premium, so this hub endpoint settles correctly and is safe to register with OKX. endpoint_previous is the retired standalone URL."
     },
     {
       "_note": "Optional second service — A2A escrow flow via the Mesh SKILL. Uncomment once mesh contracts are live on XLayer (deployments/195.json) and the skill is deployed on Render.",
