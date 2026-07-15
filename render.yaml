@@ -29,21 +29,26 @@ services:
       - { key: COKX_GOOGLE_CLOUD_LOCATION, value: global }
       - { key: COKX_PARTNER, value: mongodb }
       - { key: COKX_MONGODB_URI, sync: false }
-      - { key: COKX_X402_NETWORK, value: "eip155:195" }
+      # XLayer mainnet (chain 196) — chain 195 isn't indexed by OKX's
+      # payment backend (verified via `onchainos payment pay` returning
+      # `chain not found for realChainIndex 195`). 196 matches where
+      # ASP 5855 lives on-chain.
+      - { key: COKX_X402_NETWORK, value: "eip155:196" }
       - { key: COKX_X402_MAX_AMOUNT, value: "10000" }
-      - { key: COKX_X402_PAY_TO, sync: false }
-      - { key: COKX_X402_ASSET, sync: false }
-      - { key: COKX_X402_ASSET_NAME, value: KaJota USD }
+      - { key: COKX_X402_PAY_TO, sync: false }              # 0x7876c479f68b7f218ca59a4b8c860a4a06350007 (ASP 5855 wallet)
+      - { key: COKX_X402_ASSET, sync: false }               # 0x1e4a5963abfd975d8c9021ce480b42188849d41d (XLayer mainnet USDT)
+      - { key: COKX_X402_ASSET_NAME, value: Tether USD }
       - { key: COKX_X402_ASSET_DECIMALS, value: "6" }
-      - { key: COKX_X402_ASSET_VERSION, value: "2" }
+      - { key: COKX_X402_ASSET_VERSION, value: "1" }
       - { key: COKX_X402_VERSION, value: "1" }
-      - { key: COKX_X402_FACILITATOR_URL, sync: false }
+      - { key: COKX_X402_FACILITATOR_URL, sync: false }     # leave blank until a real EVM facilitator (Coinbase CDP / self-hosted `coinbase/x402`) is wired
       - { key: COKX_X402_FACILITATOR_API_KEY, sync: false }
       - { key: COKX_COACH_BACKEND_URL, sync: false }
 
       # ---- mesh-okx (XLayer escrow) ----------------------------------
-      - { key: MOKX_MESH_RPC_URL, value: https://testrpc.xlayer.tech }
-      - { key: MOKX_MESH_CHAIN_ID, value: "195" }
+      # XLayer mainnet — matches Coach's ASP chain (196).
+      - { key: MOKX_MESH_RPC_URL, value: https://rpc.xlayer.tech }
+      - { key: MOKX_MESH_CHAIN_ID, value: "196" }
       - { key: MOKX_MESH_DRY_RUN, value: "false" }
       - { key: MOKX_MESH_RELEASE_AUTH_KEY, sync: false }
       - { key: MOKX_MESH_ESCROW_ADDR, sync: false }
