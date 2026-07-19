@@ -53,6 +53,16 @@
 			header_up X-Forwarded-Prefix /witness
 		}
 	}
+	# Bare /judge -> /judge/ so the demo page's relative fetch("challenge"/"pay")
+	# resolve under the mount instead of the hub root.
+	handle /judge {
+		redir * /judge/ permanent
+	}
+	handle_path /judge/* {
+		reverse_proxy 127.0.0.1:8107 {
+			header_up X-Forwarded-Prefix /judge
+		}
+	}
 
 	# Landing page = route map.
 	handle / {

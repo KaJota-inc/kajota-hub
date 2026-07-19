@@ -71,6 +71,16 @@ RUN apt-get update \
  && apt-get purge -y build-essential && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
+# ---- Judge demo (Node, plain http server) --------------------------
+# Live x402 click-to-settle demo. casper-js-sdk + casper-x402; install with a
+# toolchain present in case a transitive dep needs a native build, then purge
+# it to keep the runtime image lean.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends build-essential \
+ && cd /srv/apps/judge && npm install --omit=dev \
+ && apt-get purge -y build-essential && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
+
 # ---- Proxy + process manager + landing page ------------------------
 COPY Caddyfile /etc/caddy/Caddyfile
 COPY supervisord.conf /etc/supervisor/conf.d/kajota-hub.conf

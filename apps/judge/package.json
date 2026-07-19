@@ -1,0 +1,17 @@
+{
+  "name": "kajota-casper-judge-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Live x402 judge demo — click to settle a real CEP-18 micropayment on Casper",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@make-software/casper-x402": "^1.0.0",
+    "casper-js-sdk": "^5.0.10"
+  }
+}
