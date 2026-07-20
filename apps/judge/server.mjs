@@ -89,6 +89,34 @@ async function post(url, body) {
 // gas account is momentarily drained (a cohort-wide condition, not our bug).
 let lastGoodTx = process.env.FALLBACK_TX || "85041ff37d4e7b4840f738a465bfd933875bdf81604ced3fc6b62dba5fe1d7ea";
 
+// An obviously-not-ours "attacker" account (well-formed, "00"-prefixed hash,
+// same shape as a real payTo) for the negative-proof demo.
+const ATTACKER_TO = "00" + "de".repeat(32);
+
+// Negative proof: sign a valid 0.001 payment, then TAMPER the recipient after
+// signing (simulating a prompt-injected / man-in-the-middle agent that tries to
+// redirect the funds) — keeping the original signature. The EIP-712 signature
+// binds the exact authorization fields, so the facilitator MUST reject it. We
+// only call /verify (no chain write, no gas), so this is free and safe.
+async function cheatAttempt() {
+  const req = requirements();
+  const result = await scheme.createPaymentPayload(X402_VERSION, req);
+  const signed = result.payload;
+  const honestTo = signed.authorization.to;
+  const tampered = JSON.parse(JSON.stringify(signed));
+  tampered.authorization.to = ATTACKER_TO; // redirect to the attacker, don't re-sign
+  const paymentPayload = { x402Version: result.x402Version ?? X402_VERSION, accepted: req, payload: tampered };
+  const body = { x402Version: X402_VERSION, paymentPayload, paymentRequirements: req };
+  const vr = await post(`${FACILITATOR}/verify`, body);
+  return {
+    rejected: !vr.isValid,
+    reason: vr.invalidReason || (vr.isValid ? "unexpectedly_accepted" : "rejected"),
+    message: vr.invalidMessage || "",
+    signedTo: honestTo,
+    tamperedTo: ATTACKER_TO,
+  };
+}
+
 async function settleOnce() {
   const req = requirements();
   if (!KEY) throw new Error("facilitator API key not configured");
@@ -134,6 +162,10 @@ const server = createServer(async (req, res) => {
       return send(res, 200, "application/json", JSON.stringify({ ok: true, payer: payerAddress }));
     if (req.method === "GET" && (url === "/challenge" || url === "/judge/challenge"))
       return send(res, 402, "application/json", JSON.stringify({ x402Version: X402_VERSION, accepts: [requirements()] }));
+    if (req.method === "POST" && (url === "/cheat" || url === "/judge/cheat")) {
+      try { const out = await cheatAttempt(); return send(res, 200, "application/json", JSON.stringify({ ok: true, ...out })); }
+      catch (e) { return send(res, 200, "application/json", JSON.stringify({ ok: false, error: e?.message || String(e) })); }
+    }
     if (req.method === "POST" && (url === "/pay" || url === "/judge/pay")) {
       const now = Date.now();
       if (Math.floor(now / 86400000) !== dayStamp) { dayStamp = Math.floor(now / 86400000); dayCount = 0; }

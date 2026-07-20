@@ -29,9 +29,12 @@
          font-weight:800;padding:18px;cursor:pointer;transition:filter .15s,transform .05s}
   button:hover{filter:brightness(1.07)} button:active{transform:translateY(1px)}
   button:disabled{opacity:.6;cursor:not-allowed}
+  button.secondary{background:transparent;border:1px solid var(--line);color:var(--mut);
+                   font-size:14px;font-weight:600;padding:14px;margin-top:18px}
+  button.secondary:hover{filter:none;border-color:var(--mut);color:var(--ink)}
   .hint{color:var(--mut);font-size:13px;text-align:center;margin-top:10px}
-  #result{display:none}
-  #result.show{display:block;animation:fade .4s ease}
+  #result,#cheatResult{display:none}
+  #result.show,#cheatResult.show{display:block;animation:fade .4s ease}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   .ok{color:var(--green);font-weight:800}
   .err{color:var(--red);font-weight:700}
@@ -62,6 +65,10 @@
 
   <button id="pay">▶  Pay &amp; settle on Casper</button>
   <p class="hint">Net-zero self-transfer of 0.001 KaJota USD; gas paid by Casper's sponsored feePayer — you pay nothing. Click again to settle another.</p>
+
+  <button id="cheat" class="secondary">🛡  Try to cheat — redirect the payment to an attacker</button>
+  <p class="hint">Proves the security is real: we sign a valid 0.001 payment, then tamper the recipient after signing. The EIP-712 signature binds the fields, so the facilitator rejects it.</p>
+  <div class="card" id="cheatResult"></div>
 
   <div class="card" id="result">
     <h2 id="rhead">Settlement</h2>
@@ -149,6 +156,30 @@ $("#pay").addEventListener("click", async () => {
   }finally{
     btn.disabled = false; btn.innerHTML = "▶  Pay &amp; settle again";
   }
+});
+
+$("#cheat").addEventListener("click", async () => {
+  const btn = $("#cheat"), res = $("#cheatResult");
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Tampering &amp; asking the facilitator…';
+  res.classList.add("show");
+  res.innerHTML = `<h2>Security probe</h2><div class="row"><span class="v" style="color:var(--mut)">signing a valid payment → redirecting the recipient → /verify</span></div>`;
+  try{
+    const r = await fetch("cheat", {method:"POST"});
+    const d = await r.json();
+    if(d.ok && d.rejected){
+      res.innerHTML = `
+        <h2><span class="ok">✓ Attack rejected by the facilitator</span></h2>
+        <div class="row"><span class="k">signed recipient</span><span class="v">${short(d.signedTo)}</span></div>
+        <div class="row"><span class="k">attacker redirected to</span><span class="v">${short(d.tamperedTo)}</span></div>
+        <div class="row"><span class="k">facilitator verdict</span><span class="v err">${d.reason}</span></div>
+        <div class="row"><span class="v" style="color:var(--mut)">The EIP-712 signature binds the recipient — a prompt-injected or man-in-the-middle agent cannot redirect the funds.</span></div>`;
+    } else if (d.ok && !d.rejected){
+      res.innerHTML = `<h2><span class="err">Unexpected: facilitator accepted the tampered payment</span></h2>`;
+    } else {
+      res.innerHTML = `<h2><span class="err">Probe error</span></h2><div class="row"><span class="v err">${d.error||d.reason}</span></div>`;
+    }
+  }catch(e){ res.innerHTML = `<h2><span class="err">Probe error</span></h2><div class="row"><span class="v err">${e.message}</span></div>`; }
+  finally{ btn.disabled = false; btn.innerHTML = "🛡  Try to cheat again"; }
 });
 
 loadChallenge();
