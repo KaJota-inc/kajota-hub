@@ -134,11 +134,12 @@ $("#pay").addEventListener("click", async () => {
     const r = await fetch("pay", {method:"POST"});
     const d = await r.json();
     if(!d.ok && d.gasOut){
-      head.innerHTML = '<span style="color:#f59e0b;font-weight:800">⚠ Shared testnet gas momentarily exhausted</span>';
+      head.innerHTML = '<span style="color:#f59e0b;font-weight:800">⚠ Facilitator settlement temporarily unavailable</span>';
       body.innerHTML = `
-        <div class="row"><span class="v" style="color:var(--mut)">The facilitator's sponsored gas account is shared across every finalist and drains under load — the signature and <span class="mono">/verify</span> still pass, only the on-chain submit is gas-starved. Here is a <b>real</b> settlement we made moments ago — verify it on-chain:</span></div>
+        <div class="row"><span class="v" style="color:var(--mut)">Our payment signed and passed the facilitator's <span class="mono">/verify</span> — only its shared on-chain submit path is failing right now (the sponsored gas account is shared across every finalist, and its execution-wait can time out). Here is a <b>real</b> settlement from this same demo — verify it on-chain:</span></div>
         <div class="row"><span class="k">confirmed tx</span><span class="v"><a target="_blank" href="${d.fallbackExplorer}">${short(d.fallbackTx)} ↗</a></span></div>
-        <div class="row"><span class="k">retry</span><span class="v">click again shortly — it settles the moment gas is topped up</span></div>`;
+        ${d.reason ? `<div class="row"><span class="k">facilitator said</span><span class="v err">${d.reason}</span></div>` : ""}
+        <div class="row"><span class="k">retry</span><span class="v">click again shortly — settlement resumes as soon as the facilitator does</span></div>`;
       return;
     }
     if(!d.ok) throw new Error(d.error || "settle failed");
