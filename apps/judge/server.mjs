@@ -33,6 +33,32 @@ const KEY = process.env.X402_FACILITATOR_API_KEY || process.env.CSPR_CLOUD_API_K
 const X402_VERSION = Number(process.env.X402_VERSION || 2);
 const NETWORK = process.env.X402_NETWORK || "casper:casper-test";
 
+// ── live settlement feed (gas-free, read-only) ──────────────────────────
+// The facilitator's sponsored account submits EVERY settlement on this rail,
+// so its deploy history is the on-chain record of every payment — whether it
+// came from this page, the mobile app, or the CLI. Surfacing it here is what
+// makes "one rail, two clients" verifiable instead of merely claimed.
+// Pure reads against CSPR.cloud: no chain writes, no gas.
+const CSPR_REST = (process.env.CSPR_CLOUD_REST || "https://api.testnet.cspr.cloud").replace(/\/$/, "");
+const SPONSOR_PK = process.env.X402_FEE_PAYER_PUBLIC_KEY || "0202b2d69e2e66d9858ae7b19bfe802135ae93658146e48e1f8e1f762e00032a3449";
+
+async function settlementFeed(limit = 8) {
+  const url = `${CSPR_REST}/accounts/${SPONSOR_PK}/deploys?limit=${limit}&order_by=timestamp&order_direction=DESC`;
+  const r = await fetch(url, { headers: { Authorization: KEY } });
+  if (!r.ok) throw new Error(`feed HTTP ${r.status}`);
+  const d = await r.json();
+  const rows = (d.data ?? []).map(x => ({
+    tx: x.deploy_hash,
+    at: x.timestamp,
+    ok: !x.error_message,
+    error: x.error_message || null,
+    block: x.block_height ?? null,
+    explorer: `https://testnet.cspr.live/transaction/${x.deploy_hash}`,
+  }));
+  const healthy = rows.some(x => x.ok);
+  return { healthy, rows };
+}
+
 const requirements = () => ({
   scheme: "exact",
   network: NETWORK,
@@ -165,6 +191,10 @@ const server = createServer(async (req, res) => {
       return send(res, 200, "application/json", JSON.stringify({ ok: true, payer: payerAddress }));
     if (req.method === "GET" && (url === "/challenge" || url === "/judge/challenge"))
       return send(res, 402, "application/json", JSON.stringify({ x402Version: X402_VERSION, accepts: [requirements()] }));
+    if (req.method === "GET" && (url === "/feed" || url === "/judge/feed")) {
+      try { return send(res, 200, "application/json", JSON.stringify({ ok: true, ...(await settlementFeed(8)) })); }
+      catch (e) { return send(res, 200, "application/json", JSON.stringify({ ok: false, error: e?.message || String(e) })); }
+    }
     if (req.method === "POST" && (url === "/cheat" || url === "/judge/cheat")) {
       try { const out = await cheatAttempt(); return send(res, 200, "application/json", JSON.stringify({ ok: true, ...out })); }
       catch (e) { return send(res, 200, "application/json", JSON.stringify({ ok: false, error: e?.message || String(e) })); }

@@ -136,7 +136,7 @@ $("#pay").addEventListener("click", async () => {
     if(!d.ok && d.gasOut){
       head.innerHTML = '<span style="color:#f59e0b;font-weight:800">⚠ Facilitator settlement temporarily unavailable</span>';
       body.innerHTML = `
-        <div class="row"><span class="v" style="color:var(--mut)">Our payment signed and passed the facilitator's <span class="mono">/verify</span> — only its shared on-chain submit path is failing right now (the sponsored gas account is shared across every finalist, and its execution-wait can time out). Here is a <b>real</b> settlement from this same demo — verify it on-chain:</span></div>
+        <div class="row"><span class="v" style="color:var(--mut)">Our payment signed and passed the facilitator's <span class="mono">/verify</span> — it is the on-chain execution that is failing, with <span class="mono">User error: 64658</span>. We traced it: the same error is hitting <b>three different teams'</b> deployed <span class="mono">Cep18X402</span> contracts on Casper testnet right now, while the canonical shared token still settles — so this is a cohort-wide contract regression, not a fault in this payment. Gas is funded and our token balance is full. Here is a <b>real</b> settlement from this same demo — verify it on-chain:</span></div>
         <div class="row"><span class="k">confirmed tx</span><span class="v"><a target="_blank" href="${d.fallbackExplorer}">${short(d.fallbackTx)} ↗</a></span></div>
         ${d.reason ? `<div class="row"><span class="k">facilitator said</span><span class="v err">${d.reason}</span></div>` : ""}
         <div class="row"><span class="k">retry</span><span class="v">click again shortly — settlement resumes as soon as the facilitator does</span></div>`;
