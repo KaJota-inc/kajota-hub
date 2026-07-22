@@ -63,6 +63,16 @@
 			header_up X-Forwarded-Prefix /judge
 		}
 	}
+	# Same story for keeperhub-escrow — the console's relative fetch("config",
+	# "status", "demo-release") must resolve under /keeperhub/, not the hub root.
+	handle /keeperhub {
+		redir * /keeperhub/ permanent
+	}
+	handle_path /keeperhub/* {
+		reverse_proxy 127.0.0.1:8108 {
+			header_up X-Forwarded-Prefix /keeperhub
+		}
+	}
 
 	# Landing page = route map.
 	handle / {

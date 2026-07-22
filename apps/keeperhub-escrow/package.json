@@ -1,0 +1,13 @@
+{
+  "name": "kajota-keeperhub-escrow-console",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Live console for the Kajota × KeeperHub escrow-release keeper — shows the last run and lets a visitor re-trigger the KeeperHub workflow.",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

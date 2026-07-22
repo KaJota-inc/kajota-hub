@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Kajota × KeeperHub · Escrow Console</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --fg: #e8f0f8;
+    --dim: #8b949e;
+    --card: #161b22;
+    --edge: #30363d;
+    --accent: #81d9ff;
+    --green: #23c564;
+    --yellow: #ffc247;
+    --red: #f85149;
+    --grid: #222b36;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box }
+  html, body { margin: 0; background: var(--bg); color: var(--fg);
+    font: 15px/1.55 -apple-system, "SF Pro Text", Inter, system-ui, sans-serif; }
+  body {
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 40px 24px 80px }
+  header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px }
+  .brand { color: var(--accent); font-weight: 700; letter-spacing: 0.5px }
+  .brand .x { color: var(--dim); margin: 0 4px }
+  .brand .kh { color: var(--green) }
+  h1 { font-size: 42px; letter-spacing: -0.5px; margin: 12px 0 4px }
+  .tag { color: var(--dim); font-size: 18px; max-width: 720px }
+  section { margin-top: 36px }
+  h2 { font-size: 20px; color: var(--fg); margin: 0 0 12px }
+  .card {
+    background: var(--card); border: 1px solid var(--edge); border-radius: 14px;
+    padding: 20px 24px; position: relative;
+  }
+  .kv { display: grid; grid-template-columns: 180px 1fr; gap: 12px; padding: 6px 0; align-items: baseline }
+  .kv > span:first-child { color: var(--dim); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px }
+  .kv > span:last-child { font-family: var(--mono); font-size: 14px; word-break: break-all }
+  .mono { font-family: var(--mono) }
+  .pill {
+    display: inline-block; padding: 3px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase;
+  }
+  .pill.success { color: var(--green); background: rgba(35,197,100,0.12); border: 1px solid rgba(35,197,100,0.35) }
+  .pill.error   { color: var(--red);   background: rgba(248,81,73,0.12); border: 1px solid rgba(248,81,73,0.35) }
+  .pill.running { color: var(--yellow); background: rgba(255,194,71,0.12); border: 1px solid rgba(255,194,71,0.35) }
+  a { color: var(--accent); text-decoration: none }
+  a:hover { text-decoration: underline }
+  code { font-family: var(--mono); color: var(--yellow); background: rgba(255,194,71,0.08); padding: 1px 6px; border-radius: 4px }
+  .btn {
+    display: inline-block; padding: 10px 18px; border-radius: 10px;
+    background: var(--green); color: #08160e; font-weight: 600; font-size: 14px;
+    border: none; cursor: pointer;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed }
+  .btn.secondary { background: var(--card); color: var(--fg); border: 1px solid var(--edge) }
+  .log {
+    background: #0a0d12; border: 1px solid var(--edge); border-radius: 10px;
+    padding: 14px 18px; font-family: var(--mono); font-size: 13px; line-height: 1.7;
+    max-height: 300px; overflow-y: auto; white-space: pre-wrap;
+  }
+  .log .ok { color: var(--green) }
+  .log .warn { color: var(--yellow) }
+  .log .err { color: var(--red) }
+  .log .dim { color: var(--dim) }
+  .log .acc { color: var(--accent) }
+  .row { display: flex; gap: 12px; align-items: center; margin-top: 14px; flex-wrap: wrap }
+  footer { margin-top: 60px; color: var(--dim); font-size: 13px; text-align: center }
+  .exec-row {
+    display: grid; grid-template-columns: 90px 90px 1fr 100px; gap: 10px;
+    padding: 8px 4px; border-bottom: 1px solid var(--edge); font-size: 13px; align-items: center;
+  }
+  .exec-row:last-child { border-bottom: none }
+  .exec-row .h { color: var(--accent); font-family: var(--mono) }
+  .arch { display: grid; grid-template-columns: 1fr 30px 1fr; gap: 12px }
+  .arch .node { background: var(--card); border: 1px solid var(--edge); border-radius: 10px; padding: 12px 16px }
+  .arch .node .t { color: var(--accent); font-weight: 600; font-size: 14px }
+  .arch .node .s { color: var(--dim); font-size: 12px; margin-top: 4px; font-family: var(--mono) }
+  .arrow { color: var(--dim); text-align: center; align-self: center; font-size: 20px }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="brand">KAJOTA</span><span class="x">x</span><span class="brand kh">KeeperHub</span>
+  </header>
+  <h1>Escrow Console</h1>
+  <p class="tag">A KeeperHub workflow schedules <code>CosellEscrow.release(depositId)</code> on Ethereum Sepolia. The keeper wallet is a Turnkey account whose authority the escrow contract accepts. Trigger below &mdash; the release ships in about 15 s.</p>
+
+  <section>
+    <h2>How the release ships</h2>
+    <div class="arch">
+      <div class="node"><div class="t">Buyer</div><div class="s">deposits USDC into CosellEscrow</div></div>
+      <div class="arrow">&rarr;</div>
+      <div class="node"><div class="t">KeeperHub HTTP trigger</div><div class="s" id="arch-wf">workflow &hellip;</div></div>
+      <div class="node"><div class="t">Kajota Coach agent</div><div class="s">picks the release call</div></div>
+      <div class="arrow">&rarr;</div>
+      <div class="node"><div class="t">KeeperHub keeper</div><div class="s" id="arch-keeper">Turnkey &middot; EIP-7702</div></div>
+      <div class="node" style="grid-column: 1 / 4"><div class="t">CosellEscrow.release(bytes32 depositId)</div><div class="s">USDC splits 85 % wholesaler / 15 % coseller</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Workflow config</h2>
+    <div class="card">
+      <div class="kv"><span>workflow id</span><span id="cfg-workflow">&hellip;</span></div>
+      <div class="kv"><span>contract</span><span><a id="cfg-contract-link" target="_blank">&hellip;</a></span></div>
+      <div class="kv"><span>function</span><span><code id="cfg-fn">release(bytes32 depositId)</code> &middot; selector <code id="cfg-selector">&hellip;</code></span></div>
+      <div class="kv"><span>keeper</span><span><a id="cfg-keeper-link" target="_blank">&hellip;</a> <span class="pill success" style="margin-left: 8px">EIP-7702</span></span></div>
+      <div class="kv"><span>chain</span><span id="cfg-chain">&hellip;</span></div>
+      <div class="kv"><span>KH dashboard</span><span><a id="cfg-dashboard" target="_blank">open in KeeperHub &rarr;</a></span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Trigger a release</h2>
+    <div class="card">
+      <div class="kv"><span>depositId</span><span><code id="demo-deposit">&hellip;</code> <span class="pill running" style="margin-left: 8px">demo</span></span></div>
+      <p style="color: var(--dim); font-size: 14px; margin: 12px 0 0">
+        Clicking below invokes the KeeperHub workflow execute endpoint. The keeper signs a fresh <code>release(bytes32)</code> tx and submits it via EIP-7702. This exact depositId has already been released once &mdash; a second attempt reverts on-chain (idempotency guard). Both outcomes are real KH-driven signings; use this to see the tx composition end-to-end.
+      </p>
+      <div class="row">
+        <button class="btn" id="fire-btn">Fire release via KeeperHub</button>
+        <button class="btn secondary" id="refresh-btn">Refresh recent runs</button>
+      </div>
+      <div class="log" id="log" style="margin-top: 16px"><span class="dim">// events land here</span>
+</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Recent runs</h2>
+    <div class="card">
+      <div class="exec-row" style="font-weight: 600; color: var(--dim); text-transform: uppercase; font-size: 11px">
+        <div>Status</div><div>Duration</div><div>Tx / Error</div><div>Started</div>
+      </div>
+      <div id="runs">Loading&hellip;</div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Kajota Coach &times; KeeperHub &middot; Agents Onchain 2026 &middot;
+      <a href="https://github.com/KaJota-inc/kajota-mesh" target="_blank">kajota-mesh</a> &middot;
+      <a href="https://github.com/KaJota-inc/kajota-coach" target="_blank">kajota-coach</a> &middot;
+      <a href="https://github.com/KaJota-inc/kajota-hub" target="_blank">kajota-hub</a>
+    </p>
+  </footer>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
