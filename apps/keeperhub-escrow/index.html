@@ -122,18 +122,41 @@
   </section>
 
   <section>
-    <h2>Trigger a release</h2>
+    <h2>Try it yourself &mdash; end-to-end</h2>
     <div class="card">
-      <div class="kv"><span>depositId</span><span><code id="demo-deposit">&hellip;</code> <span class="pill running" style="margin-left: 8px">demo</span></span></div>
-      <p style="color: var(--dim); font-size: 14px; margin: 12px 0 0">
-        Clicking below invokes the KeeperHub workflow execute endpoint. The keeper signs a fresh <code>release(bytes32)</code> tx and submits it via EIP-7702. This exact depositId has already been released once &mdash; a second attempt reverts on-chain (idempotency guard). Both outcomes are real KH-driven signings; use this to see the tx composition end-to-end.
+      <p style="color: var(--dim); font-size: 14px; margin: 0 0 14px">
+        Connect a Sepolia wallet, put down <strong>0.10 test USDC</strong> as the buyer, and watch KeeperHub schedule the release automatically. You'll sign one <code>approve</code> and one <code>deposit</code>; KeeperHub covers the release. Total spend on your side: 0.10 test USDC, a wisp of Sepolia gas.
       </p>
       <div class="row">
-        <button class="btn" id="fire-btn">Fire release via KeeperHub</button>
-        <button class="btn secondary" id="refresh-btn">Refresh recent runs</button>
+        <button class="btn" id="connect-btn">Connect Sepolia wallet</button>
+        <button class="btn secondary" id="fund-eth-btn" style="display: none">Get Sepolia ETH &rarr;</button>
+        <button class="btn secondary" id="fund-usdc-btn" style="display: none">Get Sepolia USDC &rarr;</button>
+      </div>
+      <div id="wallet-info" style="display: none; margin-top: 14px">
+        <div class="kv"><span>address</span><span><a id="wallet-addr-link" target="_blank">&hellip;</a></span></div>
+        <div class="kv"><span>ETH balance</span><span id="wallet-eth" class="mono">&hellip;</span></div>
+        <div class="kv"><span>USDC balance</span><span id="wallet-usdc" class="mono">&hellip;</span></div>
+        <div class="kv"><span>listing</span><span><code id="fl-listing" class="mono">&hellip;</code></span></div>
+        <div class="row">
+          <button class="btn" id="deposit-btn">Deposit 0.10 USDC + auto-release</button>
+        </div>
       </div>
       <div class="log" id="log" style="margin-top: 16px"><span class="dim">// events land here</span>
 </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Or replay the demo (no wallet)</h2>
+    <div class="card">
+      <div class="kv"><span>depositId</span><span><code id="demo-deposit">&hellip;</code> <span class="pill running" style="margin-left: 8px">demo</span></span></div>
+      <p style="color: var(--dim); font-size: 14px; margin: 12px 0 0">
+        This depositId is already released; a second attempt reverts with the escrow's idempotency guard. Handy for seeing the KeeperHub keeper signing path without spending your own USDC.
+      </p>
+      <div class="row">
+        <button class="btn secondary" id="fire-btn">Fire release (idempotency check)</button>
+        <button class="btn secondary" id="refresh-btn">Refresh recent runs</button>
+      </div>
     </div>
   </section>
 
@@ -155,6 +178,6 @@
     </p>
   </footer>
 </div>
-<script src="app.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>
