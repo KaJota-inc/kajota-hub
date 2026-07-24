@@ -1,0 +1,208 @@
+# Remita STPv3 core response codes.
+# Source: RemitaSTPV3Engine/src/main/resources/error_codes/core.properties
+# These are the platform's own normalized codes, distinct from CBA-native codes.
+codes:
+  "0":
+    raw_message: "Completed Successful"
+    category: success
+    retry: never
+    customer_message: "Payment completed successfully."
+    ops_action: "None."
+  "00":
+    raw_message: "Completed Successful"
+    category: success
+    retry: never
+    customer_message: "Payment completed successfully."
+    ops_action: "None."
+  "000":
+    raw_message: "Completed Successful"
+    category: success
+    retry: never
+    customer_message: "Payment completed successfully."
+    ops_action: "None."
+  "7701":
+    raw_message: "Invalid Account"
+    category: invalid_account
+    retry: never
+    customer_message: "The destination account number is not valid. Please confirm the account details and try again."
+    ops_action: "No action. Customer must supply a valid destination account."
+  "7702":
+    raw_message: "Dormant Account"
+    category: dormant_account
+    retry: never
+    customer_message: "The destination account is dormant. The recipient must reactivate their account with their bank."
+    ops_action: "No action. Recipient must reactivate account with their bank."
+  "7703":
+    raw_message: "Closed Account"
+    category: closed_account
+    retry: never
+    customer_message: "The destination account has been closed. Please contact the recipient for a valid account."
+    ops_action: "No action. Recipient must supply a valid account."
+  "7704":
+    raw_message: "Insufficient Funds"
+    category: insufficient_funds
+    retry: never
+    customer_message: "Your account does not have enough funds for this transfer. Please top up and try again."
+    ops_action: "No action. Correctly declined at CBA."
+  "7705":
+    raw_message: "Account Blocked"
+    category: blocked_account
+    retry: never
+    customer_message: "The destination account is blocked. The recipient should contact their bank."
+    ops_action: "No action. Recipient must resolve block with their bank."
+  "7706":
+    raw_message: "Bank No OnLine"
+    category: connection_error
+    retry: status_query
+    customer_message: "The destination bank is temporarily unavailable. We will retry your transfer shortly."
+    ops_action: "Issue TSQ after 5 minutes. If TSQ returns not-processed, requeue for retry with backoff."
+  "7707":
+    raw_message: "Duplicate Account: Source Account and Destination the same"
+    category: duplicate_account
+    retry: never
+    customer_message: "You cannot transfer to the same account you are sending from."
+    ops_action: "No action. Client-side validation should have caught this."
+  "7799":
+    raw_message: "Unknown Error"
+    category: unknown
+    retry: status_query
+    customer_message: "We could not confirm the status of your transfer. We are checking with the destination bank."
+    ops_action: "Issue TSQ immediately. Do NOT assume failure — funds may have posted at counterparty."
+  "8000":
+    raw_message: "Duplicate Transaction"
+    category: duplicate
+    retry: status_query
+    customer_message: "This transfer appears to have already been submitted. We are confirming its status."
+    ops_action: "TSQ to determine whether prior submission posted. If posted, do not resend. If not, resend with new session ID."
+  "8001":
+    raw_message: "Encryption Error"
+    category: encryption_error
+    retry: immediate
+    customer_message: "A technical error occurred. Please try your transfer again."
+    ops_action: "Retry immediately with fresh envelope. If persistent, rotate signing keys and investigate integration."
+  "9999":
+    raw_message: "Authentication Error"
+    category: authentication_error
+    retry: never
+    customer_message: "A technical error occurred. Please contact support."
+    ops_action: "Do NOT retry. Verify apiKey, orgId, and IP allow-list. Rotate credential if compromised."
+  "X02":
+    raw_message: "STP engine unvalidated transaction"
+    category: format_error
+    retry: never
+    customer_message: "A technical error occurred. Please contact support."
+    ops_action: "Envelope failed pre-CBA validation. Inspect request for missing/malformed required fields."
+  "X002":
+    raw_message: "Transaction marked for send"
+    category: success
+    retry: never
+    customer_message: "Your transfer is in progress. We will notify you once it completes."
+    ops_action: "None. In-flight state. Will resolve to final status shortly."
+  "X03":
+    raw_message: "Connection Error"
+    category: connection_error
+    retry: status_query
+    customer_message: "The destination bank is temporarily unreachable. We are retrying your transfer."
+    ops_action: "TSQ first. If not-processed, retry with backoff. Escalate if same bank fails >5 in 10min (destination bank outage)."
+  "X03A":
+    raw_message: "CBSI Connection not available"
+    category: connection_error
+    retry: backoff
+    customer_message: "The destination bank service is temporarily unavailable. We will retry shortly."
+    ops_action: "Backoff retry. Escalate if pattern persists — CBSI adapter may need restart."
+  "X03B":
+    raw_message: "Response Wait Timeout"
+    category: timeout
+    retry: status_query
+    customer_message: "The destination bank did not respond in time. We are confirming your transfer status."
+    ops_action: "TSQ within 60s. If unclear, TSQ again at 5min. Do NOT retry until TSQ conclusively shows not-processed."
+  "X03C":
+    raw_message: "Connection Not Available To Bridge"
+    category: connection_error
+    retry: backoff
+    customer_message: "A temporary system error. We will retry your transfer shortly."
+    ops_action: "Backoff retry. Bridge outage — page platform team if pattern persists."
+  "X03D":
+    raw_message: "Connection Not Available To Bank from Bridge"
+    category: connection_error
+    retry: status_query
+    customer_message: "The destination bank is temporarily unavailable. We will retry shortly."
+    ops_action: "TSQ then retry. Bank-side outage — pattern likely visible in same-bank error rate."
+  "X03E":
+    raw_message: "STP Engine service interrupted before CBA Send"
+    category: connection_error
+    retry: immediate
+    customer_message: "A temporary system error. Please try again."
+    ops_action: "Safe to retry immediately — envelope never reached CBA. New session ID."
+  "X04":
+    raw_message: "CBSI Service Error"
+    category: system_malfunction
+    retry: backoff
+    customer_message: "A temporary system error. We will retry your transfer shortly."
+    ops_action: "Backoff retry. Investigate CBSI logs if pattern persists."
+  "X05":
+    raw_message: "Unknown WS CBSI Service Error"
+    category: system_malfunction
+    retry: backoff
+    customer_message: "A temporary system error. We will retry your transfer shortly."
+    ops_action: "Backoff retry. Escalate to CBSI vendor if pattern persists."
+  "X06":
+    raw_message: "WS Connection Timeout"
+    category: timeout
+    retry: status_query
+    customer_message: "The destination bank did not respond in time. We are confirming your transfer status."
+    ops_action: "TSQ within 60s. Do NOT retry blindly."
+  "X08":
+    raw_message: "Conversion Error"
+    category: format_error
+    retry: never
+    customer_message: "A technical error occurred. Please contact support."
+    ops_action: "Do NOT retry. Envelope has malformed field. Log payload and fix upstream serializer."
+  "X09":
+    raw_message: "Encryption Error"
+    category: encryption_error
+    retry: immediate
+    customer_message: "A technical error occurred. Please try your transfer again."
+    ops_action: "Retry immediately. If persistent, rotate signing keys."
+  "X10":
+    raw_message: "Decryption Error"
+    category: encryption_error
+    retry: immediate
+    customer_message: "A technical error occurred. Please try your transfer again."
+    ops_action: "Retry immediately. If persistent, verify counterparty key material and IV handling."
+  "X11":
+    raw_message: "Unknown Application Error"
+    category: system_malfunction
+    retry: backoff
+    customer_message: "A temporary system error. We will retry your transfer shortly."
+    ops_action: "Backoff retry. Inspect app logs for stack trace."
+  "X12":
+    raw_message: "Unknown CBA Server Application Error"
+    category: system_malfunction
+    retry: backoff
+    customer_message: "A temporary system error at the destination bank. We will retry shortly."
+    ops_action: "Backoff retry. Contact destination bank if pattern persists."
+  "X94":
+    raw_message: "Duplicate Transaction Error"
+    category: duplicate
+    retry: status_query
+    customer_message: "This transfer appears to already be in progress. We are confirming its status."
+    ops_action: "TSQ. If prior submission posted, do not resend."
+  "XX94":
+    raw_message: "Duplicate Transaction Error"
+    category: duplicate
+    retry: status_query
+    customer_message: "This transfer appears to already be in progress. We are confirming its status."
+    ops_action: "TSQ. If prior submission posted, do not resend."
+  "X100":
+    raw_message: "Already Paid Duplicate Transaction"
+    category: duplicate
+    retry: never
+    customer_message: "This transfer was already completed successfully."
+    ops_action: "No action. Prior submission posted. Mark ticket as resolved-duplicate."
+  "X902":
+    raw_message: "Message Integrity Error"
+    category: format_error
+    retry: never
+    customer_message: "A technical error occurred. Please contact support."
+    ops_action: "Do NOT retry. HMAC/checksum mismatch. Inspect signing pipeline."

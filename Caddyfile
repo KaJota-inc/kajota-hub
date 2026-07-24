@@ -74,6 +74,20 @@
 		}
 	}
 
+	# Payflow — NIP payment-ops triage. Two integrations (freshdesk, zendesk)
+	# on separate ports. HMAC signatures are over the body only, so the strip
+	# via handle_path is invisible to signature verification upstream.
+	handle_path /payflow-freshdesk/* {
+		reverse_proxy 127.0.0.1:8109 {
+			header_up X-Forwarded-Prefix /payflow-freshdesk
+		}
+	}
+	handle_path /payflow-zendesk/* {
+		reverse_proxy 127.0.0.1:8110 {
+			header_up X-Forwarded-Prefix /payflow-zendesk
+		}
+	}
+
 	# Landing page = route map.
 	handle / {
 		root * /srv
