@@ -35,6 +35,17 @@
   .hint{color:var(--mut);font-size:13px;text-align:center;margin-top:10px}
   #result,#cheatResult{display:none}
   #result.show,#cheatResult.show{display:block;animation:fade .4s ease}
+  .feedNote{color:var(--mut);font-size:13px;margin:-6px 0 14px}
+  .feedDot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--mut);vertical-align:middle;margin-left:6px}
+  .feedDot.live{background:var(--green);box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:pulse 1.8s infinite}
+  .feedDot.down{background:#f59e0b}
+  .feedRow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .feedRow:last-child{border-bottom:0}
+  .feedRow .badge{font-size:11px;font-weight:800;padding:2px 7px;border-radius:6px;white-space:nowrap}
+  .feedRow .badge.ok{background:rgba(34,197,94,.14);color:var(--green)}
+  .feedRow .badge.err{background:rgba(239,68,68,.14);color:var(--red)}
+  .feedRow .fx{flex:1;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink)}
+  .feedRow .ft{color:var(--mut);white-space:nowrap}
   @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   .ok{color:var(--green);font-weight:800}
   .err{color:var(--red);font-weight:700}
@@ -73,6 +84,12 @@
   <div class="card" id="result">
     <h2 id="rhead">Settlement</h2>
     <div id="rbody"></div>
+  </div>
+
+  <div class="card">
+    <h2>Live settlements on this rail <span id="feedDot" class="feedDot"></span></h2>
+    <p class="feedNote">Every x402 settlement on this CEP-18 — from this page, the KaJota mobile app, or the CLI — is submitted by the same facilitator account, so it all lands here. One rail, many clients, one on-chain ledger.</p>
+    <div id="feed"><div class="row"><span class="k">loading…</span><span class="v"></span></div></div>
   </div>
 
   <div class="card">
@@ -183,7 +200,33 @@ $("#cheat").addEventListener("click", async () => {
   finally{ btn.disabled = false; btn.innerHTML = "🛡  Try to cheat again"; }
 });
 
+async function loadFeed(){
+  try{
+    const r = await fetch("feed");
+    const d = await r.json();
+    const dot = $("#feedDot");
+    dot.className = "feedDot " + (d.healthy ? "live" : "down");
+    dot.title = d.healthy ? "rail live" : "facilitator settlement temporarily degraded";
+    const rows = (d.rows||[]).slice(0,8);
+    if(!rows.length){ $("#feed").innerHTML = `<div class="row"><span class="k">no settlements yet</span></div>`; return; }
+    $("#feed").innerHTML = rows.map(x => `
+      <div class="feedRow">
+        <span class="badge ${x.ok?'ok':'err'}">${x.ok?'SETTLED':'FAILED'}</span>
+        <a class="fx" target="_blank" href="${x.explorer}">${short(x.tx)} ↗</a>
+        <span class="ft">${fmtTime(x.at)}</span>
+      </div>`).join("");
+  }catch(e){ $("#feed").innerHTML = `<div class="row"><span class="err">feed unavailable</span></div>`; }
+}
+function fmtTime(iso){
+  try{ const d=new Date(iso); const s=Math.floor((Date.now()-d.getTime())/1000);
+    if(s<60) return s+"s ago"; if(s<3600) return Math.floor(s/60)+"m ago";
+    if(s<86400) return Math.floor(s/3600)+"h ago"; return Math.floor(s/86400)+"d ago";
+  }catch{ return ""; }
+}
+
 loadChallenge();
+loadFeed();
+setInterval(loadFeed, 20000);
 </script>
 </body>
 </html>
