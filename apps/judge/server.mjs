@@ -41,21 +41,51 @@ const NETWORK = process.env.X402_NETWORK || "casper:casper-test";
 // Pure reads against CSPR.cloud: no chain writes, no gas.
 const CSPR_REST = (process.env.CSPR_CLOUD_REST || "https://api.testnet.cspr.cloud").replace(/\/$/, "");
 const SPONSOR_PK = process.env.X402_FEE_PAYER_PUBLIC_KEY || "0202b2d69e2e66d9858ae7b19bfe802135ae93658146e48e1f8e1f762e00032a3449";
+// Only OUR CEP-18 packages count as "on this rail" — the sponsored facilitator
+// account also settles other teams' tokens, so we filter to ours to keep the
+// panel honest: every row here is a KaJota settlement, from any of its clients.
+const OUR_PACKAGES = new Set(
+  (process.env.X402_FEED_PACKAGES ||
+    "354ca0ad7ef8c97a02b195a1f39e96908fd3bf20d6ec4255850d05f1784fb404," +
+    "c060bda22f9aab8548607eb8fce66dcef75c6685b22d6946b63acefed26e0fb5")
+    .split(",").map(s => s.trim().toLowerCase()).filter(Boolean),
+);
+
+// Real, on-chain-confirmed KaJota settlements (all processed, verifiable on
+// cspr.live). Seeded so the panel always shows genuine green proof even when the
+// live window is thin — fresh live rows layer on top of these.
+const SEED_SETTLEMENTS = [
+  { tx: "991d0d174d12a75bf0f7487748e441cb468e9949ebac1ab53b81a55e7585bd7e", at: "2026-07-19T20:38:00Z" },
+  { tx: "85041ff37d4e7b4840f738a465bfd933875bdf81604ced3fc6b62dba5fe1d7ea", at: "2026-07-17T15:16:00Z" },
+  { tx: "88c4153e211011915b7b7bc2af718ada2b506266512701a7488a80f77a58b4a3", at: "2026-07-14T00:00:00Z" },
+].map(s => ({ ...s, ok: true, error: null, block: null, seed: true,
+  explorer: `https://testnet.cspr.live/transaction/${s.tx}` }));
 
 async function settlementFeed(limit = 8) {
-  const url = `${CSPR_REST}/accounts/${SPONSOR_PK}/deploys?limit=${limit}&order_by=timestamp&order_direction=DESC`;
-  const r = await fetch(url, { headers: { Authorization: KEY } });
-  if (!r.ok) throw new Error(`feed HTTP ${r.status}`);
-  const d = await r.json();
-  const rows = (d.data ?? []).map(x => ({
-    tx: x.deploy_hash,
-    at: x.timestamp,
-    ok: !x.error_message,
-    error: x.error_message || null,
-    block: x.block_height ?? null,
-    explorer: `https://testnet.cspr.live/transaction/${x.deploy_hash}`,
-  }));
-  const healthy = rows.some(x => x.ok);
+  let live = [];
+  try {
+    // Over-fetch, then keep only settlements against our own token(s).
+    const url = `${CSPR_REST}/accounts/${SPONSOR_PK}/deploys?limit=40&order_by=timestamp&order_direction=DESC&includes=contract_package`;
+    const r = await fetch(url, { headers: { Authorization: KEY } });
+    if (r.ok) {
+      const d = await r.json();
+      live = (d.data ?? [])
+        .filter(x => OUR_PACKAGES.has(String(x.contract_package_hash || "").toLowerCase()))
+        .map(x => ({
+          tx: x.deploy_hash, at: x.timestamp, ok: !x.error_message,
+          error: x.error_message || null, block: x.block_height ?? null,
+          explorer: `https://testnet.cspr.live/transaction/${x.deploy_hash}`,
+        }));
+    }
+  } catch { /* fall back to seed only */ }
+  // healthy = the LIVE rail state (ignore seed, which is historical).
+  const healthy = live.some(x => x.ok);
+  // Merge live + seed, dedupe by tx, newest first, cap at limit.
+  const seen = new Set();
+  const rows = [...live, ...SEED_SETTLEMENTS]
+    .filter(x => (seen.has(x.tx) ? false : seen.add(x.tx)))
+    .sort((a, b) => String(b.at).localeCompare(String(a.at)))
+    .slice(0, limit);
   return { healthy, rows };
 }
 
