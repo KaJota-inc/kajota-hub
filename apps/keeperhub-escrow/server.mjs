@@ -42,6 +42,12 @@ const KH_KEEPER = process.env.KH_KEEPER_ADDRESS || "0x4c629AD055B3Ad07beF13b3b2f
 const KH_CHAIN_ID = Number(process.env.KH_CHAIN_ID || 11155111);
 const KH_DEMO_DEPOSIT_ID = process.env.KH_DEMO_DEPOSIT_ID
   || "0xe713d5a3eb6c0c3c247e3c86ad23696e006c6097de47d5fad9a303838f0f2d13";
+// Full-loop (Connect Wallet → Deposit → Auto-release) needs:
+const KH_REGISTRY = process.env.KH_REGISTRY_ADDRESS || "0xfce6bd68d8d6f858d447f537d206c1e354b44315";
+const KH_USDC = process.env.KH_USDC_ADDRESS || "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
+const KH_DEMO_LISTING_ID = process.env.KH_DEMO_LISTING_ID
+  || "0x22d917c51456ff35e7e678534cc6059d86659e0bfa926bf137e036cf6f9a7426";
+const KH_DEMO_DEPOSIT_USDC = process.env.KH_DEMO_DEPOSIT_USDC || "100000"; // 0.10 USDC (6 dp)
 
 const INDEX_HTML = readFileSync(join(__dir, "index.html"), "utf8");
 const APP_JS = readFileSync(join(__dir, "app.js"), "utf8");
@@ -112,6 +118,21 @@ function publicConfig() {
     kh: {
       dashboard: `${KH_BASE}/workflows/${KH_WORKFLOW_ID}`,
       docs: "https://docs.keeperhub.com",
+    },
+    // Full-loop UI: judge signs their own deposit, we auto-fire release.
+    fullLoop: {
+      listingId: KH_DEMO_LISTING_ID,
+      registry: KH_REGISTRY,
+      registryExplorer: `${explorer}/address/${KH_REGISTRY}`,
+      usdc: KH_USDC,
+      usdcExplorer: `${explorer}/token/${KH_USDC}`,
+      depositAmountRaw: KH_DEMO_DEPOSIT_USDC,
+      depositAmountHuman: "0.10",
+      productLabel: "KH-DEMO-1784730454",
+      faucets: {
+        eth: "https://cloud.google.com/application/web3/faucet/ethereum/sepolia",
+        usdc: "https://faucet.circle.com/",
+      },
     },
   };
 }
