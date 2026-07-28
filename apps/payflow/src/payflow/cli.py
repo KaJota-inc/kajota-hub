@@ -28,6 +28,7 @@ from payflow.ingest import (
     print_ingest_stats,
     read_csv_envelopes,
 )
+from payflow.demo import run_demo
 from payflow.doctor import format_doctor_report, run_doctor
 from payflow.kb import load_kb
 from payflow.models import Dialect, TriageResult
@@ -56,6 +57,14 @@ def doctor(
     format_doctor_report(report, console)
     if report.failed:
         raise typer.Exit(1)
+
+
+@app.command()
+def demo(
+    output_dir: Path = typer.Option(None, "--output-dir", help="Where to save fixtures/predictions (default: temp dir)."),
+) -> None:
+    """One-shot end-to-end pipeline demo. Perfect for the pilot pitch screenshare."""
+    run_demo(output_dir=output_dir, console=console)
 
 
 @app.command()
