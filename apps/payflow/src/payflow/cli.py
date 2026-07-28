@@ -28,7 +28,7 @@ from payflow.ingest import (
     print_ingest_stats,
     read_csv_envelopes,
 )
-from payflow.demo import run_demo
+from payflow.demo import run_demo, run_pilot_demo
 from payflow.doctor import format_doctor_report, run_doctor
 from payflow.kb import load_kb
 from payflow.models import Dialect, TriageResult
@@ -62,9 +62,26 @@ def doctor(
 @app.command()
 def demo(
     output_dir: Path = typer.Option(None, "--output-dir", help="Where to save fixtures/predictions (default: temp dir)."),
+    pilot_csv: Path = typer.Option(
+        None, "--pilot-csv",
+        help="Run against a bank's audit-trail CSV instead of synthetic fixtures. "
+             "Requires --dialect and PAYFLOW_REDACTION_SALT env var.",
+    ),
+    dialect: Dialect = typer.Option(
+        Dialect.CORE, "--dialect",
+        help="CBA dialect for --pilot-csv envelopes (ignored in synthetic mode).",
+    ),
 ) -> None:
-    """One-shot end-to-end pipeline demo. Perfect for the pilot pitch screenshare."""
-    run_demo(output_dir=output_dir, console=console)
+    """One-shot end-to-end pipeline demo. Perfect for the pilot pitch screenshare.
+
+    Default (synthetic): full accuracy + calibration + bench + sample note.
+    With `--pilot-csv PATH`: runs against the bank's real data — coverage story
+    + confidence distribution + top KB misses + sample triage notes.
+    """
+    if pilot_csv:
+        run_pilot_demo(csv_path=pilot_csv, dialect=dialect, output_dir=output_dir, console=console)
+    else:
+        run_demo(output_dir=output_dir, console=console)
 
 
 @app.command()
