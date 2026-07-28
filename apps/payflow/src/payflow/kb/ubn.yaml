@@ -1,0 +1,111 @@
+# Union Bank NIP-facing response codes. Source: ubn.properties.
+# NG-flavoured semantics — note "05=Do not honor" is BANK-DECLINE, not card decline.
+codes:
+  "00":
+    raw_message: "Approved or completed successfully"
+    category: success
+    retry: never
+    customer_message: "Payment completed successfully."
+    ops_action: "None."
+  "03":
+    raw_message: "Invalid Sender"
+    category: authentication_error
+    retry: never
+    customer_message: "A technical error occurred. Please contact support."
+    ops_action: "Verify apiKey / IP allow-list for sender institution."
+  "05":
+    raw_message: "Do not honor"
+    category: not_permitted
+    retry: never
+    customer_message: "The transfer was declined by the destination bank."
+    ops_action: "No action. Bank-side decline."
+  "06":
+    raw_message: "Dormant Account"
+    category: dormant_account
+    retry: never
+    customer_message: "The destination account is dormant."
+    ops_action: "No action. Recipient must reactivate."
+  "07":
+    raw_message: "Invalid Account"
+    category: invalid_account
+    retry: never
+    customer_message: "The destination account number is not valid."
+    ops_action: "No action."
+  "08":
+    raw_message: "Account Name Mismatch"
+    category: invalid_account
+    retry: never
+    customer_message: "The account name does not match the account number. Please verify recipient details."
+    ops_action: "No action. Customer must correct name/account combination."
+  "09":
+    raw_message: "Request processing in progress"
+    category: success
+    retry: never
+    customer_message: "Your transfer is being processed. We will notify you once it completes."
+    ops_action: "None. Follow up with TSQ if final status not received within SLA."
+  "16":
+    raw_message: "Unknown Bank Code"
+    category: unknown_bank
+    retry: never
+    customer_message: "The destination bank is not recognized."
+    ops_action: "Update bank code mapping. Escalate if new CBN-licensed institution."
+  "25":
+    raw_message: "Unable to locate record"
+    category: unknown
+    retry: status_query
+    customer_message: "We could not confirm your transfer at the destination bank."
+    ops_action: "TSQ. If bank has no record but our record shows debit, initiate reversal."
+  "34":
+    raw_message: "Suspected fraud"
+    category: fraud_suspected
+    retry: never
+    customer_message: "This transfer was declined."
+    ops_action: "Do NOT retry. Log for fraud review."
+  "51":
+    raw_message: "No sufficient funds"
+    category: insufficient_funds
+    retry: never
+    customer_message: "Your account does not have enough funds for this transfer."
+    ops_action: "No action."
+  "57":
+    raw_message: "Transaction not permitted to sender"
+    category: not_permitted
+    retry: never
+    customer_message: "This transaction type is not permitted from your account."
+    ops_action: "No action."
+  "61":
+    raw_message: "Transfer limit Exceeded"
+    category: limit_exceeded
+    retry: never
+    customer_message: "This transfer exceeds your daily transfer limit."
+    ops_action: "No action."
+  "68":
+    raw_message: "Response received too late"
+    category: timeout
+    retry: status_query
+    customer_message: "The destination bank response was delayed. We are confirming your transfer status."
+    ops_action: "TSQ. Do NOT retry blindly."
+  "91":
+    raw_message: "Beneficiary Bank not available"
+    category: connection_error
+    retry: status_query
+    customer_message: "The destination bank is temporarily unavailable."
+    ops_action: "TSQ then backoff."
+  "94":
+    raw_message: "Duplicate Transactions"
+    category: duplicate
+    retry: status_query
+    customer_message: "This transfer appears already in progress."
+    ops_action: "TSQ. Do not resend."
+  "98":
+    raw_message: "Tank Transaction Successful"
+    category: success
+    retry: never
+    customer_message: "Payment completed successfully."
+    ops_action: "None."
+  "99":
+    raw_message: "Generic Error"
+    category: unknown
+    retry: status_query
+    customer_message: "We could not confirm your transfer status."
+    ops_action: "TSQ. Do NOT assume failure."

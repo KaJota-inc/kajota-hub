@@ -1,0 +1,61 @@
+[project]
+name = "payflow"
+version = "0.1.0"
+description = "NIP payment-ops autopilot: dialect-aware failure triage for Nigerian payments"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "typer>=0.12",
+    "rich>=13.7",
+    "anthropic>=0.42",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.4",
+    "fastapi>=0.110",
+]
+ingest = [
+    "sqlalchemy>=2.0",
+    "psycopg[binary]>=3.2",
+]
+webhook = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+]
+gemini = [
+    "google-genai>=1.0",
+]
+
+[project.scripts]
+payflow = "payflow.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/payflow"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/payflow", "tests", "data/raw"]
+
+[tool.hatch.build]
+include = [
+    "src/payflow/**/*.py",
+    "src/payflow/**/*.yaml",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM"]

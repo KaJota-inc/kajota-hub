@@ -58,6 +58,13 @@ RUN python -m venv /srv/venvs/mesh-skill && /srv/venvs/mesh-skill/bin/pip instal
  && /srv/venvs/mesh-skill/bin/pip install -q \
       "fastapi>=0.118.0" "uvicorn[standard]>=0.30.0" "web3>=7.4.0" "pydantic>=2.9.0" "pydantic-settings>=2.4.0"
 
+# ---- Payflow (NIP payment-ops triage — freshdesk + zendesk webhooks) --
+# Single venv; both integrations run from the same source at different ports.
+# `[webhook]` pulls fastapi + uvicorn; `[gemini]` enables the Gemini triager
+# so PAYFLOW_PROVIDER=gemini works without a rebuild.
+RUN python -m venv /srv/venvs/payflow && /srv/venvs/payflow/bin/pip install -q --upgrade pip \
+ && /srv/venvs/payflow/bin/pip install -q -e '/srv/apps/payflow[webhook,gemini]'
+
 # Pre-pull the MongoDB MCP server (Node) the agents spawn on first chat.
 RUN npx -y mongodb-mcp-server@latest --help > /dev/null 2>&1 || true
 

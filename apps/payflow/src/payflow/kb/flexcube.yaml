@@ -1,0 +1,45 @@
+# Flexcube CBS response codes. Source: flexcube.properties.
+# Union Bank (newer core), Citi, Standard Chartered typically on Flexcube.
+codes:
+  "1004":
+    raw_message: "Unknown CBA Error"
+    category: unknown
+    retry: status_query
+    customer_message: "We could not determine the status of your transfer."
+    ops_action: "TSQ. Escalate if pattern persists on same bank."
+  "1003":
+    raw_message: "Invalid Account"
+    category: invalid_account
+    retry: never
+    customer_message: "The destination account number is not valid. Please confirm and try again."
+    ops_action: "No action."
+  "1001":
+    raw_message: "Insufficient Funds"
+    category: insufficient_funds
+    retry: never
+    customer_message: "Your account does not have enough funds for this transfer."
+    ops_action: "No action. Correctly declined."
+  "1017":
+    raw_message: "Decryption Error"
+    category: encryption_error
+    retry: immediate
+    customer_message: "A technical error occurred. Please try again."
+    ops_action: "Retry immediately. If persistent, verify key material with counterparty."
+  "1014":
+    raw_message: "Invalid Debit Account Number"
+    category: invalid_account
+    retry: never
+    customer_message: "The debit account number is not valid."
+    ops_action: "No action. Customer must supply valid account."
+  "1016":
+    raw_message: "Invalid Credit Account Number"
+    category: invalid_account
+    retry: never
+    customer_message: "The destination account number is not valid."
+    ops_action: "No action. Customer must supply valid account."
+  "1012":
+    raw_message: "Invalid Amount"
+    category: invalid_amount
+    retry: never
+    customer_message: "The transfer amount is invalid."
+    ops_action: "No action. Validate amount upstream."

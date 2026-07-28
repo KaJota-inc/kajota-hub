@@ -118,3 +118,39 @@ services:
       - { key: KH_KEEPER_ADDRESS, value: "0x4c629AD055B3Ad07beF13b3b2f47E74aFE493bc2" }
       - { key: KH_CHAIN_ID, value: "11155111" }
       - { key: KH_DEMO_DEPOSIT_ID, value: "0xe713d5a3eb6c0c3c247e3c86ad23696e006c6097de47d5fad9a303838f0f2d13" }
+
+      # ---- payflow-freshdesk (NIP payment-ops triage — Freshdesk webhook) ---
+      # Bank fills the FRESHDESK_* secrets after their webhook is created.
+      # PAYFLOW_DRY_RUN=true keeps writeback OFF for the first pilot weeks —
+      # webhook responds with the note preview but never touches Freshdesk.
+      - { key: PFFD_FRESHDESK_DOMAIN, sync: false }
+      - { key: PFFD_FRESHDESK_API_KEY, sync: false }
+      - { key: PFFD_FRESHDESK_WEBHOOK_SECRET, sync: false }
+      - { key: PFFD_FRESHDESK_DEFAULT_DIALECT, value: core }
+      - { key: PFFD_PAYFLOW_DRY_RUN, value: "true" }
+      - { key: PFFD_PAYFLOW_USE_LLM, value: "false" }
+      - { key: PFFD_PAYFLOW_VERIFY, value: "false" }
+      - { key: PFFD_PAYFLOW_PROVIDER, value: anthropic }
+      - { key: PFFD_PAYFLOW_LLM_MODEL, value: claude-haiku-4-5-20251001 }
+      - { key: PFFD_PAYFLOW_VERIFIER_MODEL, value: claude-sonnet-5 }
+      - { key: PFFD_PAYFLOW_LOG_LEVEL, value: INFO }
+      - { key: PFFD_PAYFLOW_INTERNAL_TOKEN, generateValue: true }
+      - { key: PFFD_ANTHROPIC_API_KEY, sync: false }
+      - { key: PFFD_GEMINI_API_KEY, sync: false }
+
+      # ---- payflow-zendesk (NIP payment-ops triage — Zendesk webhook) --------
+      - { key: PFZD_ZENDESK_SUBDOMAIN, sync: false }
+      - { key: PFZD_ZENDESK_EMAIL, sync: false }
+      - { key: PFZD_ZENDESK_API_TOKEN, sync: false }
+      - { key: PFZD_ZENDESK_WEBHOOK_SECRET, sync: false }
+      - { key: PFZD_ZENDESK_DEFAULT_DIALECT, value: core }
+      - { key: PFZD_PAYFLOW_DRY_RUN, value: "true" }
+      - { key: PFZD_PAYFLOW_USE_LLM, value: "false" }
+      - { key: PFZD_PAYFLOW_VERIFY, value: "false" }
+      - { key: PFZD_PAYFLOW_PROVIDER, value: anthropic }
+      - { key: PFZD_PAYFLOW_LLM_MODEL, value: claude-haiku-4-5-20251001 }
+      - { key: PFZD_PAYFLOW_VERIFIER_MODEL, value: claude-sonnet-5 }
+      - { key: PFZD_PAYFLOW_LOG_LEVEL, value: INFO }
+      - { key: PFZD_PAYFLOW_INTERNAL_TOKEN, generateValue: true }
+      - { key: PFZD_ANTHROPIC_API_KEY, sync: false }
+      - { key: PFZD_GEMINI_API_KEY, sync: false }

@@ -31,5 +31,6 @@ copy kajota-coach       agent  concierge
 copy kajota-coach       skill  mesh-skill
 copy kajota-coach-slack agent  slack
 copy kajota-witness     ""     witness
+copy payflow            ""     payflow
 
-echo "OK — vendored 6 apps into $HUB/apps"
+echo "OK — vendored 7 apps into $HUB/apps"
