@@ -28,6 +28,7 @@ from payflow.ingest import (
     print_ingest_stats,
     read_csv_envelopes,
 )
+from payflow.doctor import format_doctor_report, run_doctor
 from payflow.kb import load_kb
 from payflow.models import Dialect, TriageResult
 from payflow.parser import parse_file
@@ -44,6 +45,17 @@ app.add_typer(ingest_app, name="ingest")
 app.add_typer(fd_app, name="freshdesk")
 app.add_typer(zd_app, name="zendesk")
 console = Console()
+
+
+@app.command()
+def doctor(
+    live: bool = typer.Option(False, "--live", help="Also run network-touching checks (LLM + helpdesk auth)."),
+) -> None:
+    """Pre-flight readiness check. Run this first on any new deploy."""
+    report = run_doctor(live=live)
+    format_doctor_report(report, console)
+    if report.failed:
+        raise typer.Exit(1)
 
 
 @app.command()
