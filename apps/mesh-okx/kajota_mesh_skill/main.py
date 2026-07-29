@@ -87,6 +87,33 @@ def _explorer_url_for_tx(tx_hash: str, chain_id: int) -> str:
 # ---------------------------------------------------------------------------
 
 
+@app.get("/", tags=["meta"])
+def root(client: Annotated[MeshClient, Depends(get_client)]) -> dict[str, object]:
+    """Service root — returns 200 with a self-describing summary.
+
+    Registered as the OKX.AI A2A service endpoint for ASP 5855; the
+    platform's endpoint-reachability check on the root path was failing
+    with 404 (FastAPI's default) until this handler existed.
+    """
+    status = client.chain_status()
+    return {
+        "service": "Kajota Mesh — A2A Escrow",
+        "asp_id": 5855,
+        "chain_id": int(status["chain_id"]),
+        "service_address": str(status["service_address"]),
+        "escrow": status.get("escrow"),
+        "registry": status.get("registry"),
+        "endpoints": {
+            "health": "/healthz",
+            "quote": "POST /escrow/quote",
+            "deposit": "GET /escrow/deposit/{deposit_id}",
+            "release": "POST /escrow/release",
+            "refund": "POST /escrow/refund",
+        },
+        "docs": "https://github.com/KaJota-inc/kajota-coach/tree/hackathon/okx-asp/skill",
+    }
+
+
 @app.get("/healthz", response_model=HealthResponse, tags=["meta"])
 def healthz(client: Annotated[MeshClient, Depends(get_client)]) -> HealthResponse:
     status = client.chain_status()
