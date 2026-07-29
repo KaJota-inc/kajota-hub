@@ -15,24 +15,37 @@
 set -euo pipefail
 
 STATE_DIR="${OKX_A2A_STATE_DIR:-/root/.okx-agent-task}"
-SECRET="/etc/secrets/a2a-state.tar.gz"
+# Render secret files are text-only, so the identity tarball is stored as
+# base64 (.b64). Prefer the base64 form; fall back to a raw tarball if an
+# operator drops one in via a persistent disk mount.
+SECRET_B64="/etc/secrets/a2a-state.tar.gz.b64"
+SECRET_BIN="/etc/secrets/a2a-state.tar.gz"
 
 mkdir -p "$STATE_DIR"
 
-# First-boot: extract the tarball into $STATE_DIR (idempotent — tar will
-# overwrite existing files, which is what we want if the operator uploads
-# a refreshed identity).
-if [ -f "$SECRET" ]; then
-  # Marker so we only extract once per boot, not on supervisord restarts.
-  if [ ! -f "$STATE_DIR/.provisioned-from-secret" ]; then
-    echo "[okx-a2a] extracting identity from $SECRET into $STATE_DIR"
-    tar -xzf "$SECRET" -C "$STATE_DIR"
-    date -u +"provisioned=%Y-%m-%dT%H:%M:%SZ from=$SECRET" > "$STATE_DIR/.provisioned-from-secret"
+extract_if_new() { # <source-path> <decoder-cmd...>
+  local src="$1"; shift
+  [ -f "$src" ] || return 1
+  # Marker keyed on source path so re-uploading a different file triggers
+  # re-provision, but supervisord restarts of the same file don't.
+  local marker="$STATE_DIR/.provisioned-from-$(basename "$src")"
+  if [ -f "$marker" ]; then
+    echo "[okx-a2a] state already provisioned from $src"
+    return 0
   fi
-else
-  echo "[okx-a2a] WARNING — $SECRET not mounted. Daemon will run with a"
-  echo "[okx-a2a] fresh XMTP identity, which is NOT the one OKX bound to"
-  echo "[okx-a2a] ASP 5855. Upload the tarball as a Render secret file."
+  echo "[okx-a2a] extracting identity from $src into $STATE_DIR"
+  "$@" < "$src" | tar -xz -C "$STATE_DIR"
+  date -u +"provisioned=%Y-%m-%dT%H:%M:%SZ from=$src" > "$marker"
+}
+
+if ! extract_if_new "$SECRET_B64" base64 -d \
+  && ! extract_if_new "$SECRET_BIN" cat; then
+  echo "[okx-a2a] WARNING — no identity secret found at:"
+  echo "[okx-a2a]   $SECRET_B64"
+  echo "[okx-a2a]   $SECRET_BIN"
+  echo "[okx-a2a] Daemon will start with a FRESH XMTP identity, which is"
+  echo "[okx-a2a] NOT the one OKX bound to ASP 5855. Upload the base64"
+  echo "[okx-a2a] tarball as a Render secret file to fix."
 fi
 
 # The daemon writes state relative to $HOME; make sure that resolves to
