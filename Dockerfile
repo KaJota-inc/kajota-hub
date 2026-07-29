@@ -41,13 +41,20 @@ WORKDIR /srv
 COPY apps /srv/apps
 
 # ---- Isolated Python venvs (one layer each: low peak memory + caching) --
-# Agent family (installable packages: `pip install -e .`)
+# Agent family (installable packages: `pip install -e .`). The `google-adk`
+# 2.x line moved `McpToolset` behind the `[mcp]` extra; the vendored source
+# imports it directly (`from google.adk.tools.mcp_tool import McpToolset`),
+# so all three ADK-based apps need the extra installed explicitly — the
+# apps' pyproject.toml only pins bare `google-adk>=1.2.0`.
 RUN python -m venv /srv/venvs/coach-okx && /srv/venvs/coach-okx/bin/pip install -q --upgrade pip \
- && /srv/venvs/coach-okx/bin/pip install -q -e /srv/apps/coach-okx
+ && /srv/venvs/coach-okx/bin/pip install -q -e /srv/apps/coach-okx \
+ && /srv/venvs/coach-okx/bin/pip install -q "google-adk[mcp]"
 RUN python -m venv /srv/venvs/concierge && /srv/venvs/concierge/bin/pip install -q --upgrade pip \
- && /srv/venvs/concierge/bin/pip install -q -e /srv/apps/concierge
+ && /srv/venvs/concierge/bin/pip install -q -e /srv/apps/concierge \
+ && /srv/venvs/concierge/bin/pip install -q "google-adk[mcp]"
 RUN python -m venv /srv/venvs/slack && /srv/venvs/slack/bin/pip install -q --upgrade pip \
- && /srv/venvs/slack/bin/pip install -q -e /srv/apps/slack
+ && /srv/venvs/slack/bin/pip install -q -e /srv/apps/slack \
+ && /srv/venvs/slack/bin/pip install -q "google-adk[mcp]"
 
 # Mesh family — upstream Dockerfiles run from source (no `-e .`), so install
 # the explicit runtime deps and let supervisord launch from the app cwd.
