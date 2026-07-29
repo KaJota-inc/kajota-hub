@@ -81,6 +81,17 @@ RUN apt-get update \
  && apt-get purge -y build-essential && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
+# ---- OKX A2A daemon (XMTP) — hosts the identity that owns ASP 5855 --
+# Pinned rather than @latest so we don't get surprised by a bad release
+# mid-review; bump manually when doctor flags a new version.
+# Includes build-essential because @xmtp/node-bindings has an optional
+# arm64-linux native binary via node-gyp on some platforms.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends build-essential \
+ && npm install -g @okxweb3/a2a-node@0.1.10 \
+ && apt-get purge -y build-essential && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
+
 # ---- Proxy + process manager + landing page ------------------------
 COPY Caddyfile /etc/caddy/Caddyfile
 COPY supervisord.conf /etc/supervisor/conf.d/kajota-hub.conf
