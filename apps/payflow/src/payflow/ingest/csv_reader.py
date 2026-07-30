@@ -86,21 +86,36 @@ def read_csv_envelopes_from_stream(
             "Pass request_column / response_column to override."
         )
 
+    identity_fields = (
+        "session_id", "transaction_id", "method", "amount",
+        "source_account", "dest_account", "dest_bank_code", "narration",
+    )
+
+    def _fill_gaps_from(dest: Envelope, src: Envelope) -> None:
+        for f_ in identity_fields:
+            if getattr(dest, f_, None) is None and getattr(src, f_, None) is not None:
+                setattr(dest, f_, getattr(src, f_))
+
     for i, row in enumerate(reader):
         if limit is not None and i >= limit:
             return
         try:
             env = Envelope(source="audit_trail")
+
+            # Row-level explicit fields FIRST — a user-specified column name is
+            # the most authoritative source; envelope parsing only fills gaps.
+            if method_col and (v := row.get(method_col)):
+                env.method = v.strip()
+            if session_col and (v := row.get(session_col)):
+                env.session_id = v.strip()
+            if bank_col and (v := row.get(bank_col)):
+                env.dest_bank_code = v.strip()
+
             req = (row.get(req_col) or "").strip() if req_col else ""
             res = (row.get(res_col) or "").strip() if res_col else ""
 
             if req:
-                parsed = _parse_body(req)
-                for f_ in ("session_id", "transaction_id", "method", "amount",
-                           "source_account", "dest_account", "dest_bank_code", "narration"):
-                    val = getattr(parsed, f_, None)
-                    if val is not None:
-                        setattr(env, f_, val)
+                _fill_gaps_from(env, _parse_body(req))
                 env.raw_request = req
 
             if res:
@@ -109,14 +124,10 @@ def read_csv_envelopes_from_stream(
                     env.response_code = parsed.response_code
                 if parsed.response_message:
                     env.response_message = parsed.response_message
+                # Identity fields from the response are useful when the CSV is
+                # response-only (audit-trail exports frequently are).
+                _fill_gaps_from(env, parsed)
                 env.raw_response = res
-
-            if method_col and (v := row.get(method_col)):
-                env.method = env.method or v.strip()
-            if session_col and (v := row.get(session_col)):
-                env.session_id = env.session_id or v.strip()
-            if bank_col and (v := row.get(bank_col)):
-                env.dest_bank_code = env.dest_bank_code or v.strip()
 
             yield env
         except Exception:
