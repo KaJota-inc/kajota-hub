@@ -30,6 +30,7 @@ from payflow.ingest import (
 )
 from payflow.demo import run_demo, run_pilot_demo
 from payflow.doctor import format_doctor_report, run_doctor
+from payflow.explain import format_explain, run_explain
 from payflow.kb import load_kb
 from payflow.models import Dialect, TriageResult
 from payflow.parser import parse_file
@@ -82,6 +83,26 @@ def demo(
         run_pilot_demo(csv_path=pilot_csv, dialect=dialect, output_dir=output_dir, console=console)
     else:
         run_demo(output_dir=output_dir, console=console)
+
+
+@app.command()
+def explain(
+    path: Path = typer.Argument(..., help="Path to an envelope file (SOAP XML / JSON / audit-trail row)."),
+    dialect: Dialect = typer.Option(Dialect.CORE, help="CBA dialect for the response code."),
+    force_llm: bool = typer.Option(False, "--force-llm", help="Run LLM triager even on KB hit (for comparison)."),
+    force_verify: bool = typer.Option(False, "--force-verify", help="Also run the adversarial verifier."),
+    llm_model: str = typer.Option("claude-haiku-4-5-20251001"),
+    verifier_model: str = typer.Option("claude-sonnet-5"),
+) -> None:
+    """Verbose reasoning trace for one envelope. Shows which layer fired and why."""
+    env = parse_file(path)
+    env.dialect = dialect
+    report = run_explain(
+        env, kb=load_kb(),
+        force_llm=force_llm, force_verify=force_verify,
+        llm_model=llm_model, verifier_model=verifier_model,
+    )
+    format_explain(report, console)
 
 
 @app.command()
