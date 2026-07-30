@@ -85,6 +85,27 @@ def demo(
 
 
 @app.command()
+def ui(
+    host: str = typer.Option("127.0.0.1", help="Bind host."),
+    port: int = typer.Option(8080, help="Bind port."),
+) -> None:
+    """Launch the local demo UI in a browser. Screenshare-friendly pitch tool."""
+    try:
+        import uvicorn
+    except ImportError:
+        console.print("[red]uvicorn not installed. Run: uv sync --extra webhook[/red]")
+        raise typer.Exit(1)
+    from payflow.ui import build_app
+
+    url = f"http://{host}:{port}"
+    console.print()
+    console.print(f"  [green]▶ Payflow demo UI[/green]  →  [bold]{url}[/bold]")
+    console.print(f"  [dim]Ctrl+C to stop.[/dim]")
+    console.print()
+    uvicorn.run(build_app(), host=host, port=port, log_level="warning")
+
+
+@app.command()
 def parse(path: Path) -> None:
     """Parse a NIP envelope (SOAP XML | JSON | Remita audit-trail row) and dump it."""
     env = parse_file(path)
