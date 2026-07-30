@@ -1,4 +1,4 @@
-from payflow.ingest.csv_reader import read_csv_envelopes
+from payflow.ingest.csv_reader import read_csv_envelopes, read_csv_envelopes_from_stream
 from payflow.ingest.label import label_fixtures
 from payflow.ingest.redact import Redactor
 from payflow.ingest.stats import IngestStats, compute_ingest_stats, print_ingest_stats
@@ -13,4 +13,5 @@ __all__ = [
     "label_fixtures",
     "print_ingest_stats",
     "read_csv_envelopes",
+    "read_csv_envelopes_from_stream",
 ]

@@ -1,7 +1,7 @@
 import csv
 from collections.abc import Iterator
 from pathlib import Path
-from typing import Optional
+from typing import IO, Optional
 
 from payflow.models import Envelope
 from payflow.parser import parse_json, parse_soap
@@ -41,61 +41,85 @@ def read_csv_envelopes(
     limit: Optional[int] = None,
     skip_errors: bool = True,
 ) -> Iterator[Envelope]:
-    """Stream envelopes from a bank's audit-trail CSV.
+    """Stream envelopes from a bank's audit-trail CSV file at `path`.
 
     Auto-detects the request/response/method/session/bank-code columns. Emits one
     Envelope per row. Response fields (response_code, response_message) win over
     request fields when merging.
     """
     with Path(path).open() as f:
-        reader = csv.DictReader(f)
-        headers = list(reader.fieldnames or [])
-        req_col = request_column or _pick(headers, REQUEST_ALIASES)
-        res_col = response_column or _pick(headers, RESPONSE_ALIASES)
-        method_col = method_column or _pick(headers, METHOD_ALIASES)
-        session_col = session_column or _pick(headers, SESSION_ALIASES)
-        bank_col = bank_code_column or _pick(headers, BANK_CODE_ALIASES)
+        yield from read_csv_envelopes_from_stream(
+            f,
+            request_column=request_column, response_column=response_column,
+            method_column=method_column, session_column=session_column,
+            bank_code_column=bank_code_column, limit=limit, skip_errors=skip_errors,
+        )
 
-        if not (req_col or res_col):
-            raise ValueError(
-                f"CSV has no request/response column. Headers: {headers}. "
-                "Pass --request-column / --response-column to override."
-            )
 
-        for i, row in enumerate(reader):
-            if limit is not None and i >= limit:
-                return
-            try:
-                env = Envelope(source="audit_trail")
-                req = (row.get(req_col) or "").strip() if req_col else ""
-                res = (row.get(res_col) or "").strip() if res_col else ""
+def read_csv_envelopes_from_stream(
+    stream: IO[str],
+    *,
+    request_column: Optional[str] = None,
+    response_column: Optional[str] = None,
+    method_column: Optional[str] = None,
+    session_column: Optional[str] = None,
+    bank_code_column: Optional[str] = None,
+    limit: Optional[int] = None,
+    skip_errors: bool = True,
+) -> Iterator[Envelope]:
+    """Stream envelopes from any text stream (StringIO, uploaded file, etc.).
 
-                if req:
-                    parsed = _parse_body(req)
-                    for f_ in ("session_id", "transaction_id", "method", "amount",
-                               "source_account", "dest_account", "dest_bank_code", "narration"):
-                        val = getattr(parsed, f_, None)
-                        if val is not None:
-                            setattr(env, f_, val)
-                    env.raw_request = req
+    Same logic as `read_csv_envelopes` but from a stream — used by the web UI to
+    process an uploaded file without a temp-file dance.
+    """
+    reader = csv.DictReader(stream)
+    headers = list(reader.fieldnames or [])
+    req_col = request_column or _pick(headers, REQUEST_ALIASES)
+    res_col = response_column or _pick(headers, RESPONSE_ALIASES)
+    method_col = method_column or _pick(headers, METHOD_ALIASES)
+    session_col = session_column or _pick(headers, SESSION_ALIASES)
+    bank_col = bank_code_column or _pick(headers, BANK_CODE_ALIASES)
 
-                if res:
-                    parsed = _parse_body(res)
-                    if parsed.response_code:
-                        env.response_code = parsed.response_code
-                    if parsed.response_message:
-                        env.response_message = parsed.response_message
-                    env.raw_response = res
+    if not (req_col or res_col):
+        raise ValueError(
+            f"CSV has no request/response column. Headers: {headers}. "
+            "Pass request_column / response_column to override."
+        )
 
-                if method_col and (v := row.get(method_col)):
-                    env.method = env.method or v.strip()
-                if session_col and (v := row.get(session_col)):
-                    env.session_id = env.session_id or v.strip()
-                if bank_col and (v := row.get(bank_col)):
-                    env.dest_bank_code = env.dest_bank_code or v.strip()
+    for i, row in enumerate(reader):
+        if limit is not None and i >= limit:
+            return
+        try:
+            env = Envelope(source="audit_trail")
+            req = (row.get(req_col) or "").strip() if req_col else ""
+            res = (row.get(res_col) or "").strip() if res_col else ""
 
-                yield env
-            except Exception:
-                if not skip_errors:
-                    raise
-                continue
+            if req:
+                parsed = _parse_body(req)
+                for f_ in ("session_id", "transaction_id", "method", "amount",
+                           "source_account", "dest_account", "dest_bank_code", "narration"):
+                    val = getattr(parsed, f_, None)
+                    if val is not None:
+                        setattr(env, f_, val)
+                env.raw_request = req
+
+            if res:
+                parsed = _parse_body(res)
+                if parsed.response_code:
+                    env.response_code = parsed.response_code
+                if parsed.response_message:
+                    env.response_message = parsed.response_message
+                env.raw_response = res
+
+            if method_col and (v := row.get(method_col)):
+                env.method = env.method or v.strip()
+            if session_col and (v := row.get(session_col)):
+                env.session_id = env.session_id or v.strip()
+            if bank_col and (v := row.get(bank_col)):
+                env.dest_bank_code = env.dest_bank_code or v.strip()
+
+            yield env
+        except Exception:
+            if not skip_errors:
+                raise
+            continue
