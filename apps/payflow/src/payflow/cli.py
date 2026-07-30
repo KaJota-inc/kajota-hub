@@ -254,6 +254,10 @@ def eval_bench(
     sample: int = typer.Option(0, help="If >0, run only this many fixtures."),
     llm_model: str = typer.Option("claude-haiku-4-5-20251001"),
     verifier_model: str = typer.Option("claude-sonnet-5"),
+    gemini_cached: bool = typer.Option(
+        False, "--gemini-cached",
+        help="Assume Gemini prompt caching is enabled (matches GeminiTriager use_cache=True).",
+    ),
 ) -> None:
     """Measure latency (real) and estimated cost per envelope for one mode."""
     _warn_if_llm_mode_but_no_api_key(mode)
@@ -262,7 +266,9 @@ def eval_bench(
         fixtures = fixtures[:sample]
     predictions = run_eval(fixtures, mode)
     report = compute_bench(
-        predictions, mode=mode.value, llm_model=llm_model, verifier_model=verifier_model,
+        predictions, mode=mode.value,
+        llm_model=llm_model, verifier_model=verifier_model,
+        gemini_cached=gemini_cached,
     )
     format_bench(report, console)
 
@@ -273,6 +279,10 @@ def eval_bench_all(
     sample: int = typer.Option(0, help="If >0, run only this many fixtures."),
     llm_model: str = typer.Option("claude-haiku-4-5-20251001"),
     verifier_model: str = typer.Option("claude-sonnet-5"),
+    gemini_cached: bool = typer.Option(
+        False, "--gemini-cached",
+        help="Assume Gemini prompt caching is enabled (matches GeminiTriager use_cache=True).",
+    ),
 ) -> None:
     """Bench across all three modes and print the comparison table. The pitch chart."""
     _warn_if_llm_mode_but_no_api_key(EvalMode.WITH_LLM)
@@ -286,6 +296,7 @@ def eval_bench_all(
             reports.append(compute_bench(
                 preds, mode=m.value,
                 llm_model=llm_model, verifier_model=verifier_model,
+                gemini_cached=gemini_cached,
             ))
         except Exception as e:
             console.print(f"[yellow]Skipped {m.value}:[/yellow] {e}")

@@ -32,12 +32,18 @@ LLM_TRIAGER_TOKENS_CACHED = {
     "output": 180,         # tool_use structured response
     "cache_read": 1800,    # KB + role prompt (cache hit after 1st call)
 }
-# Gemini path (MVP): no prompt caching yet, so the KB rides in `input` every call.
-# TODO: wire Gemini context caching in GeminiTriager, then swap to a cached profile.
+# Gemini uncached: KB rides in `input` every call.
 LLM_TRIAGER_TOKENS_UNCACHED = {
     "input": 2050,         # (250 message + 1800 system, sent every call)
     "output": 180,
     "cache_read": 0,
+}
+# Gemini cached (use_cache=True in GeminiTriager): amortized profile.
+# cache_write is 1800 tokens ONCE per session — negligible over many envelopes.
+LLM_TRIAGER_TOKENS_GEMINI_CACHED = {
+    "input": 250,          # envelope JSON only
+    "output": 180,
+    "cache_read": 1800,    # KB served from Gemini's cached content
 }
 VERIFIER_TOKENS = {
     "input": 400,          # envelope + proposed verdict
@@ -49,8 +55,10 @@ def _is_gemini(model_name: str) -> bool:
     return "gemini" in model_name.lower()
 
 
-def _triager_tokens_for(model_name: str) -> dict:
-    return LLM_TRIAGER_TOKENS_UNCACHED if _is_gemini(model_name) else LLM_TRIAGER_TOKENS_CACHED
+def _triager_tokens_for(model_name: str, gemini_cached: bool = False) -> dict:
+    if _is_gemini(model_name):
+        return LLM_TRIAGER_TOKENS_GEMINI_CACHED if gemini_cached else LLM_TRIAGER_TOKENS_UNCACHED
+    return LLM_TRIAGER_TOKENS_CACHED
 
 
 # Kept for backwards compat with existing test imports and any downstream users.
@@ -92,6 +100,7 @@ def compute_bench(
     mode: Optional[str] = None,
     llm_model: str = "claude-haiku-4-5-20251001",
     verifier_model: str = "claude-sonnet-5",
+    gemini_cached: bool = False,
 ) -> BenchReport:
     filtered = [p for p in predictions if (mode is None or p.mode == mode)]
     if not filtered:
@@ -108,7 +117,7 @@ def compute_bench(
         total_ms=sum(durations),
         max_ms=max(durations),
     )
-    cost = _estimate_cost(resolved, llm_model, verifier_model)
+    cost = _estimate_cost(resolved, llm_model, verifier_model, gemini_cached=gemini_cached)
     throughput = 1000.0 / mean_ms if mean_ms > 0 else float("inf")
     return BenchReport(
         mode=resolved,
@@ -129,7 +138,9 @@ def _percentile(data: list[float], q: float) -> float:
     return sorted_data[idx]
 
 
-def _estimate_cost(mode: str, llm_model: str, verifier_model: str) -> BenchCost:
+def _estimate_cost(
+    mode: str, llm_model: str, verifier_model: str, gemini_cached: bool = False,
+) -> BenchCost:
     if mode == "kb_only":
         return BenchCost(
             mode=mode, per_envelope_usd=0.0,
@@ -139,7 +150,7 @@ def _estimate_cost(mode: str, llm_model: str, verifier_model: str) -> BenchCost:
     if primary is None:
         raise ValueError(f"No pricing for llm_model={llm_model!r}. Add to PRICING_PER_MTOK.")
 
-    tokens = _triager_tokens_for(llm_model)
+    tokens = _triager_tokens_for(llm_model, gemini_cached=gemini_cached)
     per_envelope = (
         tokens["input"] / 1_000_000 * primary["input"]
         + tokens["output"] / 1_000_000 * primary["output"]
