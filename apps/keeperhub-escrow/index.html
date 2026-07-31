@@ -3,181 +3,782 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Kajota × KeeperHub · Escrow Console</title>
+<title>KeeperHub × Kajota · Onboarding UX</title>
 <style>
   :root {
-    --bg: #0e1116;
-    --fg: #e8f0f8;
-    --dim: #8b949e;
-    --card: #161b22;
-    --edge: #30363d;
-    --accent: #81d9ff;
-    --green: #23c564;
-    --yellow: #ffc247;
-    --red: #f85149;
-    --grid: #222b36;
-    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    --bg:        #050507;
+    --bg-elev:   #0c0c11;
+    --edge:      #1a1a22;
+    --edge-hi:   #2a2a36;
+    --fg:        #f5f5f7;
+    --dim:       #6b7280;
+    --dim-2:     #4a4a55;
+    --accent:    #81d9ff;
+    --blood:     #ff2d3f;
+    --blood-bg:  rgba(255,45,63,0.08);
+    --mint:      #00ff9c;
+    --mint-bg:   rgba(0,255,156,0.08);
+    --yellow:    #ffe042;
+    --grid:      #101019;
+    --mono:      ui-monospace, "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+    --display:   -apple-system, "SF Pro Display", Inter, system-ui, sans-serif;
   }
-  * { box-sizing: border-box }
-  html, body { margin: 0; background: var(--bg); color: var(--fg);
-    font: 15px/1.55 -apple-system, "SF Pro Text", Inter, system-ui, sans-serif; }
+  * { box-sizing: border-box; margin: 0; padding: 0 }
+  html, body { background: var(--bg); color: var(--fg);
+    font: 15px/1.55 var(--display); -webkit-font-smoothing: antialiased; }
   body {
     background-image:
       linear-gradient(var(--grid) 1px, transparent 1px),
       linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-    background-size: 40px 40px;
+    background-size: 48px 48px;
     background-attachment: fixed;
     min-height: 100vh;
+    overflow-x: hidden;
   }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 40px 24px 80px }
-  header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px }
-  .brand { color: var(--accent); font-weight: 700; letter-spacing: 0.5px }
-  .brand .x { color: var(--dim); margin: 0 4px }
-  .brand .kh { color: var(--green) }
-  h1 { font-size: 42px; letter-spacing: -0.5px; margin: 12px 0 4px }
-  .tag { color: var(--dim); font-size: 18px; max-width: 720px }
-  section { margin-top: 36px }
-  h2 { font-size: 20px; color: var(--fg); margin: 0 0 12px }
-  .card {
-    background: var(--card); border: 1px solid var(--edge); border-radius: 14px;
-    padding: 20px 24px; position: relative;
-  }
-  .kv { display: grid; grid-template-columns: 180px 1fr; gap: 12px; padding: 6px 0; align-items: baseline }
-  .kv > span:first-child { color: var(--dim); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px }
-  .kv > span:last-child { font-family: var(--mono); font-size: 14px; word-break: break-all }
-  .mono { font-family: var(--mono) }
-  .pill {
-    display: inline-block; padding: 3px 10px; border-radius: 999px;
-    font-size: 12px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase;
-  }
-  .pill.success { color: var(--green); background: rgba(35,197,100,0.12); border: 1px solid rgba(35,197,100,0.35) }
-  .pill.error   { color: var(--red);   background: rgba(248,81,73,0.12); border: 1px solid rgba(248,81,73,0.35) }
-  .pill.running { color: var(--yellow); background: rgba(255,194,71,0.12); border: 1px solid rgba(255,194,71,0.35) }
   a { color: var(--accent); text-decoration: none }
-  a:hover { text-decoration: underline }
-  code { font-family: var(--mono); color: var(--yellow); background: rgba(255,194,71,0.08); padding: 1px 6px; border-radius: 4px }
+  a:hover { text-decoration: underline; text-underline-offset: 3px }
+  code, .mono { font-family: var(--mono); font-size: 13px }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px }
+
+  /* ---------- brand nav ---------- */
+  nav.brand {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 24px; max-width: 1200px; margin: 0 auto;
+    border-bottom: 1px solid var(--edge);
+  }
+  nav.brand .mark {
+    font-family: var(--mono); font-size: 13px; letter-spacing: 0.6px;
+    color: var(--fg); text-transform: uppercase;
+  }
+  nav.brand .mark .kh { color: var(--mint) }
+  nav.brand .meta { font-family: var(--mono); font-size: 12px; color: var(--dim) }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 96px 24px 80px; max-width: 1200px; margin: 0 auto; position: relative }
+  .hero .kicker {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 12px; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--blood);
+    border: 1px solid var(--blood); padding: 6px 12px; border-radius: 2px;
+    background: var(--blood-bg);
+    margin-bottom: 32px;
+  }
+  .hero .kicker::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--blood);
+    box-shadow: 0 0 12px var(--blood);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1 } 50% { opacity: 0.35 }
+  }
+  .hero h1 {
+    font-family: var(--display); font-size: clamp(48px, 7.5vw, 96px);
+    font-weight: 800; letter-spacing: -0.03em; line-height: 0.98;
+    max-width: 1050px;
+  }
+  .hero h1 .strike {
+    color: var(--blood); position: relative; display: inline-block;
+  }
+  .hero h1 .strike::after {
+    content: ""; position: absolute; left: -4px; right: -4px; top: 55%; height: 6px;
+    background: var(--blood); opacity: 0.9;
+    transform: rotate(-2deg);
+  }
+  .hero h1 .fix { color: var(--mint) }
+  .hero .lede {
+    margin-top: 32px; max-width: 780px;
+    font-size: 20px; color: var(--dim); line-height: 1.5;
+  }
+  .hero .stat-row {
+    margin-top: 56px; display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 1px; background: var(--edge); border: 1px solid var(--edge);
+  }
+  .stat { background: var(--bg-elev); padding: 24px 20px }
+  .stat .n { font-family: var(--mono); font-size: 36px; font-weight: 700; color: var(--fg);
+    letter-spacing: -0.02em; line-height: 1 }
+  .stat .n.mint { color: var(--mint) }
+  .stat .n.blood { color: var(--blood) }
+  .stat .l { font-family: var(--mono); font-size: 11px; color: var(--dim);
+    text-transform: uppercase; letter-spacing: 1.5px; margin-top: 12px }
+  .hero .cta-row {
+    margin-top: 48px; display: flex; gap: 16px; flex-wrap: wrap;
+  }
   .btn {
-    display: inline-block; padding: 10px 18px; border-radius: 10px;
-    background: var(--green); color: #08160e; font-weight: 600; font-size: 14px;
-    border: none; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 22px; border-radius: 2px;
+    font-family: var(--mono); font-size: 13px; letter-spacing: 0.5px;
+    text-transform: uppercase; font-weight: 600;
+    border: 1px solid var(--edge-hi); background: var(--bg-elev); color: var(--fg);
+    cursor: pointer; transition: all 0.15s ease;
   }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed }
-  .btn.secondary { background: var(--card); color: var(--fg); border: 1px solid var(--edge) }
+  .btn:hover { border-color: var(--fg); background: var(--fg); color: var(--bg); text-decoration: none }
+  .btn.primary { background: var(--mint); color: var(--bg); border-color: var(--mint) }
+  .btn.primary:hover { background: transparent; color: var(--mint); border-color: var(--mint) }
+  .btn.danger { border-color: var(--blood); color: var(--blood) }
+  .btn.danger:hover { background: var(--blood); color: var(--bg) }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed }
+
+  /* ---------- section headers ---------- */
+  section.slab { padding: 80px 24px; max-width: 1200px; margin: 0 auto;
+    border-top: 1px solid var(--edge) }
+  section.slab .head {
+    display: flex; align-items: baseline; gap: 20px; margin-bottom: 48px;
+    padding-bottom: 20px; border-bottom: 1px solid var(--edge);
+  }
+  section.slab .head .num {
+    font-family: var(--mono); font-size: 13px; color: var(--dim);
+    letter-spacing: 1.5px;
+  }
+  section.slab .head h2 {
+    font-family: var(--display); font-size: clamp(28px, 3.5vw, 44px);
+    font-weight: 700; letter-spacing: -0.02em; line-height: 1;
+  }
+  section.slab .head .why { color: var(--dim); font-size: 15px; margin-left: auto; max-width: 380px; text-align: right }
+
+  /* ---------- traps grid ---------- */
+  .traps {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 24px;
+  }
+  .trap { border: 1px solid var(--edge); background: var(--bg-elev); position: relative }
+  .trap .banner {
+    padding: 14px 20px; border-bottom: 1px solid var(--edge);
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono); font-size: 12px;
+    text-transform: uppercase; letter-spacing: 1.5px;
+  }
+  .trap .banner .num { color: var(--blood) }
+  .trap .banner .tag { color: var(--dim) }
+  .trap h3 {
+    padding: 24px 20px 12px; font-family: var(--display);
+    font-size: 22px; font-weight: 700; letter-spacing: -0.01em;
+  }
+  .trap .desc { padding: 0 20px 24px; color: var(--dim); font-size: 14px; line-height: 1.5 }
+  .trap .code-block { padding: 16px 20px; font-family: var(--mono); font-size: 12.5px;
+    line-height: 1.65; border-top: 1px solid var(--edge); white-space: pre;
+    overflow-x: auto; }
+  .trap .code-block .lbl {
+    display: inline-block; font-family: var(--mono); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 1.5px; padding: 3px 8px;
+    border-radius: 2px; margin-bottom: 10px; font-weight: 600;
+  }
+  .trap .code-block.wrong { background: var(--blood-bg); border-left: 2px solid var(--blood) }
+  .trap .code-block.wrong .lbl { background: var(--blood); color: var(--bg) }
+  .trap .code-block.right { background: var(--mint-bg); border-left: 2px solid var(--mint) }
+  .trap .code-block.right .lbl { background: var(--mint); color: var(--bg) }
+  .trap .code-block .k { color: var(--yellow) }
+  .trap .code-block .s { color: var(--mint) }
+  .trap .code-block .c { color: var(--dim) }
+  .trap .footer { padding: 14px 20px; border-top: 1px solid var(--edge);
+    display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px;
+    color: var(--dim); text-transform: uppercase; letter-spacing: 1.5px }
+  .trap .footer .found { color: var(--blood) }
+  .trap .footer .fixed { color: var(--mint) }
+
+  /* ---------- JSON generator ---------- */
+  .gen {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+    border: 1px solid var(--edge); background: var(--bg-elev);
+  }
+  .gen .col { padding: 24px }
+  .gen .col.input { border-right: 1px solid var(--edge) }
+  .gen label {
+    display: block; font-family: var(--mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 1.5px; color: var(--dim);
+    margin-bottom: 12px;
+  }
+  .gen input, .gen textarea {
+    width: 100%; background: var(--bg); border: 1px solid var(--edge);
+    color: var(--fg); font-family: var(--mono); font-size: 13px;
+    padding: 12px 14px; border-radius: 2px; outline: none;
+    transition: border-color 0.15s ease; margin-bottom: 20px;
+  }
+  .gen input:focus, .gen textarea:focus { border-color: var(--mint) }
+  .gen textarea { min-height: 90px; resize: vertical; line-height: 1.5 }
+  .gen .out {
+    background: #000; border: 1px solid var(--edge); padding: 18px 20px;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.7;
+    white-space: pre; overflow-x: auto;
+    min-height: 320px; position: relative;
+  }
+  .gen .out .k { color: var(--yellow) }
+  .gen .out .s { color: var(--mint) }
+  .gen .out .n { color: var(--accent) }
+  .gen .out .c { color: var(--dim) }
+  .gen .out .highlight { background: rgba(255,224,66,0.15); padding: 0 2px }
+  .gen .copy-btn {
+    position: absolute; top: 12px; right: 12px; padding: 6px 10px;
+    background: var(--bg-elev); border: 1px solid var(--edge-hi); color: var(--dim);
+    font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+    cursor: pointer; border-radius: 2px;
+  }
+  .gen .copy-btn:hover { color: var(--mint); border-color: var(--mint) }
+  .gen .hint { color: var(--dim); font-size: 12px; margin-top: 12px; line-height: 1.55 }
+  .gen .hint code { color: var(--yellow); font-size: 12px }
+
+  /* ---------- live proof ---------- */
+  .proof {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  }
+  .proof-card {
+    background: var(--bg-elev); border: 1px solid var(--edge); padding: 32px;
+  }
+  .proof-card h3 { font-family: var(--display); font-size: 22px; font-weight: 700;
+    letter-spacing: -0.01em; margin-bottom: 8px }
+  .proof-card p.tag { color: var(--dim); font-size: 14px; margin-bottom: 24px; line-height: 1.5 }
+  .proof-card .row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px }
+  .kv { display: grid; grid-template-columns: 130px 1fr; gap: 12px; padding: 8px 0;
+    align-items: baseline; border-bottom: 1px dashed var(--edge) }
+  .kv:last-child { border-bottom: none }
+  .kv > span:first-child { color: var(--dim); font-size: 11px;
+    font-family: var(--mono); text-transform: uppercase; letter-spacing: 1.5px }
+  .kv > span:last-child { font-family: var(--mono); font-size: 13px; word-break: break-all }
   .log {
-    background: #0a0d12; border: 1px solid var(--edge); border-radius: 10px;
-    padding: 14px 18px; font-family: var(--mono); font-size: 13px; line-height: 1.7;
-    max-height: 300px; overflow-y: auto; white-space: pre-wrap;
+    background: #000; border: 1px solid var(--edge); padding: 14px 18px;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.7;
+    max-height: 260px; overflow-y: auto; white-space: pre-wrap; margin-top: 20px;
   }
-  .log .ok { color: var(--green) }
+  .log .ok { color: var(--mint) }
   .log .warn { color: var(--yellow) }
-  .log .err { color: var(--red) }
+  .log .err { color: var(--blood) }
   .log .dim { color: var(--dim) }
   .log .acc { color: var(--accent) }
-  .row { display: flex; gap: 12px; align-items: center; margin-top: 14px; flex-wrap: wrap }
-  footer { margin-top: 60px; color: var(--dim); font-size: 13px; text-align: center }
+  #wallet-info { margin-top: 20px }
+  .pill {
+    display: inline-block; padding: 3px 10px; border-radius: 2px;
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    letter-spacing: 1.2px; text-transform: uppercase;
+  }
+  .pill.success { color: var(--mint); background: var(--mint-bg); border: 1px solid var(--mint) }
+  .pill.error   { color: var(--blood); background: var(--blood-bg); border: 1px solid var(--blood) }
+  .pill.running { color: var(--yellow); background: rgba(255,224,66,0.1); border: 1px solid var(--yellow) }
+
+  /* ---------- ref table ---------- */
+  .reftable { border: 1px solid var(--edge); background: var(--bg-elev); overflow: hidden }
+  .reftable .row {
+    display: grid; grid-template-columns: 1fr 1fr 2fr;
+    padding: 14px 20px; border-bottom: 1px solid var(--edge);
+    font-size: 13px; align-items: center;
+  }
+  .reftable .row:last-child { border-bottom: none }
+  .reftable .row.hd {
+    background: #000; font-family: var(--mono); font-size: 10px;
+    color: var(--dim); text-transform: uppercase; letter-spacing: 1.5px;
+  }
+  .reftable .row .ui { color: var(--fg) }
+  .reftable .row .api { font-family: var(--mono); color: var(--yellow) }
+  .reftable .row .note { color: var(--dim); font-size: 12.5px; line-height: 1.4 }
+
+  /* ---------- runs table ---------- */
+  #runs-wrap { border: 1px solid var(--edge); background: var(--bg-elev) }
   .exec-row {
-    display: grid; grid-template-columns: 90px 90px 1fr 100px; gap: 10px;
-    padding: 8px 4px; border-bottom: 1px solid var(--edge); font-size: 13px; align-items: center;
+    display: grid; grid-template-columns: 100px 100px 1fr 120px;
+    padding: 12px 20px; border-bottom: 1px solid var(--edge);
+    font-family: var(--mono); font-size: 12.5px; align-items: center;
   }
   .exec-row:last-child { border-bottom: none }
-  .exec-row .h { color: var(--accent); font-family: var(--mono) }
-  .arch { display: grid; grid-template-columns: 1fr 30px 1fr; gap: 12px }
-  .arch .node { background: var(--card); border: 1px solid var(--edge); border-radius: 10px; padding: 12px 16px }
-  .arch .node .t { color: var(--accent); font-weight: 600; font-size: 14px }
-  .arch .node .s { color: var(--dim); font-size: 12px; margin-top: 4px; font-family: var(--mono) }
-  .arrow { color: var(--dim); text-align: center; align-self: center; font-size: 20px }
+  .exec-row.hd { background: #000; color: var(--dim); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 1.5px }
+  .exec-row .h { color: var(--accent) }
+
+  /* ---------- workflow config strip ---------- */
+  .cfg-strip {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--edge); background: var(--bg-elev);
+  }
+  .cfg-strip .item { padding: 20px 24px; border-right: 1px solid var(--edge) }
+  .cfg-strip .item:last-child { border-right: none }
+  .cfg-strip .item .k { font-family: var(--mono); font-size: 10px; color: var(--dim);
+    text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px }
+  .cfg-strip .item .v { font-family: var(--mono); font-size: 13px; word-break: break-all }
+
+  /* ---------- footer ---------- */
+  footer.foot {
+    padding: 48px 24px; max-width: 1200px; margin: 0 auto;
+    border-top: 1px solid var(--edge);
+    display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 24px;
+  }
+  footer.foot .mark {
+    font-family: var(--mono); font-size: 12px; color: var(--dim);
+    text-transform: uppercase; letter-spacing: 1.5px; line-height: 1.7;
+  }
+  footer.foot .mark strong { color: var(--fg) }
+  footer.foot .links { display: flex; gap: 20px; flex-wrap: wrap }
+  footer.foot .links a { font-family: var(--mono); font-size: 12px;
+    text-transform: uppercase; letter-spacing: 1.5px; color: var(--dim) }
+  footer.foot .links a:hover { color: var(--mint) }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 900px) {
+    .hero .stat-row { grid-template-columns: repeat(2, 1fr) }
+    .gen, .proof { grid-template-columns: 1fr }
+    .gen .col.input { border-right: none; border-bottom: 1px solid var(--edge) }
+    .cfg-strip { grid-template-columns: 1fr }
+    .cfg-strip .item { border-right: none; border-bottom: 1px solid var(--edge) }
+    .cfg-strip .item:last-child { border-bottom: none }
+    section.slab .head { flex-direction: column; align-items: flex-start; gap: 12px }
+    section.slab .head .why { text-align: left; margin-left: 0 }
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <span class="brand">KAJOTA</span><span class="x">x</span><span class="brand kh">KeeperHub</span>
-  </header>
-  <h1>Escrow Console</h1>
-  <p class="tag">A KeeperHub workflow schedules <code>CosellEscrow.release(depositId)</code> on Ethereum Sepolia. The keeper wallet is a Turnkey account whose authority the escrow contract accepts. Trigger below &mdash; the release ships in about 15 s.</p>
 
-  <section>
-    <h2>How the release ships</h2>
-    <div class="arch">
-      <div class="node"><div class="t">Buyer</div><div class="s">deposits USDC into CosellEscrow</div></div>
-      <div class="arrow">&rarr;</div>
-      <div class="node"><div class="t">KeeperHub HTTP trigger</div><div class="s" id="arch-wf">workflow &hellip;</div></div>
-      <div class="node"><div class="t">Kajota Coach agent</div><div class="s">picks the release call</div></div>
-      <div class="arrow">&rarr;</div>
-      <div class="node"><div class="t">KeeperHub keeper</div><div class="s" id="arch-keeper">Turnkey &middot; EIP-7702</div></div>
-      <div class="node" style="grid-column: 1 / 4"><div class="t">CosellEscrow.release(bytes32 depositId)</div><div class="s">USDC splits 85 % wholesaler / 15 % coseller</div></div>
+<nav class="brand">
+  <div class="mark">Kajota × <span class="kh">KeeperHub</span> · Onboarding UX</div>
+  <div class="meta">Best Onboarding UX Improvement · Agents Onchain 2026</div>
+</nav>
+
+<!-- =============== HERO =============== -->
+<div class="hero">
+  <div class="kicker">Bounty submission · KeeperHub OSS PR #1857</div>
+  <h1>
+    We hit <span class="strike">3 undocumented</span> field-name traps.<br>
+    Then we <span class="fix">shipped the fix.</span>
+  </h1>
+  <p class="lede">
+    Every developer wiring the KeeperHub <code style="color:var(--yellow)">web3/write-contract</code>
+    action against an HTTP trigger loses 20–40 minutes to the same three field-name bugs — silent
+    <code style="color:var(--yellow)">UNKNOWN_FIELD</code> rejections, JSON-string quoting rules that
+    aren't in the docs, and a template syntax that only appears in stored workflows.
+    We hit all three. Then we wrote the docs entry that would have saved us.
+  </p>
+
+  <div class="stat-row">
+    <div class="stat">
+      <div class="n blood">03</div>
+      <div class="l">Field-name traps</div>
     </div>
-  </section>
-
-  <section>
-    <h2>Workflow config</h2>
-    <div class="card">
-      <div class="kv"><span>workflow id</span><span id="cfg-workflow">&hellip;</span></div>
-      <div class="kv"><span>contract</span><span><a id="cfg-contract-link" target="_blank">&hellip;</a></span></div>
-      <div class="kv"><span>function</span><span><code id="cfg-fn">release(bytes32 depositId)</code> &middot; selector <code id="cfg-selector">&hellip;</code></span></div>
-      <div class="kv"><span>keeper</span><span><a id="cfg-keeper-link" target="_blank">&hellip;</a> <span class="pill success" style="margin-left: 8px">EIP-7702</span></span></div>
-      <div class="kv"><span>chain</span><span id="cfg-chain">&hellip;</span></div>
-      <div class="kv"><span>KH dashboard</span><span><a id="cfg-dashboard" target="_blank">open in KeeperHub &rarr;</a></span></div>
+    <div class="stat">
+      <div class="n">64</div>
+      <div class="l">Lines added to docs</div>
     </div>
-  </section>
+    <div class="stat">
+      <div class="n mint">1</div>
+      <div class="l">Live workflow verified</div>
+    </div>
+    <div class="stat">
+      <div class="n">~30<span style="font-size:20px;color:var(--dim)">min</span></div>
+      <div class="l">Saved per integrator</div>
+    </div>
+  </div>
 
-  <section>
-    <h2>Try it yourself &mdash; end-to-end</h2>
-    <div class="card">
-      <p style="color: var(--dim); font-size: 14px; margin: 0 0 14px">
-        Connect a Sepolia wallet, put down <strong>0.10 test USDC</strong> as the buyer, and watch KeeperHub schedule the release automatically. You'll sign one <code>approve</code> and one <code>deposit</code>; KeeperHub covers the release. Total spend on your side: 0.10 test USDC, a wisp of Sepolia gas.
+  <div class="cta-row">
+    <a class="btn primary" href="https://github.com/KeeperHub/keeperhub/pull/1857" target="_blank">
+      ↗ Read PR #1857
+    </a>
+    <a class="btn" href="#traps">See the 3 traps ↓</a>
+    <a class="btn" href="#proof">Live proof (Sepolia tx) →</a>
+  </div>
+</div>
+
+<!-- =============== 3 TRAPS =============== -->
+<section class="slab" id="traps">
+  <div class="head">
+    <span class="num">01</span>
+    <h2>The three traps.</h2>
+    <div class="why">Every field name below rejects silently or returns cryptic errors that don't point to the real problem.</div>
+  </div>
+
+  <div class="traps">
+
+    <!-- trap 1 -->
+    <div class="trap">
+      <div class="banner">
+        <span class="num">Trap 01</span>
+        <span class="tag">Silent UNKNOWN_FIELD</span>
+      </div>
+      <h3>abiFunction, not functionName.</h3>
+      <div class="desc">
+        Every EVM SDK on earth calls it <code style="color:var(--yellow)">functionName</code>.
+        KeeperHub's API expects <code style="color:var(--yellow)">abiFunction</code>. Send either
+        <code style="color:var(--yellow)">functionName</code> or the plausible <code style="color:var(--yellow)">function</code> and the API returns
+        <code style="color:var(--yellow)">UNKNOWN_FIELD</code> with no hint which one it wanted.
+      </div>
+      <div class="code-block wrong">
+<span class="lbl">You'll try</span>
+{
+  <span class="k">"functionName"</span>: <span class="s">"release"</span>,
+  <span class="c">// or</span> <span class="k">"function"</span>: <span class="s">"release"</span>
+}</div>
+      <div class="code-block right">
+<span class="lbl">Actually works</span>
+{
+  <span class="k">"abiFunction"</span>: <span class="s">"release"</span>
+}</div>
+      <div class="footer">
+        <span class="found">Found: <code>UNKNOWN_FIELD</code></span>
+        <span class="fixed">Fixed in <code>docs/plugins/web3.md</code></span>
+      </div>
+    </div>
+
+    <!-- trap 2 -->
+    <div class="trap">
+      <div class="banner">
+        <span class="num">Trap 02</span>
+        <span class="tag">Runtime "Invalid JSON"</span>
+      </div>
+      <h3>functionArgs is a JSON string.</h3>
+      <div class="desc">
+        The docs example shows an array. The runtime wants a
+        <em style="color:var(--fg)">stringified</em> JSON array. Pass the raw array and it accepts,
+        stores, then throws <code style="color:var(--yellow)">Invalid function arguments JSON</code>
+        at execution — half an hour after your last save.
+      </div>
+      <div class="code-block wrong">
+<span class="lbl">You'll try</span>
+{
+  <span class="k">"functionArgs"</span>: [
+    <span class="s">"{{@trigger.body.depositId}}"</span>
+  ]
+}</div>
+      <div class="code-block right">
+<span class="lbl">Actually works</span>
+{
+  <span class="k">"functionArgs"</span>:
+    <span class="s">"[\"{{@trigger-1:HTTP.depositId}}\"]"</span>
+}</div>
+      <div class="footer">
+        <span class="found">Found: at run, not create</span>
+        <span class="fixed">Fixed in <code>docs/api/workflows.md</code></span>
+      </div>
+    </div>
+
+    <!-- trap 3 -->
+    <div class="trap">
+      <div class="banner">
+        <span class="num">Trap 03</span>
+        <span class="tag">Template resolver misses</span>
+      </div>
+      <h3>Trigger templates need stored syntax.</h3>
+      <div class="desc">
+        The intuitive template — <code style="color:var(--yellow)">{{@trigger.body.x}}</code> — silently
+        resolves to nothing. Stored HTTP triggers use a slot-scoped path:
+        <code style="color:var(--yellow)">{{@trigger-1:HTTP.x}}</code>. And the POST body must be wrapped under
+        <code style="color:var(--yellow)">input</code>.
+      </div>
+      <div class="code-block wrong">
+<span class="lbl">You'll try</span>
+<span class="c">// template</span>
+{{@trigger.body.depositId}}
+<span class="c">// POST body</span>
+{ <span class="k">"depositId"</span>: <span class="s">"0x…"</span> }</div>
+      <div class="code-block right">
+<span class="lbl">Actually works</span>
+<span class="c">// template</span>
+{{@trigger-1:HTTP.depositId}}
+<span class="c">// POST body</span>
+{ <span class="k">"input"</span>: { <span class="k">"depositId"</span>: <span class="s">"0x…"</span> } }</div>
+      <div class="footer">
+        <span class="found">Found: reading OSS source</span>
+        <span class="fixed">Fixed in <code>docs/api/workflows.md</code></span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- =============== JSON GENERATOR =============== -->
+<section class="slab" id="gen">
+  <div class="head">
+    <span class="num">02</span>
+    <h2>Generate the workflow JSON.</h2>
+    <div class="why">Paste your function signature. Get the exact body KeeperHub accepts — all three traps pre-avoided.</div>
+  </div>
+
+  <div class="gen">
+    <div class="col input">
+      <label>Contract address</label>
+      <input id="gen-addr" type="text" placeholder="0x599869cef2e4c52e2c9074caaf8f9fb0cb191776"
+        value="0x599869cef2e4c52e2c9074caaf8f9fb0cb191776" />
+
+      <label>Function signature</label>
+      <input id="gen-sig" type="text" placeholder="release(bytes32)" value="release(bytes32)" />
+
+      <label>Trigger payload field(s), comma-separated</label>
+      <input id="gen-args" type="text" placeholder="depositId" value="depositId" />
+
+      <label>Chain ID</label>
+      <input id="gen-chain" type="text" value="11155111" />
+
+      <label>Integration ID (from your KH dashboard)</label>
+      <input id="gen-integ" type="text" placeholder="int_your-keeper-here" value="int_your-keeper-here" />
+
+      <p class="hint">
+        Signature accepts one Solidity function like <code>release(bytes32)</code>,
+        <code>transfer(address,uint256)</code>, or <code>castVote(uint256,uint8)</code>.
+        Everything on the right is generated live — copy the whole block into your
+        KH workflow's <code>web3/write-contract</code> action.
+      </p>
+    </div>
+    <div class="col">
+      <label>KeeperHub workflow action body</label>
+      <div class="out" id="gen-out">
+        <button class="copy-btn" id="gen-copy">Copy</button>
+      </div>
+      <p class="hint">
+        Notice: <code>abiFunction</code> (trap #01) · <code>functionArgs</code> as a JSON-encoded string
+        (trap #02) · trigger template <code>{{@trigger-1:HTTP.…}}</code> (trap #03) · minimal
+        <code>abi</code> with only the fragment KH parses at deploy time.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- =============== FIELD REFERENCE =============== -->
+<section class="slab" id="ref">
+  <div class="head">
+    <span class="num">03</span>
+    <h2>Field-name map.</h2>
+    <div class="why">The dashboard labels don't match the API fields. This is the mapping every integrator needs — now shipped in the docs.</div>
+  </div>
+
+  <div class="reftable">
+    <div class="row hd">
+      <div>UI label (dashboard)</div>
+      <div>API field (workflow body)</div>
+      <div>Gotcha</div>
+    </div>
+    <div class="row">
+      <div class="ui">Function</div>
+      <div class="api">abiFunction</div>
+      <div class="note">The dashboard shows "Function"; the API rejects <code>function</code> and <code>functionName</code>.</div>
+    </div>
+    <div class="row">
+      <div class="ui">Arguments</div>
+      <div class="api">functionArgs</div>
+      <div class="note">Must be a JSON-encoded <em>string</em>, not a raw array. Errors surface at exec, not create.</div>
+    </div>
+    <div class="row">
+      <div class="ui">ABI</div>
+      <div class="api">abi</div>
+      <div class="note">Also a JSON-encoded string. Only the specific fragment KH will call is required.</div>
+    </div>
+    <div class="row">
+      <div class="ui">Keeper</div>
+      <div class="api">integrationId</div>
+      <div class="note">Not <code>keeperAddress</code> — it's the ID of the KH keeper integration, not the on-chain address.</div>
+    </div>
+    <div class="row">
+      <div class="ui">Contract</div>
+      <div class="api">contractAddress</div>
+      <div class="note">Only one that maps 1:1 with what you'd guess.</div>
+    </div>
+    <div class="row">
+      <div class="ui">Trigger payload</div>
+      <div class="api">{{@trigger-1:HTTP.x}}</div>
+      <div class="note">Not <code>{{@trigger.body.x}}</code>. And your POST body must wrap fields under <code>input</code>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- =============== LIVE PROOF =============== -->
+<section class="slab" id="proof">
+  <div class="head">
+    <span class="num">04</span>
+    <h2>Live proof, one click.</h2>
+    <div class="why">The docs work end-to-end. This calls the exact workflow the PR documents, against the exact contract on Sepolia.</div>
+  </div>
+
+  <div class="proof">
+    <!-- full loop -->
+    <div class="proof-card">
+      <h3>End-to-end: buyer → deposit → KeeperHub → release.</h3>
+      <p class="tag">
+        Connect a Sepolia wallet, put down <strong style="color:var(--fg)">0.10 test USDC</strong>,
+        and watch KeeperHub schedule the release automatically. You'll sign one
+        <code style="color:var(--yellow)">approve</code> and one
+        <code style="color:var(--yellow)">deposit</code>; KeeperHub covers the release.
       </p>
       <div class="row">
-        <button class="btn" id="connect-btn">Connect Sepolia wallet</button>
-        <button class="btn secondary" id="fund-eth-btn" style="display: none">Get Sepolia ETH &rarr;</button>
-        <button class="btn secondary" id="fund-usdc-btn" style="display: none">Get Sepolia USDC &rarr;</button>
+        <button class="btn primary" id="connect-btn">Connect Sepolia wallet</button>
+        <button class="btn" id="fund-eth-btn" style="display:none">Get Sepolia ETH →</button>
+        <button class="btn" id="fund-usdc-btn" style="display:none">Get Sepolia USDC →</button>
       </div>
-      <div id="wallet-info" style="display: none; margin-top: 14px">
-        <div class="kv"><span>address</span><span><a id="wallet-addr-link" target="_blank">&hellip;</a></span></div>
-        <div class="kv"><span>ETH balance</span><span id="wallet-eth" class="mono">&hellip;</span></div>
-        <div class="kv"><span>USDC balance</span><span id="wallet-usdc" class="mono">&hellip;</span></div>
-        <div class="kv"><span>listing</span><span><code id="fl-listing" class="mono">&hellip;</code></span></div>
-        <div class="row">
-          <button class="btn" id="deposit-btn">Deposit 0.10 USDC + auto-release</button>
+      <div id="wallet-info" style="display:none">
+        <div class="kv"><span>Address</span><span><a id="wallet-addr-link" target="_blank">…</a></span></div>
+        <div class="kv"><span>ETH balance</span><span id="wallet-eth">…</span></div>
+        <div class="kv"><span>USDC balance</span><span id="wallet-usdc">…</span></div>
+        <div class="kv"><span>Listing</span><span><code id="fl-listing">…</code></span></div>
+        <div class="row" style="margin-top:16px">
+          <button class="btn primary" id="deposit-btn">Deposit 0.10 USDC + auto-release</button>
         </div>
       </div>
-      <div class="log" id="log" style="margin-top: 16px"><span class="dim">// events land here</span>
+      <div class="log" id="log"><span class="dim">// events land here</span>
 </div>
     </div>
-  </section>
 
-  <section>
-    <h2>Or replay the demo (no wallet)</h2>
-    <div class="card">
-      <div class="kv"><span>depositId</span><span><code id="demo-deposit">&hellip;</code> <span class="pill running" style="margin-left: 8px">demo</span></span></div>
-      <p style="color: var(--dim); font-size: 14px; margin: 12px 0 0">
-        This depositId is already released; a second attempt reverts with the escrow's idempotency guard. Handy for seeing the KeeperHub keeper signing path without spending your own USDC.
+    <!-- replay -->
+    <div class="proof-card">
+      <h3>No wallet? Replay the demo.</h3>
+      <p class="tag">
+        This depositId is already released — a second attempt reverts on-chain with the escrow's
+        idempotency guard. Real KH keeper signing path, no USDC required.
       </p>
+      <div class="kv" style="margin-bottom:20px">
+        <span>depositId</span><span><code id="demo-deposit">…</code>
+          <span class="pill running" style="margin-left:8px">demo</span></span>
+      </div>
       <div class="row">
-        <button class="btn secondary" id="fire-btn">Fire release (idempotency check)</button>
-        <button class="btn secondary" id="refresh-btn">Refresh recent runs</button>
+        <button class="btn danger" id="fire-btn">Fire release (idempotency check)</button>
+        <button class="btn" id="refresh-btn">Refresh runs</button>
+      </div>
+
+      <div style="margin-top:32px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px">Recent runs</div>
+        <div id="runs-wrap">
+          <div class="exec-row hd">
+            <div>Status</div><div>Duration</div><div>Tx / Error</div><div>Started</div>
+          </div>
+          <div id="runs">
+            <div style="padding:14px 20px;color:var(--dim);font-family:var(--mono);font-size:12px">Loading…</div>
+          </div>
+        </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section>
-    <h2>Recent runs</h2>
-    <div class="card">
-      <div class="exec-row" style="font-weight: 600; color: var(--dim); text-transform: uppercase; font-size: 11px">
-        <div>Status</div><div>Duration</div><div>Tx / Error</div><div>Started</div>
-      </div>
-      <div id="runs">Loading&hellip;</div>
+<!-- =============== WORKFLOW CONFIG =============== -->
+<section class="slab">
+  <div class="head">
+    <span class="num">05</span>
+    <h2>Live workflow (behind the proof).</h2>
+    <div class="why">The exact IDs and addresses the workflow calls. Verified live before PR #1857 was opened.</div>
+  </div>
+
+  <div class="cfg-strip">
+    <div class="item">
+      <div class="k">Workflow ID</div>
+      <div class="v"><span id="cfg-workflow">…</span></div>
     </div>
-  </section>
+    <div class="item">
+      <div class="k">Contract</div>
+      <div class="v"><a id="cfg-contract-link" target="_blank">…</a></div>
+    </div>
+    <div class="item">
+      <div class="k">Function</div>
+      <div class="v"><code id="cfg-fn" style="color:var(--yellow)">release(bytes32 depositId)</code> · <code id="cfg-selector" style="color:var(--dim)">…</code></div>
+    </div>
+    <div class="item">
+      <div class="k">Keeper (EIP-7702)</div>
+      <div class="v"><a id="cfg-keeper-link" target="_blank">…</a></div>
+    </div>
+    <div class="item">
+      <div class="k">Chain</div>
+      <div class="v"><span id="cfg-chain">…</span></div>
+    </div>
+    <div class="item">
+      <div class="k">KH dashboard</div>
+      <div class="v"><a id="cfg-dashboard" target="_blank">Open in KeeperHub →</a></div>
+    </div>
+  </div>
+</section>
 
-  <footer>
-    <p>Kajota Coach &times; KeeperHub &middot; Agents Onchain 2026 &middot;
-      <a href="https://github.com/KaJota-inc/kajota-mesh" target="_blank">kajota-mesh</a> &middot;
-      <a href="https://github.com/KaJota-inc/kajota-coach" target="_blank">kajota-coach</a> &middot;
-      <a href="https://github.com/KaJota-inc/kajota-hub" target="_blank">kajota-hub</a>
-    </p>
-  </footer>
-</div>
+<footer class="foot">
+  <div class="mark">
+    <strong>KAJOTA × KEEPERHUB</strong><br>
+    Agents Onchain 2026 · Best Onboarding UX Improvement
+  </div>
+  <div class="links">
+    <a href="https://github.com/KeeperHub/keeperhub/pull/1857" target="_blank">PR #1857 ↗</a>
+    <a href="https://github.com/KaJota-inc/kajota-mesh" target="_blank">kajota-mesh ↗</a>
+    <a href="https://github.com/KaJota-inc/kajota-coach" target="_blank">kajota-coach ↗</a>
+    <a href="https://github.com/KaJota-inc/kajota-hub" target="_blank">kajota-hub ↗</a>
+    <a href="https://youtu.be/7ltsrdlQGNI" target="_blank">Demo video ↗</a>
+  </div>
+</footer>
+
+<!-- =============== GENERATOR SCRIPT =============== -->
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const out = $("#gen-out");
+
+  const parseSig = (sig) => {
+    const m = sig.trim().match(/^([a-zA-Z_$][\w$]*)\s*\(([^)]*)\)$/);
+    if (!m) return null;
+    const name = m[1];
+    const types = m[2].trim() ? m[2].split(",").map(s => s.trim()).filter(Boolean) : [];
+    return { name, types };
+  };
+
+  const render = () => {
+    const addr = $("#gen-addr").value.trim();
+    const sig = $("#gen-sig").value.trim();
+    const argsField = $("#gen-args").value.trim();
+    const chain = $("#gen-chain").value.trim();
+    const integ = $("#gen-integ").value.trim();
+
+    const parsed = parseSig(sig);
+    if (!parsed) {
+      out.innerHTML = `<button class="copy-btn" id="gen-copy">Copy</button><span class="c">// bad signature — expected: fnName(type1,type2,...)</span>`;
+      wireCopy();
+      return;
+    }
+    const argNames = argsField.split(",").map(s => s.trim()).filter(Boolean);
+    const argTemplates = argNames.length
+      ? argNames.map(n => `{{@trigger-1:HTTP.${n}}}`)
+      : parsed.types.map((_, i) => `{{@trigger-1:HTTP.arg${i}}}`);
+
+    const abiFragment = {
+      inputs: parsed.types.map((t, i) => ({
+        internalType: t, name: argNames[i] || `arg${i}`, type: t
+      })),
+      name: parsed.name,
+      outputs: [],
+      stateMutability: "nonpayable",
+      type: "function",
+    };
+
+    const body = {
+      contractAddress: addr,
+      chainId: Number(chain),
+      integrationId: integ,
+      abiFunction: parsed.name,
+      functionArgs: JSON.stringify(argTemplates),
+      abi: JSON.stringify([abiFragment]),
+    };
+
+    const rawText = JSON.stringify(body, null, 2);
+    window.__genRaw = rawText;
+
+    const highlighted = rawText
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/"(abiFunction|functionArgs|abi|integrationId)"/g, '<span class="highlight k">"$1"</span>')
+      .replace(/"([^"]+?)":/g, '<span class="k">"$1"</span>:')
+      .replace(/: (".*?")(,?)$/gm, ': <span class="s">$1</span>$2')
+      .replace(/: (\d+)(,?)$/gm, ': <span class="n">$1</span>$2');
+
+    out.innerHTML = `<button class="copy-btn" id="gen-copy">Copy</button>` +
+      `<span class="c">// POST /api/v1/workflows/{id}/actions   step.type = "web3/write-contract"</span>\n` +
+      highlighted;
+    wireCopy();
+  };
+
+  const wireCopy = () => {
+    const b = $("#gen-copy");
+    if (!b) return;
+    b.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(window.__genRaw || "");
+        const old = b.textContent;
+        b.textContent = "Copied ✓";
+        b.style.color = "var(--mint)";
+        b.style.borderColor = "var(--mint)";
+        setTimeout(() => { b.textContent = old; b.style.color = ""; b.style.borderColor = "" }, 1400);
+      } catch (e) {}
+    });
+  };
+
+  ["gen-addr","gen-sig","gen-args","gen-chain","gen-integ"].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener("input", render);
+  });
+  render();
+})();
+</script>
+
 <script type="module" src="app.js"></script>
 </body>
 </html>
