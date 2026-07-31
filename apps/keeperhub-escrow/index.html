@@ -331,31 +331,32 @@
 
 <!-- =============== HERO =============== -->
 <div class="hero">
-  <div class="kicker">Bounty submission · KeeperHub OSS PR #1857</div>
+  <div class="kicker">PR #1857 · reviewed by @joelorzet from KeeperHub · clean to merge</div>
   <h1>
-    We hit <span class="strike">3 undocumented</span> field-name traps.<br>
-    Then we <span class="fix">shipped the fix.</span>
+    We hit <span class="strike">3 undocumented</span> field-name gaps.<br>
+    Filed the fix. Maintainer <span class="fix">signed off.</span>
   </h1>
   <p class="lede">
     Every developer wiring the KeeperHub <code style="color:var(--yellow)">web3/write-contract</code>
-    action against an HTTP trigger loses 20–40 minutes to the same three field-name bugs — silent
-    <code style="color:var(--yellow)">UNKNOWN_FIELD</code> rejections, JSON-string quoting rules that
-    aren't in the docs, and a template syntax that only appears in stored workflows.
-    We hit all three. Then we wrote the docs entry that would have saved us.
+    action against an HTTP trigger loses 20–40 minutes to the same three field-name traps:
+    a reserved key that's <em style="color:var(--fg)">silently ignored</em>,
+    JSON-string quoting rules that aren't in the docs, and a template syntax that only appears in
+    stored workflows. We hit all three, filed a docs PR, and iterated with the maintainer twice —
+    all changes now applied.
   </p>
 
   <div class="stat-row">
     <div class="stat">
       <div class="n blood">03</div>
-      <div class="l">Field-name traps</div>
+      <div class="l">Doc gaps found</div>
     </div>
     <div class="stat">
       <div class="n">64</div>
-      <div class="l">Lines added to docs</div>
+      <div class="l">Lines to KH docs</div>
     </div>
     <div class="stat">
       <div class="n mint">1</div>
-      <div class="l">Live workflow verified</div>
+      <div class="l">Maintainer sign-off</div>
     </div>
     <div class="stat">
       <div class="n">~30<span style="font-size:20px;color:var(--dim)">min</span></div>
@@ -377,7 +378,7 @@
   <div class="head">
     <span class="num">01</span>
     <h2>The three traps.</h2>
-    <div class="why">Every field name below rejects silently or returns cryptic errors that don't point to the real problem.</div>
+    <div class="why">One field is silently ignored, one only errors at exec time, one template syntax works only in stored workflows — three ways to lose an afternoon.</div>
   </div>
 
   <div class="traps">
@@ -386,29 +387,34 @@
     <div class="trap">
       <div class="banner">
         <span class="num">Trap 01</span>
-        <span class="tag">Silent UNKNOWN_FIELD</span>
+        <span class="tag">Silently ignored</span>
       </div>
-      <h3>abiFunction, not functionName.</h3>
+      <h3>web3Connection, not integrationId.</h3>
       <div class="desc">
-        Every EVM SDK on earth calls it <code style="color:var(--yellow)">functionName</code>.
-        KeeperHub's API expects <code style="color:var(--yellow)">abiFunction</code>. Send either
-        <code style="color:var(--yellow)">functionName</code> or the plausible <code style="color:var(--yellow)">function</code> and the API returns
-        <code style="color:var(--yellow)">UNKNOWN_FIELD</code> with no hint which one it wanted.
+        The most dangerous kind of doc gap: the wrong field is
+        <em style="color:var(--fg)">accepted</em>. Set
+        <code style="color:var(--yellow)">integrationId</code> to route the signing wallet and
+        the API validates it, saves it, and then ignores it entirely — your write goes out on
+        whatever wallet the org policy resolves. The real routing key is
+        <code style="color:var(--yellow)">web3Connection</code> (accepts
+        <code style="color:var(--yellow)">"default"</code>, <code style="color:var(--yellow)">"eoa"</code>,
+        or <code style="color:var(--yellow)">"safe:&lt;id&gt;"</code>).
       </div>
       <div class="code-block wrong">
 <span class="lbl">You'll try</span>
 {
-  <span class="k">"functionName"</span>: <span class="s">"release"</span>,
-  <span class="c">// or</span> <span class="k">"function"</span>: <span class="s">"release"</span>
+  <span class="c">// accepted → silently ignored</span>
+  <span class="k">"integrationId"</span>: <span class="s">"int_your-keeper"</span>
 }</div>
       <div class="code-block right">
-<span class="lbl">Actually works</span>
+<span class="lbl">Actually routes the wallet</span>
 {
-  <span class="k">"abiFunction"</span>: <span class="s">"release"</span>
+  <span class="k">"web3Connection"</span>: <span class="s">"default"</span>
+  <span class="c">// or "eoa", or "safe:&lt;safeWalletId&gt;"</span>
 }</div>
       <div class="footer">
-        <span class="found">Found: <code>UNKNOWN_FIELD</code></span>
-        <span class="fixed">Fixed in <code>docs/plugins/web3.md</code></span>
+        <span class="found">Found: no error, wrong wallet</span>
+        <span class="fixed">Fixed in both KH doc pages</span>
       </div>
     </div>
 
@@ -501,8 +507,8 @@
       <label>Chain ID</label>
       <input id="gen-chain" type="text" value="11155111" />
 
-      <label>Integration ID (from your KH dashboard)</label>
-      <input id="gen-integ" type="text" placeholder="int_your-keeper-here" value="int_your-keeper-here" />
+      <label>Web3 Connection (sender routing)</label>
+      <input id="gen-integ" type="text" placeholder="default" value="default" />
 
       <p class="hint">
         Signature accepts one Solidity function like <code>release(bytes32)</code>,
@@ -517,9 +523,11 @@
         <button class="copy-btn" id="gen-copy">Copy</button>
       </div>
       <p class="hint">
-        Notice: <code>abiFunction</code> (trap #01) · <code>functionArgs</code> as a JSON-encoded string
-        (trap #02) · trigger template <code>{{@trigger-1:HTTP.…}}</code> (trap #03) · minimal
-        <code>abi</code> with only the fragment KH parses at deploy time.
+        Notice: <code>web3Connection</code> (trap #01, the silently-ignored field) ·
+        <code>functionArgs</code> as a JSON-encoded string (trap #02) ·
+        trigger template <code>{{@trigger-1:HTTP.…}}</code> (trap #03) ·
+        canonical <code>abiFunction</code> (with <code>functionName</code> also accepted as a legacy alias) ·
+        minimal <code>abi</code> with only the fragment KH parses at deploy time.
       </p>
     </div>
   </div>
@@ -542,22 +550,22 @@
     <div class="row">
       <div class="ui">Function</div>
       <div class="api">abiFunction</div>
-      <div class="note">The dashboard shows "Function"; the API rejects <code>function</code> and <code>functionName</code>.</div>
+      <div class="note">Canonical. API rejects <code>function</code> and <code>method</code>; <code>functionName</code> works as an undocumented legacy alias.</div>
     </div>
     <div class="row">
-      <div class="ui">Arguments</div>
+      <div class="ui">Function Arguments</div>
       <div class="api">functionArgs</div>
       <div class="note">Must be a JSON-encoded <em>string</em>, not a raw array. Errors surface at exec, not create.</div>
     </div>
     <div class="row">
-      <div class="ui">ABI</div>
+      <div class="ui">Contract ABI</div>
       <div class="api">abi</div>
       <div class="note">Also a JSON-encoded string. Only the specific fragment KH will call is required.</div>
     </div>
     <div class="row">
-      <div class="ui">Keeper</div>
-      <div class="api">integrationId</div>
-      <div class="note">Not <code>keeperAddress</code> — it's the ID of the KH keeper integration, not the on-chain address.</div>
+      <div class="ui">Web3 Connection</div>
+      <div class="api">web3Connection</div>
+      <div class="note">Sender routing: <code>"default"</code> (org policy), <code>"eoa"</code>, or <code>"safe:&lt;id&gt;"</code>. The wallet is your org's Turnkey wallet, resolved automatically. <code>integrationId</code> looks like the right field but is silently ignored.</div>
     </div>
     <div class="row">
       <div class="ui">Contract</div>
@@ -733,8 +741,8 @@
 
     const body = {
       contractAddress: addr,
-      chainId: Number(chain),
-      integrationId: integ,
+      network: String(chain),
+      web3Connection: integ,
       abiFunction: parsed.name,
       functionArgs: JSON.stringify(argTemplates),
       abi: JSON.stringify([abiFragment]),
@@ -745,7 +753,7 @@
 
     const highlighted = rawText
       .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/"(abiFunction|functionArgs|abi|integrationId)"/g, '<span class="highlight k">"$1"</span>')
+      .replace(/"(abiFunction|functionArgs|abi|web3Connection)"/g, '<span class="highlight k">"$1"</span>')
       .replace(/"([^"]+?)":/g, '<span class="k">"$1"</span>:')
       .replace(/: (".*?")(,?)$/gm, ': <span class="s">$1</span>$2')
       .replace(/: (\d+)(,?)$/gm, ': <span class="n">$1</span>$2');
