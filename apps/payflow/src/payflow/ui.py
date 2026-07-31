@@ -8,6 +8,8 @@ Deliberately minimal: paste an envelope, pick a dialect, hit Triage. The page
 re-renders with the same private-note markdown that would land on a real ticket,
 plus a small dashboard card with the baseline eval numbers.
 """
+import base64
+import csv
 import io
 from collections import Counter
 from typing import Optional
@@ -139,10 +141,13 @@ def _triage_batch(envelopes, dialect: Dialect, kb) -> tuple[list[dict], dict]:
         except Exception as e:
             rows.append({
                 "session_short": _short_session(env.session_id),
+                "session_full": env.session_id or "",
                 "code": env.response_code or "—",
                 "strategy": "error",
                 "confidence": "error",
+                "cause": f"triage failed: {e}",
                 "action": f"triage failed: {e}",
+                "customer_message": "",
                 "kb_hit": False,
             })
             continue
@@ -153,10 +158,13 @@ def _triage_batch(envelopes, dialect: Dialect, kb) -> tuple[list[dict], dict]:
         confidence_counts[result.confidence] += 1
         rows.append({
             "session_short": _short_session(env.session_id),
+            "session_full": env.session_id or "",
             "code": env.response_code or "—",
             "strategy": result.retry_strategy.value,
             "confidence": result.confidence,
+            "cause": result.cause,
             "action": result.action,
+            "customer_message": result.matched_code.customer_message if result.matched_code else "",
             "kb_hit": kb_hit,
         })
     total = len(rows) or 1  # avoid /0
@@ -168,6 +176,29 @@ def _triage_batch(envelopes, dialect: Dialect, kb) -> tuple[list[dict], dict]:
         "by_confidence": dict(confidence_counts),
     }
     return rows, summary
+
+
+def _rows_to_csv_data_url(rows: list[dict]) -> str:
+    """Produce a data: URL the browser downloads on click."""
+    buf = io.StringIO()
+    writer = csv.DictWriter(buf, fieldnames=[
+        "session", "code", "layer", "retry_strategy", "confidence",
+        "cause", "action", "customer_message",
+    ])
+    writer.writeheader()
+    for r in rows:
+        writer.writerow({
+            "session": r.get("session_full", ""),
+            "code": r.get("code", ""),
+            "layer": "KB" if r.get("kb_hit") else "",
+            "retry_strategy": r.get("strategy", ""),
+            "confidence": r.get("confidence", ""),
+            "cause": r.get("cause", ""),
+            "action": r.get("action", ""),
+            "customer_message": r.get("customer_message", ""),
+        })
+    b64 = base64.b64encode(buf.getvalue().encode()).decode()
+    return f"data:text/csv;base64,{b64}"
 
 
 def _short_session(s: Optional[str]) -> str:
@@ -448,12 +479,17 @@ def _render_batch_results(rows: list[dict], summary: dict) -> str:
             f"</tr>"
         )
 
+    csv_data_url = _rows_to_csv_data_url(rows)
+
     return f"""
       <div class="summary">
         <div class="chip total"><b>{summary['total']}</b> envelopes</div>
         <div class="chip">KB hits: <b>{summary['kb_hits']}</b> ({summary['kb_hit_pct']})</div>
         {strategy_chips}
         {confidence_chips}
+        <a class="chip download" href="{csv_data_url}" download="payflow-batch-results.csv">
+          ↓ Download CSV
+        </a>
       </div>
       <div class="table-wrap">
         <table class="batch-table">
@@ -643,6 +679,8 @@ input[type=file] { padding: 6px 8px; font-family: var(--mono); font-size: 12px }
 .chip.conf-high { color: var(--green); border-color: var(--green) }
 .chip.conf-medium { color: var(--yellow); border-color: var(--yellow) }
 .chip.conf-low { color: var(--red); border-color: var(--red) }
+.chip.download { background: var(--bg-elev); color: var(--accent); border-color: var(--accent); text-decoration: none; cursor: pointer; margin-left: auto }
+.chip.download:hover { background: var(--accent); color: #14101f }
 
 /* batch table */
 .table-wrap { overflow-x: auto; margin-top: 8px; border: 1px solid var(--border); border-radius: 8px }
