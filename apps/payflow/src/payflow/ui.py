@@ -129,7 +129,12 @@ def build_app():
 
 
 def _triage_batch(envelopes, dialect: Dialect, kb) -> tuple[list[dict], dict]:
-    """Triage each envelope with the given dialect. Returns (rows, summary)."""
+    """Triage each envelope with the given dialect. Returns (rows, summary).
+
+    Each row carries the full TriageResult (as `result`) so the batch renderer
+    can inline the same detailed note the single-envelope view shows, without
+    re-triaging on expand.
+    """
     rows: list[dict] = []
     strategy_counts: Counter = Counter()
     confidence_counts: Counter = Counter()
@@ -149,6 +154,8 @@ def _triage_batch(envelopes, dialect: Dialect, kb) -> tuple[list[dict], dict]:
                 "action": f"triage failed: {e}",
                 "customer_message": "",
                 "kb_hit": False,
+                "result": None,
+                "envelope": env,
             })
             continue
         kb_hit = result.matched_code is not None
@@ -166,6 +173,8 @@ def _triage_batch(envelopes, dialect: Dialect, kb) -> tuple[list[dict], dict]:
             "action": result.action,
             "customer_message": result.matched_code.customer_message if result.matched_code else "",
             "kb_hit": kb_hit,
+            "result": result,
+            "envelope": env,
         })
     total = len(rows) or 1  # avoid /0
     summary = {
@@ -441,8 +450,38 @@ def _render_batch_page(
   <footer>
     <span>payflow · deterministic decides, LLM explains</span>
   </footer>
+  <script>{_BATCH_JS}</script>
 </body>
 </html>"""
+
+
+_BATCH_JS = """
+// Toggle expandable rows in the batch table. Only one row open at a time.
+document.addEventListener('click', (e) => {
+  const row = e.target.closest('tr.clickable');
+  if (!row) return;
+  const detailId = row.getAttribute('data-detail-id');
+  const detail = document.getElementById(detailId);
+  if (!detail) return;
+  const wasOpen = row.getAttribute('aria-expanded') === 'true';
+  // Close any other open rows first
+  document.querySelectorAll('tr.clickable[aria-expanded="true"]').forEach((other) => {
+    if (other === row) return;
+    other.setAttribute('aria-expanded', 'false');
+    const otherDetail = document.getElementById(other.getAttribute('data-detail-id'));
+    if (otherDetail) otherDetail.hidden = true;
+  });
+  row.setAttribute('aria-expanded', wasOpen ? 'false' : 'true');
+  detail.hidden = wasOpen;
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const row = e.target.closest('tr.clickable');
+  if (!row) return;
+  e.preventDefault();
+  row.click();
+});
+"""
 
 
 def _render_batch_placeholder() -> str:
@@ -467,15 +506,21 @@ def _render_batch_results(rows: list[dict], summary: dict) -> str:
         strategy_class = f"strategy-{r['strategy']}"
         confidence_class = f"conf-{r['confidence']}"
         kb_badge = '<span class="kb-hit">KB</span>' if r["kb_hit"] else '<span class="kb-miss">—</span>'
+        detail_id = f"detail-{i}"
+        detail_html = _render_batch_row_detail(r) if r.get("result") else _render_batch_row_error(r)
         body_rows.append(
-            f"<tr>"
-            f"<td class='num'>{i}</td>"
+            f"<tr class='clickable' data-detail-id='{detail_id}' role='button' tabindex='0'"
+            f" aria-expanded='false' aria-controls='{detail_id}'>"
+            f"<td class='num'><span class='chevron'>▸</span> {i}</td>"
             f"<td class='mono'>{_escape(r['session_short'])}</td>"
             f"<td class='mono'>{_escape(r['code'])}</td>"
             f"<td>{kb_badge}</td>"
             f"<td><code class='strategy {strategy_class}'>{_escape(r['strategy'])}</code></td>"
             f"<td class='conf {confidence_class}'>{_escape(r['confidence'])}</td>"
             f"<td class='action-cell'>{_escape(_truncate(r['action'], 100))}</td>"
+            f"</tr>"
+            f"<tr class='detail' id='{detail_id}' hidden>"
+            f"<td colspan='7'>{detail_html}</td>"
             f"</tr>"
         )
 
@@ -515,6 +560,67 @@ def _truncate(s: str, n: int) -> str:
     if len(s) <= n:
         return s
     return s[: n - 1] + "…"
+
+
+def _render_batch_row_detail(row: dict) -> str:
+    """The expanded content shown when a batch row is clicked.
+
+    Deliberately uses the same layout as the single-envelope Triage result panel
+    — ops team learns one visual grammar across both views.
+    """
+    result: TriageResult = row["result"]
+    env = result.envelope
+    r = result
+    conf_class = {"high": "high", "medium": "medium", "low": "low"}.get(r.confidence, "medium")
+    conf_label = {
+        "high": "HIGH CONFIDENCE",
+        "medium": "MEDIUM CONFIDENCE",
+        "low": "LOW CONFIDENCE — ROUTE TO HUMAN OPS",
+    }.get(r.confidence, r.confidence.upper())
+    strategy_class = f"strategy-{r.retry_strategy.value}"
+    retryable_label = "retryable" if r.retryable else "terminal — do not retry"
+
+    matched_html = ""
+    if r.matched_code:
+        matched_html = (
+            f"<div class='field'><div class='label'>Category</div>"
+            f"<div class='value'><code>{_escape(r.matched_code.category.value)}</code></div></div>"
+            f"<div class='field'><div class='label'>Customer-safe message</div>"
+            f"<div class='value'>{_escape(r.matched_code.customer_message)}</div></div>"
+        )
+
+    evidence_html = ""
+    if r.evidence:
+        items = "".join(f"<li>{_escape(e)}</li>" for e in r.evidence)
+        evidence_html = (
+            f"<div class='field evidence'><div class='label'>Evidence</div>"
+            f"<ul>{items}</ul></div>"
+        )
+
+    footer = (
+        f"dialect={_escape(env.dialect.value if env.dialect else 'n/a')}"
+        f" · method={_escape(env.method or 'n/a')}"
+        f" · session={_escape(env.session_id or 'n/a')}"
+        f" · confidence={_escape(r.confidence)}"
+    )
+
+    return (
+        f"<div class='row-detail'>"
+        f"<div class='confidence {conf_class}'>{conf_label}</div>"
+        f"<div class='field'><div class='label'>Cause</div><div class='value'>{_escape(r.cause)}</div></div>"
+        f"<div class='field'><div class='label'>Ops action</div><div class='value'>{_escape(r.action)}</div></div>"
+        f"<div class='field'><div class='label'>Retry strategy</div>"
+        f"<div class='value'><code class='strategy {strategy_class}'>{r.retry_strategy.value}</code>"
+        f"<span class='muted'>· {retryable_label}</span></div></div>"
+        f"{matched_html}"
+        f"{evidence_html}"
+        f"<div class='footer-meta'>{footer}</div>"
+        f"</div>"
+    )
+
+
+def _render_batch_row_error(row: dict) -> str:
+    return f"<div class='row-detail error'>Triage failed: {_escape(row.get('action', 'unknown error'))}</div>"
 
 
 def _escape(s: Optional[str]) -> str:
@@ -698,6 +804,24 @@ input[type=file] { padding: 6px 8px; font-family: var(--mono); font-size: 12px }
 .batch-table .conf-low { color: var(--red) }
 .kb-hit { color: var(--green); font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 0.05em }
 .kb-miss { color: var(--fg-dim); font-family: var(--mono) }
+
+/* expandable rows */
+.batch-table tr.clickable { cursor: pointer; transition: background 80ms ease }
+.batch-table tr.clickable:hover td, .batch-table tr.clickable:focus td { background: var(--bg-elev-2) }
+.batch-table tr.clickable:focus { outline: 2px solid var(--accent); outline-offset: -2px }
+.batch-table tr.clickable[aria-expanded="true"] td { background: var(--bg-elev-2); border-bottom-color: transparent }
+.batch-table tr.clickable .chevron { display: inline-block; color: var(--fg-dim); transition: transform 120ms ease; font-size: 10px; margin-right: 4px }
+.batch-table tr.clickable[aria-expanded="true"] .chevron { transform: rotate(90deg); color: var(--accent) }
+.batch-table tr.detail td { padding: 16px 20px; background: var(--bg); border-bottom: 1px solid var(--border) }
+.batch-table tr.detail:hover td { background: var(--bg) }
+.row-detail { display: flex; flex-direction: column; gap: 12px; max-width: 900px }
+.row-detail .field { display: flex; flex-direction: column; gap: 4px }
+.row-detail .field .label { font-size: 11px; color: var(--fg-dim); text-transform: uppercase; letter-spacing: 0.05em }
+.row-detail .field .value { font-size: 13px; line-height: 1.5 }
+.row-detail .field.evidence ul { margin: 0; padding-left: 18px; font-family: var(--mono); font-size: 11px; color: var(--fg-dim) }
+.row-detail .field.evidence li { margin: 2px 0 }
+.row-detail .footer-meta { font-family: var(--mono); font-size: 10px; color: var(--fg-dim); border-top: 1px solid var(--border); padding-top: 8px; margin-top: 2px }
+.row-detail.error { color: var(--red); font-family: var(--mono); font-size: 12px }
 """
 
 _JS = """
