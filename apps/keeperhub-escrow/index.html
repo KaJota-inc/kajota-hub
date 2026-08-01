@@ -580,10 +580,60 @@
   </div>
 </section>
 
+<!-- =============== COACH AUDITOR + CFO =============== -->
+<section class="slab" id="coach">
+  <div class="head">
+    <span class="num">04</span>
+    <h2>Coach — the CFO and the auditor.</h2>
+    <div class="why">Two Coach endpoints that turn our doc discoveries into an operational tool: an auditor that catches the traps before they fire, and a CFO that decides whether a release should ship.</div>
+  </div>
+
+  <div class="proof">
+    <!-- Left: Auditor — paste any KH workflow, get a report card ------- -->
+    <div class="proof-card">
+      <h3>Audit any KeeperHub workflow.</h3>
+      <p class="tag">
+        Same rules the deployed <code style="color:var(--yellow)">POST /coach/audit-workflow</code>
+        endpoint runs — ported to the browser so it's instant, no server round-trip.
+        Load a canned demo (bad / clean) or paste your own workflow JSON to see the report.
+      </p>
+      <div class="row">
+        <button class="btn danger" id="aud-demo-bad">Load buggy example</button>
+        <button class="btn primary" id="aud-demo-clean">Load clean example</button>
+        <button class="btn" id="aud-clear">Clear</button>
+      </div>
+      <textarea id="aud-input" spellcheck="false"
+        style="width:100%; min-height:220px; background:var(--bg); border:1px solid var(--edge); color:var(--fg); font-family:var(--mono); font-size:12.5px; padding:12px 14px; border-radius:2px; margin-top:16px; resize:vertical; line-height:1.55;"
+        placeholder='paste a KH workflow JSON here — { "name":"…", "nodes":[…], "edges":[…] }'></textarea>
+      <div class="row">
+        <button class="btn primary" id="aud-run">Audit workflow</button>
+      </div>
+      <div id="aud-report" style="margin-top:20px"></div>
+    </div>
+
+    <!-- Right: CFO — three canned scenarios showing verdict shape ------ -->
+    <div class="proof-card">
+      <h3>Coach as CFO — three verdicts.</h3>
+      <p class="tag">
+        Live examples of <code style="color:var(--yellow)">POST /coach/should-release</code>.
+        Deterministic rules over the deposit's signals produce one of three verdicts —
+        <span class="pill success">release</span> <span class="pill running">hold</span> <span class="pill error">reject</span> —
+        and a plain-English narration explains why. Same signals in → same verdict out.
+      </p>
+      <div class="row">
+        <button class="btn primary" id="cfo-scn-release">Happy path</button>
+        <button class="btn" id="cfo-scn-hold">Not shipped yet</button>
+        <button class="btn danger" id="cfo-scn-reject">Active dispute</button>
+      </div>
+      <div id="cfo-report" style="margin-top:20px"></div>
+    </div>
+  </div>
+</section>
+
 <!-- =============== LIVE PROOF =============== -->
 <section class="slab" id="proof">
   <div class="head">
-    <span class="num">04</span>
+    <span class="num">05</span>
     <h2>Live proof, one click.</h2>
     <div class="why">The docs work end-to-end. This calls the exact workflow the PR documents, against the exact contract on Sepolia.</div>
   </div>
@@ -650,7 +700,7 @@
 <!-- =============== WORKFLOW CONFIG =============== -->
 <section class="slab">
   <div class="head">
-    <span class="num">05</span>
+    <span class="num">06</span>
     <h2>Live workflow (behind the proof).</h2>
     <div class="why">The exact IDs and addresses the workflow calls. Verified live before PR #1857 was opened.</div>
   </div>
@@ -785,6 +835,191 @@
   });
   render();
 })();
+</script>
+
+<!-- =============== AUDITOR + CFO WIRE-UP =============== -->
+<script type="module">
+import { auditWorkflow } from "./auditor.js";
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+// ---------- Auditor ----------
+const CLEAN_WORKFLOW = {
+  name: "Release escrow on Sepolia",
+  nodes: [
+    { id: "trigger-1", type: "trigger",
+      data: { label: "HTTP", config: { triggerType: "HTTP", httpMethod: "POST" } } },
+    { id: "step-1", type: "action",
+      data: { label: "Release Escrow", config: {
+        actionType: "web3/write-contract",
+        network: "11155111",
+        web3Connection: "default",
+        contractAddress: "0x599869cef2e4c52e2c9074caaf8f9fb0cb191776",
+        abiFunction: "release",
+        functionArgs: '["{{@trigger-1:HTTP.depositId}}"]',
+        abi: '[{"type":"function","name":"release","stateMutability":"nonpayable","inputs":[{"name":"depositId","type":"bytes32"}],"outputs":[]}]',
+      }}},
+  ],
+  edges: [{ id: "e", source: "trigger-1", target: "step-1" }],
+};
+
+const BAD_WORKFLOW = {
+  name: "buggy release (intentionally wrong)",
+  nodes: [
+    { id: "t", type: "trigger",
+      data: { label: "HTTP", config: { triggerType: "HTTP" } } },
+    { id: "s", type: "action",
+      data: { label: "wrong", config: {
+        actionType: "web3/write-contract",
+        network: 11155111,                                 // WARN — number, not string
+        integrationId: "int_your-keeper",                  // ERROR — silently ignored
+        contractAddress: "0x599869cef2e4c52e2c9074caaf8f9fb0cb191776",
+        function: "release",                               // ERROR — rejected alias
+        abi: [{ type: "function", name: "release" }],      // ERROR — raw array
+        functionArgs: ["{{@trigger.body.depositId}}"],     // ERROR — raw array + broken template
+      }}},
+  ],
+  edges: [],
+};
+
+const SEV_STYLE = {
+  error:  { color: "var(--blood)",  bg: "var(--blood-bg)",              border: "var(--blood)" },
+  warn:   { color: "var(--yellow)", bg: "rgba(255,224,66,0.08)",        border: "var(--yellow)" },
+  info:   { color: "var(--accent)", bg: "rgba(129,217,255,0.08)",       border: "var(--accent)" },
+};
+
+const renderIssue = (i) => {
+  const s = SEV_STYLE[i.severity] || SEV_STYLE.info;
+  return `
+    <div style="border:1px solid ${s.border};background:${s.bg};padding:12px 14px;margin-top:10px;border-radius:2px;font-size:13px;line-height:1.55">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+        <span style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:${s.color};font-weight:600">${esc(i.severity)} · ${esc(i.trap)}</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--dim)">${esc(i.path)}</span>
+      </div>
+      <div style="color:var(--fg);margin-bottom:8px">${esc(i.detail)}</div>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--mint)">→ ${esc(i.fix)}</div>
+    </div>`;
+};
+
+const renderReport = (report) => {
+  const banner = report.passed
+    ? `<div style="border:1px solid var(--mint);background:var(--mint-bg);padding:16px 20px;border-radius:2px;font-family:var(--mono);font-size:13px;color:var(--mint);font-weight:600">✓ PASSED · ${report.counts.error} errors · ${report.counts.warn} warnings · ${report.counts.info} info</div>`
+    : `<div style="border:1px solid var(--blood);background:var(--blood-bg);padding:16px 20px;border-radius:2px;font-family:var(--mono);font-size:13px;color:var(--blood);font-weight:600">✗ FAILED · ${report.counts.error} errors · ${report.counts.warn} warnings · ${report.counts.info} info</div>`;
+  const summary = `<div style="color:var(--dim);font-size:13.5px;margin-top:12px;line-height:1.6">${esc(report.summary)}</div>`;
+  const issues = report.issues.map(renderIssue).join("");
+  return banner + summary + issues;
+};
+
+const runAudit = () => {
+  const raw = $("#aud-input").value.trim();
+  const target = $("#aud-report");
+  if (!raw) { target.innerHTML = `<div style="color:var(--dim);font-family:var(--mono);font-size:12px">// paste a workflow JSON or load an example</div>`; return; }
+  let wf;
+  try { wf = JSON.parse(raw); }
+  catch (e) { target.innerHTML = `<div style="border:1px solid var(--blood);background:var(--blood-bg);padding:12px 14px;border-radius:2px;font-family:var(--mono);font-size:12px;color:var(--blood)">JSON parse error: ${esc(e.message)}</div>`; return; }
+  const report = auditWorkflow(wf, { workflowRef: "inline" });
+  target.innerHTML = renderReport(report);
+};
+
+$("#aud-demo-bad").addEventListener("click", () => {
+  $("#aud-input").value = JSON.stringify(BAD_WORKFLOW, null, 2);
+  runAudit();
+});
+$("#aud-demo-clean").addEventListener("click", () => {
+  $("#aud-input").value = JSON.stringify(CLEAN_WORKFLOW, null, 2);
+  runAudit();
+});
+$("#aud-clear").addEventListener("click", () => {
+  $("#aud-input").value = "";
+  $("#aud-report").innerHTML = "";
+});
+$("#aud-run").addEventListener("click", runAudit);
+// Auto-load the buggy example so judges see something the moment the section renders
+$("#aud-input").value = JSON.stringify(BAD_WORKFLOW, null, 2);
+runAudit();
+
+// ---------- CFO scenarios ----------
+const CFO_VERDICTS = {
+  release: {
+    decision: "release",
+    narrator: "template",
+    why: "Releasing 0.10 USDC on deposit 0xe713d5a3…8f0f2d13. Buyer explicitly confirmed receipt. Seller has 8 successful releases and 0 disputes (100% success rate).",
+    rules: [
+      { name: "escrow_held", weight: "hard", passed: true, detail: "escrow state = 'held' (expected 'held')" },
+      { name: "no_active_dispute", weight: "hard", passed: true, detail: "no active dispute on this deposit" },
+      { name: "buyer_confirmed_or_timeout", weight: "hard", passed: true, detail: "buyer explicitly confirmed receipt" },
+      { name: "seller_shipped", weight: "hard", passed: true, detail: "seller has recorded a shipment signal" },
+      { name: "amount_within_bounds", weight: "hard", passed: true, detail: "0.10 USDC is within the per-release cap of 10000.00 USDC" },
+      { name: "seller_reputation_ok", weight: "soft", passed: true, detail: "seller has 8 successful releases and 0 disputes (100% success rate)" },
+    ],
+  },
+  hold: {
+    decision: "hold",
+    narrator: "template",
+    why: "Holding 0.10 USDC on deposit 0xe713d5a3…8f0f2d13. No shipment signal yet — buyer has nothing to accept. Re-check when this changes.",
+    rules: [
+      { name: "escrow_held", weight: "hard", passed: true, detail: "escrow state = 'held' (expected 'held')" },
+      { name: "no_active_dispute", weight: "hard", passed: true, detail: "no active dispute on this deposit" },
+      { name: "buyer_confirmed_or_timeout", weight: "hard", passed: false, detail: "buyer has not confirmed and only 0.04 of 7 days elapsed — need explicit confirmation or the timeout to expire" },
+      { name: "seller_shipped", weight: "hard", passed: false, detail: "no shipment signal yet — buyer has nothing to accept" },
+      { name: "amount_within_bounds", weight: "hard", passed: true, detail: "0.10 USDC is within the per-release cap of 10000.00 USDC" },
+      { name: "seller_reputation_ok", weight: "soft", passed: true, detail: "seller has 8 successful releases and 0 disputes (100% success rate)" },
+    ],
+  },
+  reject: {
+    decision: "reject",
+    narrator: "template",
+    why: "Rejecting release for 0.10 USDC on deposit 0xe713d5a3…8f0f2d13 — merchant action required. An active dispute is on record — resolve it before releasing.",
+    rules: [
+      { name: "escrow_held", weight: "hard", passed: true, detail: "escrow state = 'held' (expected 'held')" },
+      { name: "no_active_dispute", weight: "hard", passed: false, detail: "an active dispute is on record — resolve it before releasing" },
+      { name: "buyer_confirmed_or_timeout", weight: "hard", passed: true, detail: "buyer explicitly confirmed receipt" },
+      { name: "seller_shipped", weight: "hard", passed: true, detail: "seller has recorded a shipment signal" },
+      { name: "amount_within_bounds", weight: "hard", passed: true, detail: "0.10 USDC is within the per-release cap of 10000.00 USDC" },
+      { name: "seller_reputation_ok", weight: "soft", passed: true, detail: "seller has 8 successful releases and 0 disputes (100% success rate)" },
+    ],
+  },
+};
+
+const VERDICT_PILL = {
+  release: `<span class="pill success" style="font-size:11px">RELEASE</span>`,
+  hold:    `<span class="pill running" style="font-size:11px">HOLD</span>`,
+  reject:  `<span class="pill error" style="font-size:11px">REJECT</span>`,
+};
+
+const renderVerdict = (v) => {
+  const rules = v.rules.map(r => {
+    const glyph = r.passed ? "✓" : "✗";
+    const clr = r.passed ? "var(--mint)" : "var(--blood)";
+    const weight = r.weight === "hard" ? "hard" : "soft";
+    return `<div style="display:flex;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px dashed var(--edge);font-size:13px">
+      <span style="color:${clr};font-family:var(--mono);font-size:12px;width:14px">${glyph}</span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;width:38px">${weight}</span>
+      <span style="font-family:var(--mono);font-size:12.5px;color:var(--fg);width:220px">${esc(r.name)}</span>
+      <span style="color:var(--dim);font-size:12.5px;flex:1">${esc(r.detail)}</span>
+    </div>`;
+  }).join("");
+  return `
+    <div style="border:1px solid var(--edge);padding:16px 20px;border-radius:2px;background:var(--bg)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <span style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim)">Verdict</span>
+        ${VERDICT_PILL[v.decision]}
+        <span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px">narrator: ${esc(v.narrator)}</span>
+      </div>
+      <div style="color:var(--fg);font-size:14px;line-height:1.55;margin-bottom:14px">${esc(v.why)}</div>
+      <div>${rules}</div>
+    </div>`;
+};
+
+for (const [key, verdict] of Object.entries(CFO_VERDICTS)) {
+  const btn = $(`#cfo-scn-${key}`);
+  if (btn) btn.addEventListener("click", () => {
+    $("#cfo-report").innerHTML = renderVerdict(verdict);
+  });
+}
+// Preselect the happy path so the section isn't empty
+$("#cfo-report").innerHTML = renderVerdict(CFO_VERDICTS.release);
 </script>
 
 <script type="module" src="app.js"></script>
