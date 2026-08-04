@@ -331,18 +331,20 @@
 
 <!-- =============== HERO =============== -->
 <div class="hero">
-  <div class="kicker">PR #1857 · reviewed by @joelorzet from KeeperHub · clean to merge</div>
+  <div class="kicker">PR #1857 · MERGED into KeeperHub master · 2026-08-03</div>
   <h1>
     We hit <span class="strike">3 undocumented</span> field-name gaps.<br>
-    Filed the fix. Maintainer <span class="fix">signed off.</span>
+    Filed the fix. <span class="fix">KeeperHub merged it.</span>
   </h1>
   <p class="lede">
     Every developer wiring the KeeperHub <code style="color:var(--yellow)">web3/write-contract</code>
     action against an HTTP trigger loses 20–40 minutes to the same three field-name traps:
     a reserved key that's <em style="color:var(--fg)">silently ignored</em>,
     JSON-string quoting rules that aren't in the docs, and a template syntax that only appears in
-    stored workflows. We hit all three, filed a docs PR, and iterated with the maintainer twice —
-    all changes now applied.
+    stored workflows. We hit all three, filed a docs PR, iterated with the maintainer once, and
+    <em style="color:var(--fg)">shipped in KeeperHub's canonical docs</em> as commit
+    <a href="https://github.com/KeeperHub/keeperhub/commit/ee4b6a077a7b532d765f27eb8049267dfa4f6cec"
+       target="_blank" style="color:var(--yellow)"><code style="color:var(--yellow)">ee4b6a0</code></a>.
   </p>
 
   <div class="stat-row">
@@ -355,8 +357,8 @@
       <div class="l">Lines to KH docs</div>
     </div>
     <div class="stat">
-      <div class="n mint">1</div>
-      <div class="l">Maintainer sign-off</div>
+      <div class="n mint">✓</div>
+      <div class="l">Merged to KH master</div>
     </div>
     <div class="stat">
       <div class="n">~30<span style="font-size:20px;color:var(--dim)">min</span></div>
@@ -366,10 +368,11 @@
 
   <div class="cta-row">
     <a class="btn primary" href="https://github.com/KeeperHub/keeperhub/pull/1857" target="_blank">
-      ↗ Read PR #1857
+      ↗ Read merged PR #1857
     </a>
     <a class="btn" href="#traps">See the 3 traps ↓</a>
-    <a class="btn" href="#proof">Live proof (Sepolia tx) →</a>
+    <a class="btn" href="#coach">Try the auditor ↓</a>
+    <a class="btn" href="#proof">Live Sepolia tx →</a>
   </div>
 </div>
 
