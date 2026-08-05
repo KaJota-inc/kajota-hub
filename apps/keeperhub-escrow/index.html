@@ -449,19 +449,21 @@
 <section class="slab" id="proof">
   <div class="head">
     <span class="num">01</span>
-    <h2>Watch Coach decide, then KeeperHub ship.</h2>
-    <div class="why">Deposit 0.10 test USDC. Coach evaluates six rules on-screen, returns a verdict, and only then does KeeperHub sign the release. Real contract, real Sepolia tx.</div>
+    <h2>Watch Coach refuse, then release.</h2>
+    <div class="why">Deposit 0.10 test USDC and Coach <em style="color:var(--fg)">holds</em> it — money moved, nothing else happened yet. Confirm receipt and it releases. A release layer that always says yes isn't a decision layer.</div>
   </div>
 
   <div class="proof">
     <!-- full loop -->
     <div class="proof-card">
-      <h3>End-to-end: buyer → deposit → KeeperHub → release.</h3>
+      <h3>End-to-end: deposit → Coach holds → confirm → KeeperHub releases.</h3>
       <p class="tag">
-        Connect a Sepolia wallet, put down <strong style="color:var(--fg)">0.10 test USDC</strong>,
-        and watch KeeperHub schedule the release automatically. You'll sign one
-        <code style="color:var(--yellow)">approve</code> and one
-        <code style="color:var(--yellow)">deposit</code>; KeeperHub covers the release.
+        Connect a Sepolia wallet and put down <strong style="color:var(--fg)">0.10 test USDC</strong>.
+        You'll sign one <code style="color:var(--yellow)">approve</code> and one
+        <code style="color:var(--yellow)">deposit</code> — and then Coach will
+        <strong style="color:var(--fg)">refuse to release</strong>, printing the rule that failed.
+        Confirm receipt and the same rules pass; only then does KeeperHub sign. You never pay
+        release gas.
       </p>
       <div class="row">
         <button class="btn primary" id="connect-btn">Connect Sepolia wallet</button>
@@ -474,7 +476,14 @@
         <div class="kv"><span>USDC balance</span><span id="wallet-usdc">…</span></div>
         <div class="kv"><span>Listing</span><span><code id="fl-listing">…</code></span></div>
         <div class="row" style="margin-top:16px">
-          <button class="btn primary" id="deposit-btn">Deposit 0.10 USDC + auto-release</button>
+          <button class="btn primary" id="deposit-btn">Deposit 0.10 USDC</button>
+        </div>
+        <div class="row" id="confirm-row" style="display:none; margin-top:4px; align-items:flex-start; gap:14px">
+          <button class="btn primary" id="confirm-btn">Confirm receipt as buyer</button>
+          <span style="color:var(--dim); font-size:13px; line-height:1.5; max-width:420px">
+            Coach is holding. Confirming flips one signal and it re-runs the same rules —
+            or leave it and the autonomous watcher releases once the 7-day window elapses.
+          </span>
         </div>
       </div>
       <div class="log" id="log"><span class="dim">// events land here</span>
