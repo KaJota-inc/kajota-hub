@@ -515,6 +515,46 @@ class AuditWorkflowResponse(BaseModel):
     workflowRef: str
 
 
+@app.get("/coach/should-release")
+async def coach_should_release_info() -> dict[str, Any]:
+    """Self-describing GET for browser clicks — real work happens on POST.
+
+    A person clicking the endpoint URL in Discord / a submission / a
+    tweet lands here and sees what the endpoint does, what body it
+    expects, and a curl example — instead of the FastAPI default
+    `{"detail":"Method Not Allowed"}` which reads as broken.
+    """
+    return {
+        "endpoint": "/coach/should-release",
+        "method": "POST",
+        "purpose": (
+            "Coach as the merchant's autonomous CFO. Runs a deterministic "
+            "rules engine over the deposit's signals and returns a verdict "
+            "(release / hold / reject) plus plain-English narration. "
+            "Deterministic decides, LLM/template explains."
+        ),
+        "requestBody": {
+            "depositId": "0x… (required)",
+            "grossAmountRaw": "int, USDC atomic units",
+            "buyerConfirmed": "bool",
+            "sellerShipped": "bool",
+            "activeDispute": "bool",
+            "priorSuccessfulReleases": "int",
+            "priorDisputes": "int",
+            "preferLLM": "bool, default true",
+        },
+        "curlExample": (
+            "curl -X POST https://kajota-hub.onrender.com/concierge/coach/should-release "
+            "-H 'content-type: application/json' "
+            "-d '{\"depositId\":\"0xe713d5a3eb6c0c3c247e3c86ad23696e006c6097de47d5fad9a303838f0f2d13\",\"grossAmountRaw\":100000,\"buyerConfirmed\":true,\"sellerShipped\":true,\"activeDispute\":false,\"preferLLM\":false}'"
+        ),
+        "interactiveDemo": "https://kajota-hub.onrender.com/keeperhub#coach",
+        "sourceRepo": "https://github.com/KaJota-inc/kajota-coach",
+        "sourceModule": "agent/kajota_concierge/coach_cfo.py",
+        "swaggerUi": "/concierge/docs",
+    }
+
+
 @app.post("/coach/should-release", response_model=ShouldReleaseResponse)
 async def coach_should_release(req: ShouldReleaseRequest) -> ShouldReleaseResponse:
     """Coach as the merchant's autonomous CFO — the AGENT decides.
@@ -558,6 +598,38 @@ async def coach_should_release(req: ShouldReleaseRequest) -> ShouldReleaseRespon
         rules=[r.to_dict() for r in verdict.rules],
         signals=verdict.signals.to_dict(),
     )
+
+
+@app.get("/coach/audit-workflow")
+async def coach_audit_workflow_info() -> dict[str, Any]:
+    """Self-describing GET — a browser click lands here instead of a 405."""
+    return {
+        "endpoint": "/coach/audit-workflow",
+        "method": "POST",
+        "purpose": (
+            "Static second-opinion audit of a KeeperHub `web3/write-contract` "
+            "workflow. Catches every trap documented in the merged bounty PR "
+            "KeeperHub/keeperhub#1857 (commit ee4b6a0) plus a couple of adjacent "
+            "ones (silently-ignored integrationId vs canonical web3Connection, "
+            "raw-array vs JSON-encoded-string functionArgs / abi, broken "
+            "{{@trigger.body.x}} template pattern, numeric-vs-string network, "
+            "missing HTTP body wrap). Purely diagnostic — nothing signs or writes."
+        ),
+        "requestBody": {
+            "workflow": "KH workflow definition (name, nodes, edges) — required",
+            "workflowRef": "optional label for the report",
+        },
+        "curlExample": (
+            "curl -X POST https://kajota-hub.onrender.com/concierge/coach/audit-workflow "
+            "-H 'content-type: application/json' "
+            "-d '{\"workflow\":{\"name\":\"probe\",\"nodes\":[{\"id\":\"s\",\"type\":\"action\",\"data\":{\"config\":{\"actionType\":\"web3/write-contract\",\"function\":\"release\",\"integrationId\":\"int_x\"}}}],\"edges\":[]}}'"
+        ),
+        "interactiveDemo": "https://kajota-hub.onrender.com/keeperhub#coach",
+        "sourceRepo": "https://github.com/KaJota-inc/kajota-coach",
+        "sourceModule": "agent/kajota_concierge/coach_auditor.py",
+        "bountyPR": "https://github.com/KeeperHub/keeperhub/pull/1857",
+        "swaggerUi": "/concierge/docs",
+    }
 
 
 @app.post("/coach/audit-workflow", response_model=AuditWorkflowResponse)
