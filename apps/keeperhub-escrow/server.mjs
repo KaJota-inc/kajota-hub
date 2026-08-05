@@ -244,11 +244,22 @@ const server = createServer(async (req, res) => {
         return json(res, 400, { error: "invalid_deposit_id", detail: "must be 0x + 64 hex chars" });
       }
       const rec = watcher.confirm(depositId);
+      const st = watcher.state();
+      // Tell the caller whether the loop is going to act on this, so the
+      // browser knows not to fire its own release. Without this both
+      // raced the same deposit: one won, the other reverted on the
+      // escrow's idempotency guard and printed an error at the exact
+      // moment the release had in fact succeeded.
+      const handedOff = st.running && !st.dryRun && rec.status === "watching";
       return json(res, 200, {
         depositId: rec.depositId,
         buyerConfirmed: Boolean(rec.buyerConfirmed),
         status: rec.status,
-        note: "Coach will re-evaluate on its next tick and release if the rules pass.",
+        handedOff,
+        tickMs: st.tickMs,
+        note: handedOff
+          ? "The autonomous watcher owns this release — do not fire it separately."
+          : "Watcher is not armed for this deposit; the caller should fire the release itself.",
       });
     }
     // One evaluation pass on demand — the same code the interval calls.
