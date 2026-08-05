@@ -333,27 +333,29 @@ async def llm_narration(
             f"Amount: {signals.gross_amount_raw / 1_000_000:.2f} USDC\n"
             f"Rules evaluated:\n" + "\n".join(rule_lines)
         )
-        # gemini-2.5-pro is a THINKING model: reasoning tokens are drawn
-        # from max_output_tokens before any prose is emitted. At 180 the
-        # budget was exhausted mid-thought and callers got fragments like
-        # "We've released the 0". Disable thinking — this is a two-sentence
-        # restatement of an already-made decision, not a reasoning task —
-        # and leave real headroom.
+        # gemini-2.5-pro is a THINKING model and, unlike 2.5-flash, cannot
+        # be told to stop: thinking_budget=0 is rejected. Reasoning tokens
+        # are drawn from max_output_tokens BEFORE any prose is emitted, so
+        # a tight ceiling doesn't yield a short answer — it yields a
+        # truncated one. At 180 callers got "We've released the 0".
+        #
+        # The fix is headroom, not suppression: budget for the thinking we
+        # can't turn off, and let the prompt keep the prose short.
+        model = os.environ.get("GEMINI_MODEL", "gemini-2.5-pro")
         cfg = gen_types.GenerateContentConfig(
             temperature=0.2,
-            max_output_tokens=400,
+            max_output_tokens=2048,
         )
-        try:
-            cfg.thinking_config = gen_types.ThinkingConfig(thinking_budget=0)
-        except Exception:
-            # Older SDKs / non-thinking models reject the field; the raised
-            # ceiling alone is enough for them.
-            pass
+        # Flash-class models DO honour a zero budget — worth taking when
+        # offered, since none of the thinking is useful to us here.
+        if "flash" in model:
+            try:
+                cfg.thinking_config = gen_types.ThinkingConfig(thinking_budget=0)
+            except Exception:
+                pass
 
         result = client.models.generate_content(
-            model=os.environ.get("GEMINI_MODEL", "gemini-2.5-pro"),
-            contents=prompt,
-            config=cfg,
+            model=model, contents=prompt, config=cfg,
         )
         text = (result.text or "").strip()
         if not text:
