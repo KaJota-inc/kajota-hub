@@ -52,6 +52,7 @@ const KH_DEMO_DEPOSIT_USDC = process.env.KH_DEMO_DEPOSIT_USDC || "100000"; // 0.
 const INDEX_HTML = readFileSync(join(__dir, "index.html"), "utf8");
 const APP_JS = readFileSync(join(__dir, "app.js"), "utf8");
 const AUDITOR_JS = readFileSync(join(__dir, "auditor.js"), "utf8");
+const CFO_JS = readFileSync(join(__dir, "cfo.js"), "utf8");
 
 // ---- Helpers --------------------------------------------------------
 function json(res, code, body) {
@@ -163,6 +164,14 @@ const server = createServer(async (req, res) => {
         "cache-control": "no-store",
       });
       res.end(AUDITOR_JS);
+      return;
+    }
+    if (req.method === "GET" && path === "/cfo.js") {
+      res.writeHead(200, {
+        "content-type": "application/javascript; charset=utf-8",
+        "cache-control": "no-store",
+      });
+      res.end(CFO_JS);
       return;
     }
     if (req.method === "GET" && path === "/healthz") {
