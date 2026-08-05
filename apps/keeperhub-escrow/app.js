@@ -388,15 +388,19 @@ async function confirmReceiptAndRelease() {
     }));
     renderVerdict(verdict);
 
-    // Tell the autonomous watcher too. If it's armed, it would reach this
-    // same verdict on its own next tick with nobody at the keyboard —
-    // this click only skips the wait.
+    // Record the confirmation with the autonomous watcher. If the watcher
+    // is armed it takes ownership of the release from here — and we must
+    // NOT fire our own, or both submit against the same deposit and the
+    // loser reverts on the escrow's idempotency guard.
+    let handedOff = false;
     try {
-      await fetch("autonomous/confirm", {
+      const r = await fetch("autonomous/confirm", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ depositId: PENDING.depositId }),
       });
+      const body = await r.json();
+      handedOff = Boolean(body.handedOff);
       line("dim", `  buyer confirmation recorded with the autonomous watcher`);
     } catch { /* optional — never block the demo on it */ }
 
@@ -405,7 +409,15 @@ async function confirmReceiptAndRelease() {
       return;
     }
     $("#confirm-row").style.display = "none";
-    await fireReleaseFor(PENDING.depositId);
+
+    if (handedOff) {
+      // The strongest version of the demo: from here nobody clicks
+      // anything. The loop re-evaluates on its own timer and fires.
+      line("acc", `→ handing off to the autonomous watcher — it will release on its next tick`);
+      await awaitWatcherRelease(PENDING.depositId);
+    } else {
+      await fireReleaseFor(PENDING.depositId);
+    }
     PENDING = null;
     await refreshBalances();
   } catch (e) {
@@ -413,6 +425,68 @@ async function confirmReceiptAndRelease() {
   } finally {
     btn.disabled = false;
   }
+}
+
+/**
+ * Watch the autonomous loop take a deposit to a terminal state.
+ *
+ * Deliberately passive: this issues no release of its own, it only reads
+ * /autonomous. Everything it prints was decided and executed by the
+ * server-side loop on its own timer, which is the point — the browser is
+ * a spectator here, not a participant.
+ */
+async function awaitWatcherRelease(depositId, timeoutMs = 90000) {
+  const id = depositId.toLowerCase();
+  const t0 = Date.now();
+  let lastNote = "";
+  while (Date.now() - t0 < timeoutMs) {
+    await new Promise((r) => setTimeout(r, 3000));
+    let st;
+    try { st = await fetch("autonomous", { cache: "no-store" }).then((r) => r.json()); }
+    catch { continue; }
+
+    const rec = (st.tracked || []).find((t) => t.depositId === id);
+    const secs = Math.round((Date.now() - t0) / 1000);
+
+    // Surface the loop's own log lines for this deposit as they appear.
+    const entry = (st.log || []).find((l) => (l.depositId || "").toLowerCase() === id);
+    if (entry && entry.message !== lastNote) {
+      lastNote = entry.message;
+      line(entry.level === "ok" ? "ok" : entry.level === "err" ? "err" : "dim", `  ${entry.message}`);
+    }
+
+    if (rec?.status === "released-by-coach" && rec.executionId) {
+      line("ok", `✓ the watcher fired it — executionId=${rec.executionId} (${secs}s, no clicks)`);
+      // Resolve the on-chain tx from KH's execution list.
+      for (let i = 0; i < 20; i++) {
+        await new Promise((r) => setTimeout(r, 3000));
+        const s = await fetch("status", { cache: "no-store" }).then((r) => r.json()).catch(() => null);
+        if (!s) continue;
+        const run = (s.executions || []).find((x) => x.id === rec.executionId);
+        if (!run) continue;
+        renderRuns(s.executions);
+        if (run.status === "success") {
+          const tx = (run.transactionHashes || [])[0]?.hash;
+          line("ok", `✓ release confirmed on Sepolia in ${run.duration} ms`);
+          if (tx) line("acc", `  release tx: ${txLink(tx)}`);
+          line("ok", `\n🎉 Coach released this on its own. Nobody clicked release.`);
+          return;
+        }
+        if (run.status === "error") {
+          line("err", `⚠ watcher release errored: ${(run.error || "").slice(0, 180)}`);
+          return;
+        }
+      }
+      line("warn", `  release fired but the tx hasn't confirmed yet — see "Recent runs".`);
+      return;
+    }
+    if (rec && rec.status !== "watching") {
+      line("warn", `  watcher marked this deposit '${rec.status}' — not releasing.`);
+      return;
+    }
+    if (secs % 15 === 0) line("dim", `  waiting on the watcher… (${secs}s)`);
+  }
+  line("warn", `  gave up watching after ${Math.round(timeoutMs / 1000)}s — check "Coach on its own" below.`);
 }
 
 /** Fire the KH workflow for a depositId and poll it to a terminal state. */
