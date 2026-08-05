@@ -47,26 +47,46 @@ let publicClient = null;
 let account = null;
 
 // ---------- initial config load ----------
+
+// Null-safe DOM writers. The page is redesigned often; an element that
+// gets renamed or dropped must degrade to a no-op, never take the whole
+// init down with it. It did exactly that once: a stale `#arch-wf` left
+// over from a removed diagram threw here, so `publicClient` below was
+// never assigned and every wallet action failed with a null-deref that
+// pointed nowhere near the real cause.
+const setText = (sel, value) => {
+  const el = $(sel);
+  if (el) el.textContent = value;
+  else console.warn(`[keeperhub] missing element ${sel} — skipped`);
+};
+const setLink = (sel, href, text) => {
+  const el = $(sel);
+  if (!el) return console.warn(`[keeperhub] missing element ${sel} — skipped`);
+  el.href = href;
+  if (text != null) el.textContent = text;
+};
+
 async function loadConfig() {
-  const r = await fetch("config", { cache: "no-store" });
-  CFG = await r.json();
-  $("#cfg-workflow").textContent = CFG.workflowId;
-  $("#cfg-contract-link").href = CFG.contract.explorer;
-  $("#cfg-contract-link").textContent = CFG.contract.address;
-  $("#cfg-fn").textContent = CFG.contract.function;
-  $("#cfg-selector").textContent = CFG.contract.selector;
-  $("#cfg-keeper-link").href = CFG.keeper.explorer;
-  $("#cfg-keeper-link").textContent = CFG.keeper.address;
-  $("#cfg-chain").textContent = `${CFG.chain.name} · ${CFG.chain.chainId}`;
-  $("#cfg-dashboard").href = CFG.kh.dashboard;
-  $("#demo-deposit").textContent = CFG.demoDepositId;
-  $("#arch-wf").textContent = `workflow ${short(CFG.workflowId, 8)}`;
-  $("#arch-keeper").textContent = `${short(CFG.keeper.address)} · Turnkey · EIP-7702`;
-  $("#fl-listing").textContent = short(CFG.fullLoop.listingId, 10);
+  // Build the RPC client FIRST. It has no DOM dependency, and nothing
+  // that follows should be able to prevent the wallet flow from working.
   publicClient = createPublicClient({
     chain: sepolia,
     transport: http("https://ethereum-sepolia-rpc.publicnode.com"),
   });
+
+  const r = await fetch("config", { cache: "no-store" });
+  CFG = await r.json();
+
+  setText("#cfg-workflow", CFG.workflowId);
+  setLink("#cfg-contract-link", CFG.contract.explorer, CFG.contract.address);
+  setText("#cfg-fn", CFG.contract.function);
+  setText("#cfg-selector", CFG.contract.selector);
+  setLink("#cfg-keeper-link", CFG.keeper.explorer, CFG.keeper.address);
+  setText("#cfg-chain", `${CFG.chain.name} · ${CFG.chain.chainId}`);
+  setLink("#cfg-dashboard", CFG.kh.dashboard);
+  setText("#demo-deposit", CFG.demoDepositId);
+  setText("#fl-listing", short(CFG.fullLoop.listingId, 10));
+
   if (!CFG.khKeyConfigured) {
     line("warn", "! server has no KH_API_KEY configured — /status and release actions will 503.");
   }
@@ -474,10 +494,22 @@ async function fireRelease() {
 }
 
 // ---------- wire buttons ----------
-$("#connect-btn").addEventListener("click", connectWallet);
-$("#deposit-btn").addEventListener("click", depositAndAutoRelease);
-$("#confirm-btn").addEventListener("click", confirmReceiptAndRelease);
-$("#refresh-btn").addEventListener("click", loadStatus);
-$("#fire-btn").addEventListener("click", fireRelease);
+// Same reasoning as the DOM writers above: one renamed id shouldn't
+// leave every other control dead. Wire each independently.
+const on = (sel, handler) => {
+  const el = $(sel);
+  if (el) el.addEventListener("click", handler);
+  else console.warn(`[keeperhub] missing control ${sel} — not wired`);
+};
 
-loadConfig().then(loadStatus);
+on("#connect-btn", connectWallet);
+on("#deposit-btn", depositAndAutoRelease);
+on("#confirm-btn", confirmReceiptAndRelease);
+on("#refresh-btn", loadStatus);
+on("#fire-btn", fireRelease);
+
+// Independent, not chained. loadStatus reads the KH execution list and
+// has nothing to do with config; chaining meant a config failure also
+// left "Recent runs" spinning forever, which hid the real error.
+loadConfig().catch((e) => line("err", `config load failed: ${e.message}`));
+loadStatus();
