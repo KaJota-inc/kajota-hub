@@ -309,6 +309,79 @@
     text-transform: uppercase; letter-spacing: 1.5px; color: var(--dim) }
   footer.foot .links a:hover { color: var(--mint) }
 
+  /* ---------- API endpoint card ---------- */
+  .api-card { border: 1px solid var(--edge); background: var(--bg-elev); margin-top: 24px }
+  .api-head {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 16px 20px; border-bottom: 1px solid var(--edge); background: #000;
+  }
+  .api-verb {
+    font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+    padding: 4px 10px; border-radius: 2px; background: var(--mint); color: var(--bg);
+  }
+  .api-verb.get { background: var(--accent) }
+  .api-url {
+    font-family: var(--mono); font-size: 13px; color: var(--fg);
+    word-break: break-all; flex: 1; min-width: 260px;
+  }
+  .api-url .host { color: var(--dim) }
+  .api-live {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: 1.2px;
+    text-transform: uppercase; color: var(--mint);
+  }
+  .api-live::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--mint); box-shadow: 0 0 10px var(--mint);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .api-tabs { display: flex; border-bottom: 1px solid var(--edge) }
+  .api-tab {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase;
+    padding: 12px 18px; background: transparent; border: none; color: var(--dim);
+    cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s ease;
+  }
+  .api-tab:hover { color: var(--fg) }
+  .api-tab.on { color: var(--mint); border-bottom-color: var(--mint) }
+  .api-pane { display: none; padding: 18px 20px; position: relative }
+  .api-pane.on { display: block }
+  .api-pre {
+    background: #000; border: 1px solid var(--edge); padding: 16px 18px;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.7;
+    white-space: pre; overflow-x: auto; margin: 0;
+  }
+  .api-pre .k { color: var(--yellow) }
+  .api-pre .s { color: var(--mint) }
+  .api-pre .n { color: var(--accent) }
+  .api-pre .c { color: var(--dim) }
+  .api-pre .hl { background: rgba(255,224,66,0.15); padding: 0 2px }
+  .api-copy {
+    position: absolute; top: 26px; right: 28px; padding: 5px 10px;
+    background: var(--bg-elev); border: 1px solid var(--edge-hi); color: var(--dim);
+    font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+    cursor: pointer; border-radius: 2px; z-index: 2;
+  }
+  .api-copy:hover { color: var(--mint); border-color: var(--mint) }
+  .api-fields { width: 100%; border-collapse: collapse; font-size: 13px }
+  .api-fields th {
+    text-align: left; font-family: var(--mono); font-size: 10px; color: var(--dim);
+    text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;
+    padding: 0 14px 10px 0; border-bottom: 1px solid var(--edge);
+  }
+  .api-fields td { padding: 11px 14px 11px 0; border-bottom: 1px solid var(--edge); vertical-align: top }
+  .api-fields tr:last-child td { border-bottom: none }
+  .api-fields .f { font-family: var(--mono); color: var(--yellow); white-space: nowrap }
+  .api-fields .t { font-family: var(--mono); color: var(--accent); font-size: 12px; white-space: nowrap }
+  .api-fields .d { color: var(--dim); line-height: 1.5 }
+  .api-fields .req { color: var(--blood); font-size: 10px; font-family: var(--mono); letter-spacing: 1px }
+  .toggle-live {
+    display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+    font-family: var(--mono); font-size: 11px; color: var(--dim);
+    letter-spacing: 0.5px; user-select: none;
+  }
+  .toggle-live input { accent-color: var(--mint); width: 15px; height: 15px; cursor: pointer }
+  .toggle-live:hover { color: var(--fg) }
+
   /* ---------- responsive ---------- */
   @media (max-width: 900px) {
     .hero .stat-row { grid-template-columns: repeat(2, 1fr) }
@@ -331,55 +404,308 @@
 
 <!-- =============== HERO =============== -->
 <div class="hero">
-  <div class="kicker">PR #1857 · MERGED into KeeperHub master · 2026-08-03</div>
+  <div class="kicker">Agents Onchain 2026 · Autonomous CFO for onchain merchant escrow</div>
   <h1>
-    We hit <span class="strike">3 undocumented</span> field-name gaps.<br>
-    Filed the fix. <span class="fix">KeeperHub merged it.</span>
+    Coach <span class="fix">decides.</span><br>
+    KeeperHub <span class="fix">ships.</span>
   </h1>
   <p class="lede">
-    Every developer wiring the KeeperHub <code style="color:var(--yellow)">web3/write-contract</code>
-    action against an HTTP trigger loses 20–40 minutes to the same three field-name traps:
-    a reserved key that's <em style="color:var(--fg)">silently ignored</em>,
-    JSON-string quoting rules that aren't in the docs, and a template syntax that only appears in
-    stored workflows. We hit all three, filed a docs PR, iterated with the maintainer once, and
-    <em style="color:var(--fg)">shipped in KeeperHub's canonical docs</em> as commit
-    <a href="https://github.com/KeeperHub/keeperhub/commit/ee4b6a077a7b532d765f27eb8049267dfa4f6cec"
-       target="_blank" style="color:var(--yellow)"><code style="color:var(--yellow)">ee4b6a0</code></a>.
+    Kajota × KeeperHub is an escrow release rail for onchain merchants. Coach — a Gemini-backed
+    agent — watches deposits, applies deterministic rules to decide releases, narrates the
+    reasoning in plain English, and audits its own KH workflow against the trap catalogue
+    we shipped in KH's canonical docs. KeeperHub's Turnkey wallet signs the release under
+    EIP-7702 delegation. All in <em style="color:var(--fg)">~15 seconds</em> from the moment
+    Coach greenlights the release.
   </p>
 
   <div class="stat-row">
     <div class="stat">
-      <div class="n blood">03</div>
-      <div class="l">Doc gaps found</div>
+      <div class="n">~15<span style="font-size:20px;color:var(--dim)">s</span></div>
+      <div class="l">Release latency</div>
     </div>
     <div class="stat">
-      <div class="n">64</div>
-      <div class="l">Lines to KH docs</div>
+      <div class="n">85 / 15</div>
+      <div class="l">USDC split</div>
+    </div>
+    <div class="stat">
+      <div class="n blood">0</div>
+      <div class="l">Keys Coach holds</div>
     </div>
     <div class="stat">
       <div class="n mint">✓</div>
-      <div class="l">Merged to KH master</div>
-    </div>
-    <div class="stat">
-      <div class="n">~30<span style="font-size:20px;color:var(--dim)">min</span></div>
-      <div class="l">Saved per integrator</div>
+      <div class="l">Bounty PR merged to KH</div>
     </div>
   </div>
 
   <div class="cta-row">
-    <a class="btn primary" href="https://github.com/KeeperHub/keeperhub/pull/1857" target="_blank">
-      ↗ Read merged PR #1857
-    </a>
-    <a class="btn" href="#traps">See the 3 traps ↓</a>
-    <a class="btn" href="#coach">Try the auditor ↓</a>
-    <a class="btn" href="#proof">Live Sepolia tx →</a>
+    <a class="btn primary" href="#proof">See a live release ↓</a>
+    <a class="btn" href="#coach">Coach reasoning ↓</a>
+    <a class="btn" href="#traps">The bounty docs ↓</a>
+    <a class="btn" href="https://github.com/KeeperHub/keeperhub/pull/1857" target="_blank">↗ Read merged PR #1857</a>
   </div>
 </div>
+
+<!-- =============== LIVE PROOF =============== -->
+<section class="slab" id="proof">
+  <div class="head">
+    <span class="num">01</span>
+    <h2>Watch Coach decide, then KeeperHub ship.</h2>
+    <div class="why">Deposit 0.10 test USDC. Coach evaluates six rules on-screen, returns a verdict, and only then does KeeperHub sign the release. Real contract, real Sepolia tx.</div>
+  </div>
+
+  <div class="proof">
+    <!-- full loop -->
+    <div class="proof-card">
+      <h3>End-to-end: buyer → deposit → KeeperHub → release.</h3>
+      <p class="tag">
+        Connect a Sepolia wallet, put down <strong style="color:var(--fg)">0.10 test USDC</strong>,
+        and watch KeeperHub schedule the release automatically. You'll sign one
+        <code style="color:var(--yellow)">approve</code> and one
+        <code style="color:var(--yellow)">deposit</code>; KeeperHub covers the release.
+      </p>
+      <div class="row">
+        <button class="btn primary" id="connect-btn">Connect Sepolia wallet</button>
+        <button class="btn" id="fund-eth-btn" style="display:none">Get Sepolia ETH →</button>
+        <button class="btn" id="fund-usdc-btn" style="display:none">Get Sepolia USDC →</button>
+      </div>
+      <div id="wallet-info" style="display:none">
+        <div class="kv"><span>Address</span><span><a id="wallet-addr-link" target="_blank">…</a></span></div>
+        <div class="kv"><span>ETH balance</span><span id="wallet-eth">…</span></div>
+        <div class="kv"><span>USDC balance</span><span id="wallet-usdc">…</span></div>
+        <div class="kv"><span>Listing</span><span><code id="fl-listing">…</code></span></div>
+        <div class="row" style="margin-top:16px">
+          <button class="btn primary" id="deposit-btn">Deposit 0.10 USDC + auto-release</button>
+        </div>
+      </div>
+      <div class="log" id="log"><span class="dim">// events land here</span>
+</div>
+    </div>
+
+    <!-- replay -->
+    <div class="proof-card">
+      <h3>No wallet? Replay the demo.</h3>
+      <p class="tag">
+        This depositId is already released — a second attempt reverts on-chain with the escrow's
+        idempotency guard. Real KH keeper signing path, no USDC required.
+      </p>
+      <div class="kv" style="margin-bottom:20px">
+        <span>depositId</span><span><code id="demo-deposit">…</code>
+          <span class="pill running" style="margin-left:8px">demo</span></span>
+      </div>
+      <div class="row">
+        <button class="btn danger" id="fire-btn">Fire release (idempotency check)</button>
+        <button class="btn" id="refresh-btn">Refresh runs</button>
+      </div>
+
+      <div style="margin-top:32px">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px">Recent runs</div>
+        <div id="runs-wrap">
+          <div class="exec-row hd">
+            <div>Status</div><div>Duration</div><div>Tx / Error</div><div>Started</div>
+          </div>
+          <div id="runs">
+            <div style="padding:14px 20px;color:var(--dim);font-family:var(--mono);font-size:12px">Loading…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- =============== COACH AUDITOR + CFO =============== -->
+<section class="slab" id="coach">
+  <div class="head">
+    <span class="num">02</span>
+    <h2>Coach — the CFO and the auditor.</h2>
+    <div class="why">Two live HTTP endpoints, callable by any agent. The CFO decides whether a release should ship; the auditor catches KeeperHub workflow traps before they fire.</div>
+  </div>
+
+  <div class="proof">
+    <!-- Left: Auditor — paste any KH workflow, get a report card ------- -->
+    <div class="proof-card">
+      <h3>Audit any KeeperHub workflow.</h3>
+      <p class="tag">
+        Same rules the deployed <code style="color:var(--yellow)">POST /coach/audit-workflow</code>
+        endpoint runs — ported to the browser so it's instant, no server round-trip.
+        Load a canned demo (bad / clean) or paste your own workflow JSON to see the report.
+      </p>
+      <div class="row">
+        <button class="btn danger" id="aud-demo-bad">Load buggy example</button>
+        <button class="btn primary" id="aud-demo-clean">Load clean example</button>
+        <button class="btn" id="aud-clear">Clear</button>
+      </div>
+      <textarea id="aud-input" spellcheck="false"
+        style="width:100%; min-height:220px; background:var(--bg); border:1px solid var(--edge); color:var(--fg); font-family:var(--mono); font-size:12.5px; padding:12px 14px; border-radius:2px; margin-top:16px; resize:vertical; line-height:1.55;"
+        placeholder='paste a KH workflow JSON here — { "name":"…", "nodes":[…], "edges":[…] }'></textarea>
+      <div class="row" style="align-items:center; gap:18px">
+        <button class="btn primary" id="aud-run">Audit workflow</button>
+        <label class="toggle-live" title="Unchecked: runs the identical rules in your browser. Checked: POSTs to the deployed endpoint on kajota-hub.">
+          <input type="checkbox" id="aud-live" />
+          <span>POST to the live endpoint</span>
+        </label>
+      </div>
+      <div id="aud-report" style="margin-top:20px"></div>
+    </div>
+
+    <!-- Right: CFO — three canned scenarios showing verdict shape ------ -->
+    <div class="proof-card">
+      <h3>Coach as CFO — three verdicts.</h3>
+      <p class="tag">
+        Live examples of <code style="color:var(--yellow)">POST /coach/should-release</code>.
+        Deterministic rules over the deposit's signals produce one of three verdicts —
+        <span class="pill success">release</span> <span class="pill running">hold</span> <span class="pill error">reject</span> —
+        and a plain-English narration explains why. Same signals in → same verdict out.
+      </p>
+      <div class="row">
+        <button class="btn primary" id="cfo-scn-release">Happy path</button>
+        <button class="btn" id="cfo-scn-hold">Not shipped yet</button>
+        <button class="btn danger" id="cfo-scn-reject">Active dispute</button>
+      </div>
+      <div id="cfo-report" style="margin-top:20px"></div>
+    </div>
+  </div>
+
+  <!-- ---------- API reference for the auditor endpoint ---------- -->
+  <div class="api-card">
+    <div class="api-head">
+      <span class="api-verb">POST</span>
+      <span class="api-url"><span class="host">https://kajota-hub.onrender.com</span>/concierge/coach/audit-workflow</span>
+      <span class="api-live">live</span>
+    </div>
+
+    <div class="api-tabs">
+      <button class="api-tab on" data-pane="api-req">Request</button>
+      <button class="api-tab" data-pane="api-res">Response</button>
+      <button class="api-tab" data-pane="api-curl">cURL</button>
+      <button class="api-tab" data-pane="api-fields">Fields</button>
+    </div>
+
+    <!-- Request -->
+    <div class="api-pane on" id="api-req">
+      <button class="api-copy" data-copy="req">Copy</button>
+      <pre class="api-pre"><span class="c">// Content-Type: application/json</span>
+{
+  <span class="hl k">"workflow"</span>: {                         <span class="c">// the KH workflow definition, verbatim</span>
+    <span class="k">"name"</span>: <span class="s">"Release escrow on Sepolia"</span>,
+    <span class="k">"nodes"</span>: [
+      {
+        <span class="k">"id"</span>: <span class="s">"trigger-1"</span>,
+        <span class="k">"type"</span>: <span class="s">"trigger"</span>,
+        <span class="k">"data"</span>: { <span class="k">"label"</span>: <span class="s">"HTTP"</span>,
+                  <span class="k">"config"</span>: { <span class="k">"triggerType"</span>: <span class="s">"HTTP"</span> } }
+      },
+      {
+        <span class="k">"id"</span>: <span class="s">"step-1"</span>,
+        <span class="k">"type"</span>: <span class="s">"action"</span>,
+        <span class="k">"data"</span>: { <span class="k">"config"</span>: {
+          <span class="k">"actionType"</span>:     <span class="s">"web3/write-contract"</span>,
+          <span class="k">"network"</span>:        <span class="s">"11155111"</span>,
+          <span class="k">"web3Connection"</span>: <span class="s">"default"</span>,
+          <span class="k">"contractAddress"</span>:<span class="s">"0x5998…1776"</span>,
+          <span class="k">"abiFunction"</span>:    <span class="s">"release"</span>,
+          <span class="k">"functionArgs"</span>:   <span class="s">"[\"{{@trigger-1:HTTP.depositId}}\"]"</span>,
+          <span class="k">"abi"</span>:            <span class="s">"[{…}]"</span>
+        } }
+      }
+    ],
+    <span class="k">"edges"</span>: [ { <span class="k">"source"</span>: <span class="s">"trigger-1"</span>, <span class="k">"target"</span>: <span class="s">"step-1"</span> } ]
+  },
+  <span class="k">"workflowRef"</span>: <span class="s">"optional-label"</span>       <span class="c">// echoed back in the report</span>
+}</pre>
+    </div>
+
+    <!-- Response -->
+    <div class="api-pane" id="api-res">
+      <button class="api-copy" data-copy="res">Copy</button>
+      <pre class="api-pre"><span class="c">// 200 OK — a workflow that trips every trap</span>
+{
+  <span class="hl k">"passed"</span>: <span class="n">false</span>,
+  <span class="hl k">"counts"</span>: { <span class="k">"error"</span>: <span class="n">5</span>, <span class="k">"warn"</span>: <span class="n">1</span>, <span class="k">"info"</span>: <span class="n">1</span> },
+  <span class="hl k">"issues"</span>: [
+    {
+      <span class="k">"trap"</span>:     <span class="s">"silently-ignored-integration-id"</span>,
+      <span class="k">"severity"</span>: <span class="s">"error"</span>,          <span class="c">// error | warn | info</span>
+      <span class="k">"path"</span>:     <span class="s">"nodes[1].data.config.integrationId"</span>,
+      <span class="k">"detail"</span>:   <span class="s">"`integrationId` is a reserved config key that the</span>
+                   <span class="s">validator accepts but the write-contract action</span>
+                   <span class="s">ignores. The signing wallet is routed by</span>
+                   <span class="s">`web3Connection` instead."</span>,
+      <span class="k">"fix"</span>:      <span class="s">"replace with `\"web3Connection\": \"default\"`"</span>
+    }
+    <span class="c">// … one object per detected trap</span>
+  ],
+  <span class="k">"summary"</span>: <span class="s">"Audit failed: 5 errors (+ 1 warning) across 1</span>
+              <span class="s">write-contract action. Fix errors before executing…"</span>,
+  <span class="k">"actionNodesScanned"</span>: <span class="n">1</span>,
+  <span class="k">"workflowRef"</span>: <span class="s">"optional-label"</span>
+}</pre>
+    </div>
+
+    <!-- cURL -->
+    <div class="api-pane" id="api-curl">
+      <button class="api-copy" data-copy="curl">Copy</button>
+      <pre class="api-pre"><span class="c"># paste this straight into a terminal — returns a full report card</span>
+curl -sS -X POST https://kajota-hub.onrender.com/concierge/coach/audit-workflow \
+  -H <span class="s">'content-type: application/json'</span> \
+  -d <span class="s">'{"workflow":{"name":"probe","nodes":[{"id":"s","type":"action",
+       "data":{"config":{"actionType":"web3/write-contract",
+       "function":"release","integrationId":"int_x",
+       "functionArgs":["{{@trigger.body.depositId}}"]}}}],
+       "edges":[]}}'</span>
+
+<span class="c"># GET the same URL in a browser for a self-describing info payload</span>
+curl -sS https://kajota-hub.onrender.com/concierge/coach/audit-workflow</pre>
+    </div>
+
+    <!-- Fields -->
+    <div class="api-pane" id="api-fields">
+      <table class="api-fields">
+        <thead>
+          <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="f">workflow</td>
+            <td class="t">object <span class="req">required</span></td>
+            <td class="d">A KeeperHub workflow definition — <code>name</code>, <code>nodes[]</code>, <code>edges[]</code>. Paste it verbatim from <code>GET /api/workflows/{id}</code> or from the editor's JSON view.</td>
+          </tr>
+          <tr>
+            <td class="f">workflowRef</td>
+            <td class="t">string</td>
+            <td class="d">Optional label echoed back on the report. Handy when auditing many workflows in a batch.</td>
+          </tr>
+          <tr>
+            <td class="f">passed</td>
+            <td class="t">bool <span style="color:var(--dim)">↩ response</span></td>
+            <td class="d"><code>true</code> when zero <code>error</code>-severity issues. Warnings and info never block.</td>
+          </tr>
+          <tr>
+            <td class="f">issues[].severity</td>
+            <td class="t">enum</td>
+            <td class="d"><code style="color:var(--blood)">error</code> — mis-routes or fails at execute time · <code style="color:var(--yellow)">warn</code> — accepted but non-canonical · <code style="color:var(--accent)">info</code> — advisory.</td>
+          </tr>
+          <tr>
+            <td class="f">issues[].fix</td>
+            <td class="t">string</td>
+            <td class="d">A copy-pasteable correction, not just a description of the problem.</td>
+          </tr>
+          <tr>
+            <td class="f">actionNodesScanned</td>
+            <td class="t">int</td>
+            <td class="d">How many <code>web3/write-contract</code> nodes were examined. <code>0</code> means nothing in this workflow is in scope.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
 
 <!-- =============== 3 TRAPS =============== -->
 <section class="slab" id="traps">
   <div class="head">
-    <span class="num">01</span>
+    <span class="num">03</span>
     <h2>The three traps.</h2>
     <div class="why">One field is silently ignored, one only errors at exec time, one template syntax works only in stored workflows — three ways to lose an afternoon.</div>
   </div>
@@ -487,10 +813,11 @@
   </div>
 </section>
 
+
 <!-- =============== JSON GENERATOR =============== -->
 <section class="slab" id="gen">
   <div class="head">
-    <span class="num">02</span>
+    <span class="num">04</span>
     <h2>Generate the workflow JSON.</h2>
     <div class="why">Paste your function signature. Get the exact body KeeperHub accepts — all three traps pre-avoided.</div>
   </div>
@@ -536,10 +863,11 @@
   </div>
 </section>
 
+
 <!-- =============== FIELD REFERENCE =============== -->
 <section class="slab" id="ref">
   <div class="head">
-    <span class="num">03</span>
+    <span class="num">05</span>
     <h2>Field-name map.</h2>
     <div class="why">The dashboard labels don't match the API fields. This is the mapping every integrator needs — now shipped in the docs.</div>
   </div>
@@ -583,122 +911,6 @@
   </div>
 </section>
 
-<!-- =============== COACH AUDITOR + CFO =============== -->
-<section class="slab" id="coach">
-  <div class="head">
-    <span class="num">04</span>
-    <h2>Coach — the CFO and the auditor.</h2>
-    <div class="why">Two Coach endpoints that turn our doc discoveries into an operational tool: an auditor that catches the traps before they fire, and a CFO that decides whether a release should ship.</div>
-  </div>
-
-  <div class="proof">
-    <!-- Left: Auditor — paste any KH workflow, get a report card ------- -->
-    <div class="proof-card">
-      <h3>Audit any KeeperHub workflow.</h3>
-      <p class="tag">
-        Same rules the deployed <code style="color:var(--yellow)">POST /coach/audit-workflow</code>
-        endpoint runs — ported to the browser so it's instant, no server round-trip.
-        Load a canned demo (bad / clean) or paste your own workflow JSON to see the report.
-      </p>
-      <div class="row">
-        <button class="btn danger" id="aud-demo-bad">Load buggy example</button>
-        <button class="btn primary" id="aud-demo-clean">Load clean example</button>
-        <button class="btn" id="aud-clear">Clear</button>
-      </div>
-      <textarea id="aud-input" spellcheck="false"
-        style="width:100%; min-height:220px; background:var(--bg); border:1px solid var(--edge); color:var(--fg); font-family:var(--mono); font-size:12.5px; padding:12px 14px; border-radius:2px; margin-top:16px; resize:vertical; line-height:1.55;"
-        placeholder='paste a KH workflow JSON here — { "name":"…", "nodes":[…], "edges":[…] }'></textarea>
-      <div class="row">
-        <button class="btn primary" id="aud-run">Audit workflow</button>
-      </div>
-      <div id="aud-report" style="margin-top:20px"></div>
-    </div>
-
-    <!-- Right: CFO — three canned scenarios showing verdict shape ------ -->
-    <div class="proof-card">
-      <h3>Coach as CFO — three verdicts.</h3>
-      <p class="tag">
-        Live examples of <code style="color:var(--yellow)">POST /coach/should-release</code>.
-        Deterministic rules over the deposit's signals produce one of three verdicts —
-        <span class="pill success">release</span> <span class="pill running">hold</span> <span class="pill error">reject</span> —
-        and a plain-English narration explains why. Same signals in → same verdict out.
-      </p>
-      <div class="row">
-        <button class="btn primary" id="cfo-scn-release">Happy path</button>
-        <button class="btn" id="cfo-scn-hold">Not shipped yet</button>
-        <button class="btn danger" id="cfo-scn-reject">Active dispute</button>
-      </div>
-      <div id="cfo-report" style="margin-top:20px"></div>
-    </div>
-  </div>
-</section>
-
-<!-- =============== LIVE PROOF =============== -->
-<section class="slab" id="proof">
-  <div class="head">
-    <span class="num">05</span>
-    <h2>Live proof, one click.</h2>
-    <div class="why">The docs work end-to-end. This calls the exact workflow the PR documents, against the exact contract on Sepolia.</div>
-  </div>
-
-  <div class="proof">
-    <!-- full loop -->
-    <div class="proof-card">
-      <h3>End-to-end: buyer → deposit → KeeperHub → release.</h3>
-      <p class="tag">
-        Connect a Sepolia wallet, put down <strong style="color:var(--fg)">0.10 test USDC</strong>,
-        and watch KeeperHub schedule the release automatically. You'll sign one
-        <code style="color:var(--yellow)">approve</code> and one
-        <code style="color:var(--yellow)">deposit</code>; KeeperHub covers the release.
-      </p>
-      <div class="row">
-        <button class="btn primary" id="connect-btn">Connect Sepolia wallet</button>
-        <button class="btn" id="fund-eth-btn" style="display:none">Get Sepolia ETH →</button>
-        <button class="btn" id="fund-usdc-btn" style="display:none">Get Sepolia USDC →</button>
-      </div>
-      <div id="wallet-info" style="display:none">
-        <div class="kv"><span>Address</span><span><a id="wallet-addr-link" target="_blank">…</a></span></div>
-        <div class="kv"><span>ETH balance</span><span id="wallet-eth">…</span></div>
-        <div class="kv"><span>USDC balance</span><span id="wallet-usdc">…</span></div>
-        <div class="kv"><span>Listing</span><span><code id="fl-listing">…</code></span></div>
-        <div class="row" style="margin-top:16px">
-          <button class="btn primary" id="deposit-btn">Deposit 0.10 USDC + auto-release</button>
-        </div>
-      </div>
-      <div class="log" id="log"><span class="dim">// events land here</span>
-</div>
-    </div>
-
-    <!-- replay -->
-    <div class="proof-card">
-      <h3>No wallet? Replay the demo.</h3>
-      <p class="tag">
-        This depositId is already released — a second attempt reverts on-chain with the escrow's
-        idempotency guard. Real KH keeper signing path, no USDC required.
-      </p>
-      <div class="kv" style="margin-bottom:20px">
-        <span>depositId</span><span><code id="demo-deposit">…</code>
-          <span class="pill running" style="margin-left:8px">demo</span></span>
-      </div>
-      <div class="row">
-        <button class="btn danger" id="fire-btn">Fire release (idempotency check)</button>
-        <button class="btn" id="refresh-btn">Refresh runs</button>
-      </div>
-
-      <div style="margin-top:32px">
-        <div style="font-family:var(--mono);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px">Recent runs</div>
-        <div id="runs-wrap">
-          <div class="exec-row hd">
-            <div>Status</div><div>Duration</div><div>Tx / Error</div><div>Started</div>
-          </div>
-          <div id="runs">
-            <div style="padding:14px 20px;color:var(--dim);font-family:var(--mono);font-size:12px">Loading…</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- =============== WORKFLOW CONFIG =============== -->
 <section class="slab">
@@ -735,6 +947,7 @@
     </div>
   </div>
 </section>
+
 
 <footer class="foot">
   <div class="mark">
@@ -914,16 +1127,68 @@ const renderReport = (report) => {
   return banner + summary + issues;
 };
 
-const runAudit = () => {
+const LIVE_AUDIT_URL = "https://kajota-hub.onrender.com/concierge/coach/audit-workflow";
+
+const runAudit = async () => {
   const raw = $("#aud-input").value.trim();
   const target = $("#aud-report");
   if (!raw) { target.innerHTML = `<div style="color:var(--dim);font-family:var(--mono);font-size:12px">// paste a workflow JSON or load an example</div>`; return; }
   let wf;
   try { wf = JSON.parse(raw); }
   catch (e) { target.innerHTML = `<div style="border:1px solid var(--blood);background:var(--blood-bg);padding:12px 14px;border-radius:2px;font-family:var(--mono);font-size:12px;color:var(--blood)">JSON parse error: ${esc(e.message)}</div>`; return; }
-  const report = auditWorkflow(wf, { workflowRef: "inline" });
-  target.innerHTML = renderReport(report);
+
+  const live = $("#aud-live")?.checked;
+  if (!live) {
+    target.innerHTML = renderReport(auditWorkflow(wf, { workflowRef: "inline" }))
+      + `<div style="margin-top:12px;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:1px;text-transform:uppercase">evaluated in-browser · identical rules to the deployed endpoint</div>`;
+    return;
+  }
+
+  // Live mode — POST to the deployed endpoint and render what it returns.
+  target.innerHTML = `<div style="color:var(--dim);font-family:var(--mono);font-size:12px">POST ${esc(LIVE_AUDIT_URL)} …</div>`;
+  const t0 = performance.now();
+  try {
+    const r = await fetch(LIVE_AUDIT_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ workflow: wf, workflowRef: "keeperhub-console" }),
+    });
+    const ms = Math.round(performance.now() - t0);
+    const body = await r.json();
+    if (!r.ok) throw new Error(body.detail || `HTTP ${r.status}`);
+    target.innerHTML = renderReport(body)
+      + `<div style="margin-top:12px;font-family:var(--mono);font-size:10px;color:var(--mint);letter-spacing:1px;text-transform:uppercase">✓ served by the live endpoint · HTTP ${r.status} · ${ms} ms</div>`;
+  } catch (e) {
+    target.innerHTML = `<div style="border:1px solid var(--blood);background:var(--blood-bg);padding:12px 14px;border-radius:2px;font-family:var(--mono);font-size:12px;color:var(--blood)">live call failed: ${esc(e.message)}</div>`
+      + `<div style="margin-top:10px;color:var(--dim);font-size:12px">Falling back to the in-browser evaluation:</div>`
+      + renderReport(auditWorkflow(wf, { workflowRef: "inline" }));
+  }
 };
+
+// ---------- API card: tabs + copy ----------
+document.querySelectorAll(".api-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".api-tab").forEach(t => t.classList.toggle("on", t === tab));
+    const want = tab.dataset.pane;
+    document.querySelectorAll(".api-pane").forEach(p => p.classList.toggle("on", p.id === want));
+  });
+});
+
+document.querySelectorAll(".api-copy").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    // Copy the sibling <pre>'s text — strips our syntax-highlight spans for free.
+    const pre = btn.parentElement.querySelector(".api-pre");
+    if (!pre) return;
+    try {
+      await navigator.clipboard.writeText(pre.innerText);
+      const old = btn.textContent;
+      btn.textContent = "Copied ✓";
+      btn.style.color = "var(--mint)";
+      btn.style.borderColor = "var(--mint)";
+      setTimeout(() => { btn.textContent = old; btn.style.color = ""; btn.style.borderColor = "" }, 1400);
+    } catch {}
+  });
+});
 
 $("#aud-demo-bad").addEventListener("click", () => {
   $("#aud-input").value = JSON.stringify(BAD_WORKFLOW, null, 2);
@@ -938,6 +1203,9 @@ $("#aud-clear").addEventListener("click", () => {
   $("#aud-report").innerHTML = "";
 });
 $("#aud-run").addEventListener("click", runAudit);
+// Flipping the live toggle re-runs immediately so the difference is visible
+// without a second click — the point of the toggle is the side-by-side.
+$("#aud-live")?.addEventListener("change", runAudit);
 // Auto-load the buggy example so judges see something the moment the section renders
 $("#aud-input").value = JSON.stringify(BAD_WORKFLOW, null, 2);
 runAudit();
