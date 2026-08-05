@@ -282,70 +282,139 @@ async function depositAndAutoRelease() {
     if (!depositId) throw new Error("Deposited event not found in receipt");
     line("ok", `  deposit landed. depositId = ${short(depositId, 10)}`);
 
-    // 4. Coach CFO decision — deterministic rules over the deposit signals
-    //    before we fire the release. Same rules the /coach/should-release
-    //    endpoint runs server-side; kept client-side here so the decision
-    //    is instant and doesn't require a coach roundtrip.
+    // Hand the deposit to the autonomous watcher. From here Coach would
+    // reach the same verdict on its own schedule with no browser open —
+    // the click below just skips the wait.
+    try {
+      await fetch("autonomous/track", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ depositId, source: "console-deposit" }),
+      });
+      line("dim", `  registered with the autonomous watcher (see "Coach on its own")`);
+    } catch { /* watcher is optional — never block the demo on it */ }
+
+    // 4. Coach CFO decision. Deliberately evaluated with the buyer's
+    //    confirmation ABSENT, because at this instant it genuinely is:
+    //    money has moved into escrow and nothing else has happened yet.
+    //    The honest verdict here is HOLD, and showing that is the point
+    //    — a release layer that always says yes isn't a decision layer.
     line("acc", `→ Coach CFO evaluating release (deterministic decides, template explains)…`);
+    PENDING = { depositId, grossAmountRaw: need, depositedAt: Math.floor(Date.now() / 1000) };
     const verdict = evaluateRelease(signalsFromDeposit({
       depositId,
       buyer: account,
       grossAmountRaw: need,
       listingId: CFG.fullLoop.listingId,
-      depositedAt: Math.floor(Date.now() / 1000) - 30,
+      depositedAt: PENDING.depositedAt,
+      buyerConfirmed: false,
     }));
-    for (const r of verdict.rules) {
-      const glyph = r.passed ? "✓" : "✗";
-      const cls = r.passed ? "ok" : "err";
-      line(cls, `  ${glyph} [${r.weight}] ${r.name} — ${r.detail}`);
-    }
-    const pillCls = verdict.decision === "release" ? "ok" : verdict.decision === "hold" ? "warn" : "err";
-    line(pillCls, `  Verdict: ${verdict.decision.toUpperCase()}`);
-    line("dim", `  ${verdict.why}`);
+    renderVerdict(verdict);
+
     if (verdict.decision !== "release") {
-      line("warn", `⚠ Coach declined the release. Not firing KH. Fix the signal (or wait for the timeout) and retry.`);
+      line("warn", `⚠ Coach is holding the funds. It will not ask KeeperHub to sign yet.`);
+      line("dim", `  Two ways this resolves: you confirm receipt below, or the ${BUYER_WINDOW_DAYS}-day`);
+      line("dim", `  acceptance window elapses and the autonomous watcher releases it unattended.`);
+      $("#confirm-row").style.display = "flex";
       return;
     }
 
-    // 5. Auto-fire KH release
-    line("acc", `→ POST /demo-release  { depositId }  (KH signs via EIP-7702 Turnkey)`);
-    const r = await fetch("demo-release", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ depositId }),
-    });
-    const body = await r.json();
-    if (!r.ok) throw new Error(body.error || `HTTP ${r.status}`);
-    const eid = body.executionId;
-    line("ok", `← KH accepted · executionId=${eid} status=${body.status}`);
-
-    // 5. Poll KH execution
-    for (let elapsed = 0; elapsed < 60000; elapsed += 3000) {
-      await new Promise((r) => setTimeout(r, 3000));
-      const s = await fetch("status", { cache: "no-store" }).then((r) => r.json());
-      const run = (s.executions || []).find((x) => x.id === eid);
-      if (!run) { line("dim", `  waiting… (${elapsed / 1000 + 3}s)`); continue; }
-      renderRuns(s.executions);
-      if (run.status === "success") {
-        const tx = (run.transactionHashes || [])[0]?.hash;
-        line("ok", `✓ release success in ${run.duration} ms`);
-        if (tx) line("acc", `  release tx: ${txLink(tx)}`);
-        line("ok", `\n🎉 end-to-end complete. buyer deposited, KeeperHub released, USDC split 85/15.`);
-        break;
-      }
-      if (run.status === "error") {
-        line("err", `⚠ release error: ${(run.error || "").slice(0, 200)}`);
-        break;
-      }
-      line("dim", `  polling KH… status=${run.status} (${elapsed / 1000 + 3}s)`);
-    }
-
+    await fireReleaseFor(depositId);
     await refreshBalances();
   } catch (e) {
     line("err", `flow failed: ${e.shortMessage || e.message}`);
   } finally {
     btn.disabled = false;
   }
+}
+
+// Acceptance window mirrored from cfo.js so the copy above stays honest
+// if the rule ever changes.
+const BUYER_WINDOW_DAYS = 7;
+
+// The deposit awaiting the buyer's confirmation, if any.
+let PENDING = null;
+
+function renderVerdict(verdict) {
+  for (const r of verdict.rules) {
+    const glyph = r.passed ? "✓" : "✗";
+    const cls = r.passed ? "ok" : "err";
+    line(cls, `  ${glyph} [${r.weight}] ${r.name} — ${r.detail}`);
+  }
+  const pillCls = verdict.decision === "release" ? "ok"
+    : verdict.decision === "hold" ? "warn" : "err";
+  line(pillCls, `  Verdict: ${verdict.decision.toUpperCase()}`);
+  line("dim", `  ${verdict.why}`);
+}
+
+/** Buyer confirms receipt → Coach re-evaluates → release if it now passes. */
+async function confirmReceiptAndRelease() {
+  if (!PENDING) return;
+  const btn = $("#confirm-btn");
+  btn.disabled = true;
+  try {
+    // This records the buyer's acceptance in the marketplace's own
+    // records — the off-chain signal the rules engine reads. It is not
+    // the escrow's on-chain confirmReceipt(), which would settle the
+    // deposit directly and cut KeeperHub out of the loop entirely.
+    line("acc", `→ buyer confirms receipt · re-running the same rules with that one signal flipped`);
+    const verdict = evaluateRelease(signalsFromDeposit({
+      depositId: PENDING.depositId,
+      buyer: account,
+      grossAmountRaw: PENDING.grossAmountRaw,
+      listingId: CFG.fullLoop.listingId,
+      depositedAt: PENDING.depositedAt,
+      buyerConfirmed: true,
+    }));
+    renderVerdict(verdict);
+    if (verdict.decision !== "release") {
+      line("warn", `⚠ still not releasable — see the failing rule above.`);
+      return;
+    }
+    $("#confirm-row").style.display = "none";
+    await fireReleaseFor(PENDING.depositId);
+    PENDING = null;
+    await refreshBalances();
+  } catch (e) {
+    line("err", `confirm failed: ${e.shortMessage || e.message}`);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/** Fire the KH workflow for a depositId and poll it to a terminal state. */
+async function fireReleaseFor(depositId) {
+  line("acc", `→ POST /demo-release  { depositId }  (KH signs via EIP-7702 Turnkey)`);
+  const r = await fetch("demo-release", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ depositId }),
+  });
+  const body = await r.json();
+  if (!r.ok) throw new Error(body.error || `HTTP ${r.status}`);
+  const eid = body.executionId;
+  line("ok", `← KH accepted · executionId=${eid} status=${body.status}`);
+
+  for (let elapsed = 0; elapsed < 60000; elapsed += 3000) {
+    await new Promise((res) => setTimeout(res, 3000));
+    const s = await fetch("status", { cache: "no-store" }).then((x) => x.json());
+    const run = (s.executions || []).find((x) => x.id === eid);
+    if (!run) { line("dim", `  waiting… (${elapsed / 1000 + 3}s)`); continue; }
+    renderRuns(s.executions);
+    if (run.status === "success") {
+      const tx = (run.transactionHashes || [])[0]?.hash;
+      line("ok", `✓ release success in ${run.duration} ms`);
+      if (tx) line("acc", `  release tx: ${txLink(tx)}`);
+      line("ok", `\n🎉 end-to-end complete. Coach decided, KeeperHub signed, USDC split 85/15.`);
+      return;
+    }
+    if (run.status === "error") {
+      line("err", `⚠ release error: ${(run.error || "").slice(0, 200)}`);
+      return;
+    }
+    line("dim", `  polling KH… status=${run.status} (${elapsed / 1000 + 3}s)`);
+  }
+  line("warn", `  stopped polling after 60s — check "Recent runs" for the outcome.`);
 }
 
 // ---------- fire (idempotency demo) ----------
@@ -394,6 +463,7 @@ async function fireRelease() {
 // ---------- wire buttons ----------
 $("#connect-btn").addEventListener("click", connectWallet);
 $("#deposit-btn").addEventListener("click", depositAndAutoRelease);
+$("#confirm-btn").addEventListener("click", confirmReceiptAndRelease);
 $("#refresh-btn").addEventListener("click", loadStatus);
 $("#fire-btn").addEventListener("click", fireRelease);
 

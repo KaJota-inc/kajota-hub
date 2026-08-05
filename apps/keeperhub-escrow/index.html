@@ -449,19 +449,21 @@
 <section class="slab" id="proof">
   <div class="head">
     <span class="num">01</span>
-    <h2>Watch Coach decide, then KeeperHub ship.</h2>
-    <div class="why">Deposit 0.10 test USDC. Coach evaluates six rules on-screen, returns a verdict, and only then does KeeperHub sign the release. Real contract, real Sepolia tx.</div>
+    <h2>Watch Coach refuse, then release.</h2>
+    <div class="why">Deposit 0.10 test USDC and Coach <em style="color:var(--fg)">holds</em> it — money moved, nothing else happened yet. Confirm receipt and it releases. A release layer that always says yes isn't a decision layer.</div>
   </div>
 
   <div class="proof">
     <!-- full loop -->
     <div class="proof-card">
-      <h3>End-to-end: buyer → deposit → KeeperHub → release.</h3>
+      <h3>End-to-end: deposit → Coach holds → confirm → KeeperHub releases.</h3>
       <p class="tag">
-        Connect a Sepolia wallet, put down <strong style="color:var(--fg)">0.10 test USDC</strong>,
-        and watch KeeperHub schedule the release automatically. You'll sign one
-        <code style="color:var(--yellow)">approve</code> and one
-        <code style="color:var(--yellow)">deposit</code>; KeeperHub covers the release.
+        Connect a Sepolia wallet and put down <strong style="color:var(--fg)">0.10 test USDC</strong>.
+        You'll sign one <code style="color:var(--yellow)">approve</code> and one
+        <code style="color:var(--yellow)">deposit</code> — and then Coach will
+        <strong style="color:var(--fg)">refuse to release</strong>, printing the rule that failed.
+        Confirm receipt and the same rules pass; only then does KeeperHub sign. You never pay
+        release gas.
       </p>
       <div class="row">
         <button class="btn primary" id="connect-btn">Connect Sepolia wallet</button>
@@ -474,7 +476,14 @@
         <div class="kv"><span>USDC balance</span><span id="wallet-usdc">…</span></div>
         <div class="kv"><span>Listing</span><span><code id="fl-listing">…</code></span></div>
         <div class="row" style="margin-top:16px">
-          <button class="btn primary" id="deposit-btn">Deposit 0.10 USDC + auto-release</button>
+          <button class="btn primary" id="deposit-btn">Deposit 0.10 USDC</button>
+        </div>
+        <div class="row" id="confirm-row" style="display:none; margin-top:4px; align-items:flex-start; gap:14px">
+          <button class="btn primary" id="confirm-btn">Confirm receipt as buyer</button>
+          <span style="color:var(--dim); font-size:13px; line-height:1.5; max-width:420px">
+            Coach is holding. Confirming flips one signal and it re-runs the same rules —
+            or leave it and the autonomous watcher releases once the 7-day window elapses.
+          </span>
         </div>
       </div>
       <div class="log" id="log"><span class="dim">// events land here</span>
@@ -508,6 +517,56 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ---------- autonomous watcher ---------- -->
+  <div class="api-card" id="auto-card">
+    <div class="api-head">
+      <span class="api-verb get" id="auto-mode">…</span>
+      <span class="api-url"><strong style="font-family:var(--display);font-size:15px;letter-spacing:-0.01em">Coach on its own</strong>
+        <span style="color:var(--dim)"> — the same rules, on a timer, with no browser open</span></span>
+      <span class="api-live" id="auto-heartbeat">idle</span>
+    </div>
+
+    <div style="padding:18px 20px">
+      <p style="color:var(--dim);font-size:14px;line-height:1.55;margin-bottom:16px">
+        A server-side loop polls Sepolia for every deposit handed to it, reads escrow state
+        with a raw <code style="color:var(--yellow)">eth_call</code>, and runs the identical
+        rules engine. When the verdict is <span class="pill success">release</span> it invokes
+        the KeeperHub workflow directly — no click, no wallet, no page loaded.
+        It ships <strong style="color:var(--fg)">dry-run by default</strong>: chain reads and
+        rule evaluation are real, only the signature is withheld until an operator sets
+        <code style="color:var(--yellow)">KH_WATCHER_LIVE=1</code>.
+      </p>
+
+      <div class="stat-row" style="margin-top:0;grid-template-columns:repeat(4,1fr)">
+        <div class="stat" style="padding:16px 18px">
+          <div class="n" id="auto-watching" style="font-size:26px">—</div>
+          <div class="l">Watching</div>
+        </div>
+        <div class="stat" style="padding:16px 18px">
+          <div class="n mint" id="auto-released" style="font-size:26px">—</div>
+          <div class="l">Released by Coach</div>
+        </div>
+        <div class="stat" style="padding:16px 18px">
+          <div class="n" id="auto-ticks" style="font-size:26px">—</div>
+          <div class="l">Ticks run</div>
+        </div>
+        <div class="stat" style="padding:16px 18px">
+          <div class="n" id="auto-next" style="font-size:26px">—</div>
+          <div class="l">Next tick</div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:18px">
+        <button class="btn" id="auto-tick">Run a tick now</button>
+        <button class="btn" id="auto-refresh">Refresh</button>
+      </div>
+
+      <div style="font-family:var(--mono);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin:22px 0 10px">Watcher log</div>
+      <div class="log" id="auto-log" style="margin-top:0"><span class="dim">// loading…</span>
+</div>
     </div>
   </div>
 </section>
@@ -1164,6 +1223,69 @@ const runAudit = async () => {
       + renderReport(auditWorkflow(wf, { workflowRef: "inline" }));
   }
 };
+
+// ---------- autonomous watcher panel ----------
+const LOG_CLS = { ok: "ok", err: "err", warn: "warn", info: "acc", dim: "dim" };
+
+const fmtAgo = (ts) => {
+  if (!ts) return "—";
+  const s = Math.round((Date.now() - ts) / 1000);
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.round(s / 60)}m ago`;
+  return `${Math.round(s / 3600)}h ago`;
+};
+
+const renderAuto = (st) => {
+  const modeEl = $("#auto-mode");
+  modeEl.textContent = st.mode === "live" ? "LIVE" : "DRY-RUN";
+  modeEl.className = st.mode === "live" ? "api-verb" : "api-verb get";
+
+  const hb = $("#auto-heartbeat");
+  hb.textContent = st.running ? `tick ${Math.round(st.tickMs / 1000)}s · last ${fmtAgo(st.lastTickAt)}` : "stopped";
+  hb.style.color = st.running ? "var(--mint)" : "var(--dim)";
+
+  $("#auto-watching").textContent = st.counts?.watching ?? 0;
+  $("#auto-released").textContent = st.counts?.releasedByCoach ?? 0;
+  $("#auto-ticks").textContent = st.ticks ?? 0;
+  $("#auto-next").textContent = st.nextTickInMs != null ? `${Math.ceil(st.nextTickInMs / 1000)}s` : "—";
+
+  const logEl = $("#auto-log");
+  if (!st.log?.length) {
+    logEl.innerHTML = `<span class="dim">// nothing yet — deposit in the panel above, or hit "Run a tick now"</span>`;
+    return;
+  }
+  logEl.innerHTML = st.log.map((e) => {
+    const cls = LOG_CLS[e.level] || "dim";
+    const who = e.depositId ? esc(e.depositId.slice(0, 10)) + "…" : "watcher";
+    return `<span class="dim">${new Date(e.at).toLocaleTimeString()}</span> <span class="acc">${who}</span> <span class="${cls}">${esc(e.message)}</span>`;
+  }).join("<br>");
+};
+
+const loadAuto = async () => {
+  try {
+    const st = await fetch("autonomous", { cache: "no-store" }).then((r) => r.json());
+    renderAuto(st);
+  } catch (e) {
+    $("#auto-log").innerHTML = `<span class="err">watcher unavailable: ${esc(e.message)}</span>`;
+  }
+};
+
+$("#auto-refresh")?.addEventListener("click", loadAuto);
+$("#auto-tick")?.addEventListener("click", async () => {
+  const b = $("#auto-tick");
+  b.disabled = true; b.textContent = "Ticking…";
+  try {
+    const st = await fetch("autonomous/tick", { method: "POST" }).then((r) => r.json());
+    renderAuto(st);
+  } catch (e) {
+    $("#auto-log").innerHTML = `<span class="err">tick failed: ${esc(e.message)}</span>`;
+  } finally {
+    b.disabled = false; b.textContent = "Run a tick now";
+  }
+});
+
+loadAuto();
+setInterval(loadAuto, 10_000);
 
 // ---------- API card: tabs + copy ----------
 document.querySelectorAll(".api-tab").forEach(tab => {
