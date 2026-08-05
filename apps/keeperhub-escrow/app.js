@@ -11,6 +11,7 @@ import {
   decodeEventLog,
 } from "https://esm.sh/viem@2.21.0";
 import { sepolia } from "https://esm.sh/viem@2.21.0/chains";
+import { evaluateRelease, signalsFromDeposit } from "./cfo.js";
 
 const $ = (s) => document.querySelector(s);
 const logEl = $("#log");
@@ -281,7 +282,32 @@ async function depositAndAutoRelease() {
     if (!depositId) throw new Error("Deposited event not found in receipt");
     line("ok", `  deposit landed. depositId = ${short(depositId, 10)}`);
 
-    // 4. Auto-fire KH release
+    // 4. Coach CFO decision — deterministic rules over the deposit signals
+    //    before we fire the release. Same rules the /coach/should-release
+    //    endpoint runs server-side; kept client-side here so the decision
+    //    is instant and doesn't require a coach roundtrip.
+    line("acc", `→ Coach CFO evaluating release (deterministic decides, template explains)…`);
+    const verdict = evaluateRelease(signalsFromDeposit({
+      depositId,
+      buyer: account,
+      grossAmountRaw: need,
+      listingId: CFG.fullLoop.listingId,
+      depositedAt: Math.floor(Date.now() / 1000) - 30,
+    }));
+    for (const r of verdict.rules) {
+      const glyph = r.passed ? "✓" : "✗";
+      const cls = r.passed ? "ok" : "err";
+      line(cls, `  ${glyph} [${r.weight}] ${r.name} — ${r.detail}`);
+    }
+    const pillCls = verdict.decision === "release" ? "ok" : verdict.decision === "hold" ? "warn" : "err";
+    line(pillCls, `  Verdict: ${verdict.decision.toUpperCase()}`);
+    line("dim", `  ${verdict.why}`);
+    if (verdict.decision !== "release") {
+      line("warn", `⚠ Coach declined the release. Not firing KH. Fix the signal (or wait for the timeout) and retry.`);
+      return;
+    }
+
+    // 5. Auto-fire KH release
     line("acc", `→ POST /demo-release  { depositId }  (KH signs via EIP-7702 Turnkey)`);
     const r = await fetch("demo-release", {
       method: "POST",
