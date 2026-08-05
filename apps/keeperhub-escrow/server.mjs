@@ -220,8 +220,36 @@ const server = createServer(async (req, res) => {
       if (!/^0x[0-9a-fA-F]{64}$/.test(depositId || "")) {
         return json(res, 400, { error: "invalid_deposit_id", detail: "must be 0x + 64 hex chars" });
       }
-      const rec = watcher.track(depositId, { source: body.source || "api" });
-      return json(res, 200, { tracked: true, depositId: rec.depositId, status: rec.status });
+      const rec = watcher.track(depositId, {
+        source: body.source || "api",
+        buyerConfirmed: Boolean(body.buyerConfirmed),
+      });
+      return json(res, 200, {
+        tracked: true,
+        depositId: rec.depositId,
+        status: rec.status,
+        buyerConfirmed: Boolean(rec.buyerConfirmed),
+      });
+    }
+    // The buyer accepting delivery is an off-chain fact the chain cannot
+    // tell the loop. Recording it here is what lets the watcher release
+    // before the acceptance window expires — and it is the buyer's own
+    // action, not an operator reaching for the release button.
+    if (req.method === "POST" && path === "/autonomous/confirm") {
+      let body = {};
+      try { body = await readBody(req); }
+      catch (e) { return json(res, 400, { error: "invalid_json", detail: String(e) }); }
+      const depositId = body.depositId;
+      if (!/^0x[0-9a-fA-F]{64}$/.test(depositId || "")) {
+        return json(res, 400, { error: "invalid_deposit_id", detail: "must be 0x + 64 hex chars" });
+      }
+      const rec = watcher.confirm(depositId);
+      return json(res, 200, {
+        depositId: rec.depositId,
+        buyerConfirmed: Boolean(rec.buyerConfirmed),
+        status: rec.status,
+        note: "Coach will re-evaluate on its next tick and release if the rules pass.",
+      });
     }
     // One evaluation pass on demand — the same code the interval calls.
     // Handy for a judge who does not want to wait out a tick.

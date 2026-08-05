@@ -367,6 +367,19 @@ async function confirmReceiptAndRelease() {
       buyerConfirmed: true,
     }));
     renderVerdict(verdict);
+
+    // Tell the autonomous watcher too. If it's armed, it would reach this
+    // same verdict on its own next tick with nobody at the keyboard —
+    // this click only skips the wait.
+    try {
+      await fetch("autonomous/confirm", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ depositId: PENDING.depositId }),
+      });
+      line("dim", `  buyer confirmation recorded with the autonomous watcher`);
+    } catch { /* optional — never block the demo on it */ }
+
     if (verdict.decision !== "release") {
       line("warn", `⚠ still not releasable — see the failing rule above.`);
       return;
