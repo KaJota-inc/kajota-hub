@@ -141,16 +141,20 @@ async def triage_message(message: str, *, prefer_llm: bool = True) -> TriageResu
             "buyer their money.\n\n"
             f"Buyer message:\n{text}"
         )
-        cfg = gen_types.GenerateContentConfig(temperature=0.0, max_output_tokens=400)
-        try:
-            cfg.thinking_config = gen_types.ThinkingConfig(thinking_budget=0)
-        except Exception:
-            pass
+        # See coach_cfo.llm_narration: 2.5-pro cannot disable thinking, and
+        # reasoning tokens are spent before any JSON is emitted. Budget for
+        # the thinking rather than trying to suppress it, or the object
+        # comes back half-written and we silently fall to the heuristic.
+        model = os.environ.get("GEMINI_MODEL", "gemini-2.5-pro")
+        cfg = gen_types.GenerateContentConfig(temperature=0.0, max_output_tokens=2048)
+        if "flash" in model:
+            try:
+                cfg.thinking_config = gen_types.ThinkingConfig(thinking_budget=0)
+            except Exception:
+                pass
 
         result = client.models.generate_content(
-            model=os.environ.get("GEMINI_MODEL", "gemini-2.5-pro"),
-            contents=prompt,
-            config=cfg,
+            model=model, contents=prompt, config=cfg,
         )
         raw = (result.text or "").strip()
         # Models occasionally fence the JSON despite instructions.
