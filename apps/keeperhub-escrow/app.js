@@ -93,6 +93,51 @@ async function loadConfig() {
 }
 
 // ---------- executions list ----------
+/**
+ * Decode CosellEscrow's custom errors out of a KeeperHub failure string.
+ *
+ * KH surfaces reverts as "execution reverted (unknown custom error)" with
+ * the raw data attached — accurate, but it renders every guard as if it
+ * were a fault. Most of these are the opposite: the escrow correctly
+ * refusing a release. Labelling them that way matters, because the
+ * console has a button whose whole purpose is to trip one.
+ *
+ * Selectors verified against the deployed ABI with viem's
+ * toFunctionSelector.
+ */
+const ESCROW_ERRORS = {
+  "0x9cd29bc9": {
+    name: "DepositNotPending",
+    label: "already settled",
+    detail: "The escrow refused a second release on a deposit that is no longer pending — the idempotency guard doing its job.",
+    expected: true,
+  },
+  "0x43e30ca8": {
+    name: "DepositNotFound",
+    label: "unknown deposit",
+    detail: "No escrow record for that depositId.",
+    expected: false,
+  },
+  "0x81b5bdcc": {
+    name: "NotReleaseAuth",
+    label: "wrong signer",
+    detail: "The caller is not the escrow's registered releaseAuth.",
+    expected: false,
+  },
+  "0x33fe5773": {
+    name: "ReleaseTooEarly",
+    label: "grace window",
+    detail: "The operator release path is still time-locked for this deposit.",
+    expected: false,
+  },
+};
+
+function decodeEscrowError(errText) {
+  if (!errText) return null;
+  const m = /0x[0-9a-fA-F]{8}/.exec(String(errText).replace(/^.*?data="?/, ""));
+  return m ? ESCROW_ERRORS[m[0].toLowerCase()] ?? null : null;
+}
+
 function renderRuns(execs) {
   const runs = $("#runs");
   runs.textContent = "";
@@ -107,13 +152,21 @@ function renderRuns(execs) {
   for (const e of execs) {
     const row = document.createElement("div");
     row.className = "exec-row";
-    const cls = e.status === "success" ? "success" : e.status === "error" ? "error" : "running";
     const tx = (e.transactionHashes || [])[0]?.hash;
+    const decoded = e.status === "error" ? decodeEscrowError(e.error) : null;
+
+    // A guard that fired on purpose is not a failure. Render it as its own
+    // state so a wall of red doesn't read as a broken system.
+    const cls = e.status === "success" ? "success"
+      : decoded?.expected ? "running"
+      : e.status === "error" ? "error"
+      : "running";
 
     const c0 = document.createElement("div");
     const pill = document.createElement("span");
     pill.className = `pill ${cls}`;
-    pill.textContent = e.status;
+    pill.textContent = decoded?.expected ? "guarded" : e.status;
+    if (decoded) pill.title = `${decoded.name} — ${decoded.detail}`;
     c0.appendChild(pill);
 
     const c1 = document.createElement("div");
@@ -128,6 +181,20 @@ function renderRuns(execs) {
       a.target = "_blank";
       a.textContent = short(tx, 10);
       c2.appendChild(a);
+    } else if (decoded) {
+      // Name the actual contract error instead of KH's "unknown custom
+      // error" wrapper — the selector tells us exactly which guard fired.
+      const wrap = document.createElement("span");
+      const nm = document.createElement("span");
+      nm.style.color = decoded.expected ? "var(--yellow)" : "var(--red)";
+      nm.style.fontWeight = "600";
+      nm.textContent = decoded.name;
+      const note = document.createElement("span");
+      note.style.color = "var(--dim)";
+      note.textContent = ` · ${decoded.label}`;
+      wrap.title = decoded.detail;
+      wrap.append(nm, note);
+      c2.appendChild(wrap);
     } else if (e.error) {
       const err = document.createElement("span");
       err.style.color = "var(--red)";
