@@ -590,9 +590,9 @@
         Load a canned demo (bad / clean) or paste your own workflow JSON to see the report.
       </p>
       <div class="row">
-        <button class="btn danger" id="aud-demo-bad">Load buggy example</button>
-        <button class="btn primary" id="aud-demo-clean">Load clean example</button>
-        <button class="btn" id="aud-clear">Clear</button>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin-right:2px">Seed</span>
+        <button class="btn" id="aud-demo-bad">Broken workflow</button>
+        <button class="btn" id="aud-demo-clean">Correct workflow</button>
       </div>
       <textarea id="aud-input" spellcheck="false"
         style="width:100%; min-height:220px; background:var(--bg); border:1px solid var(--edge); color:var(--fg); font-family:var(--mono); font-size:12.5px; padding:12px 14px; border-radius:2px; margin-top:16px; resize:vertical; line-height:1.55;"
@@ -607,14 +607,14 @@
       <div id="aud-report" style="margin-top:20px"></div>
     </div>
 
-    <!-- Right: CFO — three canned scenarios showing verdict shape ------ -->
+    <!-- Right: CFO — each button POSTs the live endpoint for real ------ -->
     <div class="proof-card">
       <h3>Coach as CFO — three verdicts.</h3>
       <p class="tag">
-        Live examples of <code style="color:var(--yellow)">POST /coach/should-release</code>.
-        Deterministic rules over the deposit's signals produce one of three verdicts —
-        <span class="pill success">release</span> <span class="pill running">hold</span> <span class="pill error">reject</span> —
-        and a plain-English narration explains why. Same signals in → same verdict out.
+        Each button POSTs <code style="color:var(--yellow)">/concierge/coach/should-release</code>
+        with one signal changed and renders whatever comes back. Deterministic rules produce
+        <span class="pill success">release</span> <span class="pill running">hold</span> <span class="pill error">reject</span>,
+        and a narration explains why. Same signals in → same verdict out, every time.
       </p>
       <div class="row">
         <button class="btn primary" id="cfo-scn-release">Happy path</button>
@@ -1320,10 +1320,6 @@ $("#aud-demo-clean").addEventListener("click", () => {
   $("#aud-input").value = JSON.stringify(CLEAN_WORKFLOW, null, 2);
   runAudit();
 });
-$("#aud-clear").addEventListener("click", () => {
-  $("#aud-input").value = "";
-  $("#aud-report").innerHTML = "";
-});
 $("#aud-run").addEventListener("click", runAudit);
 // Flipping the live toggle re-runs immediately so the difference is visible
 // without a second click — the point of the toggle is the side-by-side.
@@ -1333,48 +1329,6 @@ $("#aud-input").value = JSON.stringify(BAD_WORKFLOW, null, 2);
 runAudit();
 
 // ---------- CFO scenarios ----------
-const CFO_VERDICTS = {
-  release: {
-    decision: "release",
-    narrator: "template",
-    why: "Releasing 0.10 USDC on deposit 0xe713d5a3…8f0f2d13. Buyer explicitly confirmed receipt. Seller has 8 successful releases and 0 disputes (100% success rate).",
-    rules: [
-      { name: "escrow_held", weight: "hard", passed: true, detail: "escrow state = 'held' (expected 'held')" },
-      { name: "no_active_dispute", weight: "hard", passed: true, detail: "no active dispute on this deposit" },
-      { name: "buyer_confirmed_or_timeout", weight: "hard", passed: true, detail: "buyer explicitly confirmed receipt" },
-      { name: "seller_shipped", weight: "hard", passed: true, detail: "seller has recorded a shipment signal" },
-      { name: "amount_within_bounds", weight: "hard", passed: true, detail: "0.10 USDC is within the per-release cap of 10000.00 USDC" },
-      { name: "seller_reputation_ok", weight: "soft", passed: true, detail: "seller has 8 successful releases and 0 disputes (100% success rate)" },
-    ],
-  },
-  hold: {
-    decision: "hold",
-    narrator: "template",
-    why: "Holding 0.10 USDC on deposit 0xe713d5a3…8f0f2d13. No shipment signal yet — buyer has nothing to accept. Re-check when this changes.",
-    rules: [
-      { name: "escrow_held", weight: "hard", passed: true, detail: "escrow state = 'held' (expected 'held')" },
-      { name: "no_active_dispute", weight: "hard", passed: true, detail: "no active dispute on this deposit" },
-      { name: "buyer_confirmed_or_timeout", weight: "hard", passed: false, detail: "buyer has not confirmed and only 0.04 of 7 days elapsed — need explicit confirmation or the timeout to expire" },
-      { name: "seller_shipped", weight: "hard", passed: false, detail: "no shipment signal yet — buyer has nothing to accept" },
-      { name: "amount_within_bounds", weight: "hard", passed: true, detail: "0.10 USDC is within the per-release cap of 10000.00 USDC" },
-      { name: "seller_reputation_ok", weight: "soft", passed: true, detail: "seller has 8 successful releases and 0 disputes (100% success rate)" },
-    ],
-  },
-  reject: {
-    decision: "reject",
-    narrator: "template",
-    why: "Rejecting release for 0.10 USDC on deposit 0xe713d5a3…8f0f2d13 — merchant action required. An active dispute is on record — resolve it before releasing.",
-    rules: [
-      { name: "escrow_held", weight: "hard", passed: true, detail: "escrow state = 'held' (expected 'held')" },
-      { name: "no_active_dispute", weight: "hard", passed: false, detail: "an active dispute is on record — resolve it before releasing" },
-      { name: "buyer_confirmed_or_timeout", weight: "hard", passed: true, detail: "buyer explicitly confirmed receipt" },
-      { name: "seller_shipped", weight: "hard", passed: true, detail: "seller has recorded a shipment signal" },
-      { name: "amount_within_bounds", weight: "hard", passed: true, detail: "0.10 USDC is within the per-release cap of 10000.00 USDC" },
-      { name: "seller_reputation_ok", weight: "soft", passed: true, detail: "seller has 8 successful releases and 0 disputes (100% success rate)" },
-    ],
-  },
-};
-
 const VERDICT_PILL = {
   release: `<span class="pill success" style="font-size:11px">RELEASE</span>`,
   hold:    `<span class="pill running" style="font-size:11px">HOLD</span>`,
@@ -1405,14 +1359,79 @@ const renderVerdict = (v) => {
     </div>`;
 };
 
-for (const [key, verdict] of Object.entries(CFO_VERDICTS)) {
-  const btn = $(`#cfo-scn-${key}`);
-  if (btn) btn.addEventListener("click", () => {
-    $("#cfo-report").innerHTML = renderVerdict(verdict);
-  });
+// The three scenarios are just three request bodies — one signal apart.
+// Everything else is identical, which is the point: the verdict changes
+// because the input changed, not because we picked a different answer.
+const LIVE_CFO_URL = "/concierge/coach/should-release";
+const CFO_SCENARIOS = {
+  release: {
+    label: "Happy path",
+    body: { buyerConfirmed: true,  sellerShipped: true,  activeDispute: false },
+  },
+  hold: {
+    label: "Not shipped yet",
+    body: { buyerConfirmed: false, sellerShipped: false, activeDispute: false },
+  },
+  reject: {
+    label: "Active dispute",
+    body: { buyerConfirmed: true,  sellerShipped: true,  activeDispute: true },
+  },
+};
+
+const CFO_BASE = {
+  depositId: "0xe713d5a3eb6c0c3c247e3c86ad23696e006c6097de47d5fad9a303838f0f2d13",
+  grossAmountRaw: 100000,
+  priorSuccessfulReleases: 8,
+  priorDisputes: 0,
+  // Template narration keeps this deterministic and fast; the endpoint
+  // will use Gemini when preferLLM is true and Vertex is configured.
+  preferLLM: false,
+};
+
+async function runCfoScenario(key) {
+  const scn = CFO_SCENARIOS[key];
+  if (!scn) return;
+  const out = $("#cfo-report");
+  const btns = Object.keys(CFO_SCENARIOS).map((k) => $(`#cfo-scn-${k}`)).filter(Boolean);
+  btns.forEach((b) => (b.disabled = true));
+  out.innerHTML = `<div style="color:var(--dim);font-family:var(--mono);font-size:12px">POST ${esc(LIVE_CFO_URL)} …</div>`;
+  const t0 = performance.now();
+  try {
+    const r = await fetch(LIVE_CFO_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...CFO_BASE, ...scn.body }),
+    });
+    const ms = Math.round(performance.now() - t0);
+    const v = await r.json();
+    if (!r.ok) throw new Error(v.detail || `HTTP ${r.status}`);
+    out.innerHTML = renderVerdict(v)
+      + `<div style="margin-top:12px;font-family:var(--mono);font-size:10px;color:var(--mint);letter-spacing:1px;text-transform:uppercase">✓ served by the live endpoint · HTTP ${r.status} · ${ms} ms</div>`;
+  } catch (e) {
+    // The rules run identically in the browser, so a flat endpoint
+    // degrades to a local evaluation rather than an empty panel.
+    out.innerHTML = `<div style="border:1px solid var(--yellow);background:rgba(255,224,66,0.08);padding:12px 14px;border-radius:2px;font-family:var(--mono);font-size:12px;color:var(--yellow)">live endpoint unreachable (${esc(e.message)}) — evaluating the same rules in-browser instead</div>`;
+    try {
+      const { evaluateRelease, signalsFromDeposit } = await import("./cfo.js");
+      const local = evaluateRelease(signalsFromDeposit({
+        depositId: CFO_BASE.depositId,
+        grossAmountRaw: CFO_BASE.grossAmountRaw,
+        priorSuccessfulReleases: CFO_BASE.priorSuccessfulReleases,
+        priorDisputes: CFO_BASE.priorDisputes,
+        ...scn.body,
+      }));
+      out.innerHTML += renderVerdict(local);
+    } catch { /* nothing more we can do */ }
+  } finally {
+    btns.forEach((b) => (b.disabled = false));
+  }
 }
-// Preselect the happy path so the section isn't empty
-$("#cfo-report").innerHTML = renderVerdict(CFO_VERDICTS.release);
+
+for (const key of Object.keys(CFO_SCENARIOS)) {
+  $(`#cfo-scn-${key}`)?.addEventListener("click", () => runCfoScenario(key));
+}
+// Fire the happy path on load so the panel is never empty.
+runCfoScenario("release");
 </script>
 
 <script type="module" src="app.js"></script>
