@@ -99,7 +99,17 @@ export function createWatcher({
 
   function track(depositId, meta = {}) {
     const id = depositId.toLowerCase();
-    if (tracked.has(id)) return tracked.get(id);
+    if (tracked.has(id)) {
+      // Re-tracking an existing deposit carries new off-chain signals —
+      // most importantly the buyer's confirmation, which is the whole
+      // reason a deposit becomes releasable before the timeout.
+      const existing = tracked.get(id);
+      if (meta.buyerConfirmed && !existing.buyerConfirmed) {
+        existing.buyerConfirmed = true;
+        note("info", id, "buyer confirmed receipt — will release on the next tick");
+      }
+      return existing;
+    }
     const rec = {
       depositId: id,
       addedAt: Date.now(),
@@ -107,11 +117,20 @@ export function createWatcher({
       lastVerdict: null,
       executionId: null,
       firedAt: null,
+      // Off-chain signal the chain cannot tell us. In production this
+      // comes from the marketplace's own record of the buyer accepting
+      // delivery; here it arrives via POST /autonomous/track.
+      buyerConfirmed: false,
       ...meta,
     };
     tracked.set(id, rec);
-    note("info", id, "now watching this deposit");
+    note("info", id, `now watching this deposit${rec.buyerConfirmed ? " (buyer already confirmed)" : ""}`);
     return rec;
+  }
+
+  /** Record the buyer's acceptance for a deposit already being watched. */
+  function confirm(depositId) {
+    return track(depositId, { buyerConfirmed: true });
   }
 
   async function evaluateOne(rec) {
@@ -136,12 +155,11 @@ export function createWatcher({
       grossAmountRaw: onchain.grossAmountRaw,
       listingId: onchain.listingId,
       depositedAt: onchain.depositedAt,
-      // Signals the chain cannot tell us. In production these come from
-      // the marketplace's own records; for the loop we take the
-      // conservative reading that the buyer has NOT explicitly confirmed,
-      // which means the release only happens once the acceptance window
-      // in the rules engine has elapsed.
-      buyerConfirmed: false,
+      // Signals the chain cannot tell us. `buyerConfirmed` arrives from
+      // the marketplace via POST /autonomous/track; absent it we take the
+      // conservative reading that the buyer has NOT confirmed, so the
+      // release waits out the acceptance window in the rules engine.
+      buyerConfirmed: Boolean(rec.buyerConfirmed),
       sellerShipped: true,
       activeDispute: false,
     })));
@@ -236,6 +254,7 @@ export function createWatcher({
       tracked: [...tracked.values()].map((r) => ({
         depositId: r.depositId,
         status: r.status,
+        buyerConfirmed: Boolean(r.buyerConfirmed),
         addedAt: r.addedAt,
         firedAt: r.firedAt,
         wouldFireAt: r.wouldFireAt ?? null,
@@ -246,5 +265,5 @@ export function createWatcher({
     };
   }
 
-  return { track, start, stop, state, tick };
+  return { track, confirm, start, stop, state, tick };
 }
