@@ -25,7 +25,7 @@ import uuid
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types as gen_types
@@ -600,10 +600,222 @@ async def coach_should_release(req: ShouldReleaseRequest) -> ShouldReleaseRespon
     )
 
 
+# The browser-facing page for the auditor endpoint. Served when the
+# caller says it wants HTML; API clients still get JSON from the same
+# URL. A person following a link from Discord or a submission lands on
+# something explorable — schema, a paste-and-run curl, and a try-it form
+# that POSTs back to this very endpoint — instead of a wall of JSON.
+_AUDIT_PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>POST /coach/audit-workflow · Kajota Coach</title><style>
+:root{--bg:#050507;--elev:#0c0c11;--edge:#1a1a22;--edge2:#2a2a36;--fg:#f5f5f7;
+--dim:#6b7280;--mint:#00ff9c;--blood:#ff2d3f;--yellow:#ffe042;--accent:#81d9ff;
+--mono:ui-monospace,"JetBrains Mono","SF Mono",Menlo,monospace;
+--disp:-apple-system,"SF Pro Display",Inter,system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font:15px/1.6 var(--disp);
+background-image:linear-gradient(#101019 1px,transparent 1px),linear-gradient(90deg,#101019 1px,transparent 1px);
+background-size:48px 48px;background-attachment:fixed;min-height:100vh}
+.wrap{max-width:920px;margin:0 auto;padding:48px 24px 96px}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+code{font-family:var(--mono);font-size:13px}
+.crumb{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:20px}
+h1{font-size:34px;letter-spacing:-0.02em;line-height:1.1;margin-bottom:8px}
+h1 .verb{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:1.5px;
+background:var(--mint);color:var(--bg);padding:5px 11px;border-radius:2px;vertical-align:middle;margin-right:12px}
+.sub{color:var(--dim);font-size:16px;max-width:660px;margin-bottom:14px}
+.live{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;
+letter-spacing:1.2px;text-transform:uppercase;color:var(--mint);margin-bottom:36px}
+.live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--mint);
+box-shadow:0 0 10px var(--mint);animation:p 1.6s ease-in-out infinite}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.35}}
+h2{font-size:12px;font-family:var(--mono);letter-spacing:1.8px;text-transform:uppercase;
+color:var(--dim);margin:40px 0 14px;padding-bottom:10px;border-bottom:1px solid var(--edge)}
+pre{background:#000;border:1px solid var(--edge);padding:16px 18px;font-family:var(--mono);
+font-size:12.5px;line-height:1.7;overflow-x:auto;position:relative}
+.k{color:var(--yellow)}.s{color:var(--mint)}.n{color:var(--accent)}.c{color:var(--dim)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-family:var(--mono);font-size:10px;color:var(--dim);text-transform:uppercase;
+letter-spacing:1.5px;padding:0 14px 10px 0;border-bottom:1px solid var(--edge)}
+td{padding:12px 14px 12px 0;border-bottom:1px solid var(--edge);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.f{font-family:var(--mono);color:var(--yellow);white-space:nowrap}
+.t{font-family:var(--mono);color:var(--accent);font-size:12px;white-space:nowrap}
+.d{color:var(--dim);line-height:1.5}
+.req{color:var(--blood);font-size:10px;font-family:var(--mono);letter-spacing:1px}
+textarea{width:100%;min-height:190px;background:#000;border:1px solid var(--edge);color:var(--fg);
+font-family:var(--mono);font-size:12.5px;padding:14px 16px;line-height:1.6;resize:vertical;outline:none}
+textarea:focus{border-color:var(--mint)}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
+button{font-family:var(--mono);font-size:12px;letter-spacing:1px;text-transform:uppercase;
+font-weight:600;padding:12px 20px;border-radius:2px;border:1px solid var(--edge2);
+background:var(--elev);color:var(--fg);cursor:pointer;transition:all .15s}
+button:hover{border-color:var(--fg)}
+button.go{background:var(--mint);color:var(--bg);border-color:var(--mint)}
+button.go:hover{background:transparent;color:var(--mint)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.hint{color:var(--dim);font-size:13px;margin-top:10px}
+.banner{padding:15px 18px;border-radius:2px;font-family:var(--mono);font-size:13px;font-weight:600}
+.pass{border:1px solid var(--mint);background:rgba(0,255,156,.08);color:var(--mint)}
+.fail{border:1px solid var(--blood);background:rgba(255,45,63,.08);color:var(--blood)}
+.iss{border:1px solid var(--edge);padding:13px 15px;margin-top:10px;font-size:13.5px;line-height:1.55}
+.iss.error{border-color:var(--blood);background:rgba(255,45,63,.06)}
+.iss.warn{border-color:var(--yellow);background:rgba(255,224,66,.06)}
+.iss.info{border-color:var(--accent);background:rgba(129,217,255,.06)}
+.iss .hd{display:flex;justify-content:space-between;gap:12px;margin-bottom:7px;
+font-family:var(--mono);font-size:10px;letter-spacing:1.4px;text-transform:uppercase}
+.iss .fix{font-family:var(--mono);font-size:12px;color:var(--mint);margin-top:7px}
+footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--edge);
+font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:1px;
+display:flex;gap:18px;flex-wrap:wrap}
+</style></head><body><div class="wrap">
+
+<div class="crumb">Kajota Coach · agent API</div>
+<h1><span class="verb">POST</span>/coach/audit-workflow</h1>
+<p class="sub">Second-opinion audit for a KeeperHub <code style="color:var(--yellow)">web3/write-contract</code>
+workflow. Catches every trap documented in our merged bounty PR
+<a href="https://github.com/KeeperHub/keeperhub/pull/1857" target="_blank">KeeperHub/keeperhub#1857</a>,
+plus a few adjacent ones. Purely diagnostic — it never signs or writes anything.</p>
+<span class="live">live · this page is served by the endpoint itself</span>
+
+<h2>Try it</h2>
+<textarea id="in" spellcheck="false"></textarea>
+<div class="row">
+  <button class="go" id="run">Send request</button>
+  <button id="bad">Load broken workflow</button>
+  <button id="good">Load correct workflow</button>
+</div>
+<p class="hint">Posts to this exact URL from your browser. Nothing is stored.</p>
+<div id="out" style="margin-top:20px"></div>
+
+<h2>Request body</h2>
+<pre><span class="c">// Content-Type: application/json</span>
+{
+  <span class="k">"workflow"</span>: { <span class="c">/* the KH workflow definition, verbatim */</span>
+    <span class="k">"name"</span>:  <span class="s">"Release escrow on Sepolia"</span>,
+    <span class="k">"nodes"</span>: [ <span class="c">/* trigger + action nodes */</span> ],
+    <span class="k">"edges"</span>: [ <span class="c">/* wiring */</span> ]
+  },
+  <span class="k">"workflowRef"</span>: <span class="s">"optional-label"</span>  <span class="c">// echoed back on the report</span>
+}</pre>
+
+<h2>Response</h2>
+<pre>{
+  <span class="k">"passed"</span>: <span class="n">false</span>,                  <span class="c">// false when any error-severity issue is found</span>
+  <span class="k">"counts"</span>: { <span class="k">"error"</span>: <span class="n">4</span>, <span class="k">"warn"</span>: <span class="n">1</span>, <span class="k">"info"</span>: <span class="n">1</span> },
+  <span class="k">"issues"</span>: [ {
+    <span class="k">"trap"</span>:     <span class="s">"silently-ignored-integration-id"</span>,
+    <span class="k">"severity"</span>: <span class="s">"error"</span>,
+    <span class="k">"path"</span>:     <span class="s">"nodes[1].data.config.integrationId"</span>,
+    <span class="k">"detail"</span>:   <span class="s">"…why this bites you…"</span>,
+    <span class="k">"fix"</span>:      <span class="s">"…copy-pasteable correction…"</span>
+  } ],
+  <span class="k">"summary"</span>: <span class="s">"Audit failed: 4 errors…"</span>,
+  <span class="k">"actionNodesScanned"</span>: <span class="n">1</span>,
+  <span class="k">"workflowRef"</span>: <span class="s">"optional-label"</span>
+}</pre>
+
+<h2>Fields</h2>
+<table><thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead><tbody>
+<tr><td class="f">workflow</td><td class="t">object <span class="req">required</span></td>
+<td class="d">A KeeperHub workflow definition. Paste it from <code>GET /api/workflows/{id}</code> or the editor's JSON view.</td></tr>
+<tr><td class="f">workflowRef</td><td class="t">string</td>
+<td class="d">Optional label echoed on the report. Useful when auditing many workflows.</td></tr>
+<tr><td class="f">issues[].severity</td><td class="t">enum</td>
+<td class="d"><code style="color:var(--blood)">error</code> mis-routes or fails at execute time ·
+<code style="color:var(--yellow)">warn</code> accepted but non-canonical ·
+<code style="color:var(--accent)">info</code> advisory.</td></tr>
+<tr><td class="f">issues[].fix</td><td class="t">string</td>
+<td class="d">A correction you can paste, not just a description of the problem.</td></tr>
+<tr><td class="f">actionNodesScanned</td><td class="t">int</td>
+<td class="d">How many <code>web3/write-contract</code> nodes were examined. <code>0</code> means nothing here is in scope.</td></tr>
+</tbody></table>
+
+<h2>cURL</h2>
+<pre><span class="c"># paste straight into a terminal</span>
+curl -sS -X POST https://kajota-hub.onrender.com/concierge/coach/audit-workflow \\
+  -H <span class="s">'content-type: application/json'</span> \\
+  -d <span class="s">'{"workflow":{"name":"probe","nodes":[{"id":"s","type":"action",
+     "data":{"config":{"actionType":"web3/write-contract",
+     "function":"release","integrationId":"int_x"}}}],"edges":[]}}'</span>
+
+<span class="c"># this page, as JSON, for API clients</span>
+curl -sS -H <span class="s">'accept: application/json'</span> \\
+  https://kajota-hub.onrender.com/concierge/coach/audit-workflow</pre>
+
+<footer>
+<a href="https://kajota-hub.onrender.com/keeperhub#coach">Interactive console →</a>
+<a href="https://github.com/KeeperHub/keeperhub/pull/1857" target="_blank">Merged bounty PR ↗</a>
+<a href="https://github.com/KaJota-inc/kajota-coach" target="_blank">Source ↗</a>
+<a href="/concierge/docs">OpenAPI ↗</a>
+</footer>
+</div>
+
+<script>
+const BAD = {workflow:{name:"buggy release",nodes:[
+ {id:"t",type:"trigger",data:{label:"HTTP",config:{triggerType:"HTTP"}}},
+ {id:"s",type:"action",data:{label:"release",config:{
+   actionType:"web3/write-contract",network:11155111,integrationId:"int_your-keeper",
+   contractAddress:"0x599869cef2e4c52e2c9074caaf8f9fb0cb191776",function:"release",
+   abi:[{type:"function",name:"release"}],functionArgs:["{{@trigger.body.depositId}}"]}}}],
+ edges:[]},workflowRef:"broken-example"};
+const GOOD = {workflow:{name:"Release escrow on Sepolia",nodes:[
+ {id:"trigger-1",type:"trigger",data:{label:"HTTP",config:{triggerType:"HTTP",httpMethod:"POST"}}},
+ {id:"step-1",type:"action",data:{label:"Release Escrow",config:{
+   actionType:"web3/write-contract",network:"11155111",web3Connection:"default",
+   contractAddress:"0x599869cef2e4c52e2c9074caaf8f9fb0cb191776",abiFunction:"release",
+   functionArgs:'["{{@trigger-1:HTTP.depositId}}"]',
+   abi:'[{"type":"function","name":"release","stateMutability":"nonpayable","inputs":[{"name":"depositId","type":"bytes32"}],"outputs":[]}]'}}}],
+ edges:[{id:"e",source:"trigger-1",target:"step-1"}]},workflowRef:"correct-example"};
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const load=o=>{$("#in").value=JSON.stringify(o,null,2);$("#out").innerHTML="";};
+
+$("#bad").onclick=()=>load(BAD);
+$("#good").onclick=()=>load(GOOD);
+load(BAD);
+
+$("#run").onclick=async()=>{
+  const b=$("#run"),out=$("#out");
+  let payload;
+  try{payload=JSON.parse($("#in").value);}
+  catch(e){out.innerHTML='<div class="banner fail">JSON parse error: '+esc(e.message)+'</div>';return;}
+  b.disabled=true;b.textContent="Sending…";
+  const t0=performance.now();
+  try{
+    const r=await fetch(location.pathname,{method:"POST",
+      headers:{"content-type":"application/json"},body:JSON.stringify(payload)});
+    const ms=Math.round(performance.now()-t0);
+    const j=await r.json();
+    if(!r.ok){out.innerHTML='<div class="banner fail">HTTP '+r.status+' — '+esc(j.detail||"")+'</div>';return;}
+    const c=j.counts||{};
+    out.innerHTML='<div class="banner '+(j.passed?"pass":"fail")+'">'
+      +(j.passed?"✓ PASSED":"✗ FAILED")+' · '+(c.error||0)+' errors · '+(c.warn||0)+' warnings · '
+      +(c.info||0)+' info · HTTP '+r.status+' · '+ms+'ms</div>'
+      +'<p class="hint">'+esc(j.summary||"")+'</p>'
+      +(j.issues||[]).map(i=>'<div class="iss '+esc(i.severity)+'">'
+        +'<div class="hd"><span>'+esc(i.severity)+' · '+esc(i.trap)+'</span><span style="color:var(--dim)">'+esc(i.path)+'</span></div>'
+        +'<div>'+esc(i.detail)+'</div><div class="fix">→ '+esc(i.fix)+'</div></div>').join("");
+  }catch(e){
+    out.innerHTML='<div class="banner fail">request failed: '+esc(e.message)+'</div>';
+  }finally{b.disabled=false;b.textContent="Send request";}
+};
+</script></body></html>"""
+
+
 @app.get("/coach/audit-workflow")
-async def coach_audit_workflow_info() -> dict[str, Any]:
-    """Self-describing GET — a browser click lands here instead of a 405."""
-    return {
+async def coach_audit_workflow_info(request: Request):
+    """Self-describing GET.
+
+    Content-negotiated: a browser (Accept: text/html) gets a real page
+    with schema, a paste-and-run curl, and a try-it form that POSTs back
+    here. Anything else — curl, an agent, a script — gets the JSON
+    descriptor unchanged, so this stays machine-readable.
+    """
+    if "text/html" in (request.headers.get("accept") or ""):
+        return HTMLResponse(_AUDIT_PAGE)
+    return JSONResponse({
         "endpoint": "/coach/audit-workflow",
         "method": "POST",
         "purpose": (
@@ -629,7 +841,8 @@ async def coach_audit_workflow_info() -> dict[str, Any]:
         "sourceModule": "agent/kajota_concierge/coach_auditor.py",
         "bountyPR": "https://github.com/KeeperHub/keeperhub/pull/1857",
         "swaggerUi": "/concierge/docs",
-    }
+        "htmlPage": "open this URL in a browser for the interactive version",
+    })
 
 
 @app.post("/coach/audit-workflow", response_model=AuditWorkflowResponse)
