@@ -765,8 +765,8 @@ curl -sS https://kajota-hub.onrender.com/concierge/coach/audit-workflow</pre>
 <section class="slab" id="traps">
   <div class="head">
     <span class="num">03</span>
-    <h2>The three traps.</h2>
-    <div class="why">One field is silently ignored, one only errors at exec time, one template syntax works only in stored workflows — three ways to lose an afternoon.</div>
+    <h2>What the auditor is checking for.</h2>
+    <div class="why">Three gaps we hit, fixed upstream, and now enforce in code. One field is silently ignored, one only errors at exec time, one template syntax works only in stored workflows.</div>
   </div>
 
   <div class="traps">
@@ -870,8 +870,48 @@ curl -sS https://kajota-hub.onrender.com/concierge/coach/audit-workflow</pre>
     </div>
 
   </div>
-</section>
 
+  <div style="margin-top:44px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px">Full UI-label &rarr; API-field mapping &middot; as merged into KeeperHub&rsquo;s docs</div>
+<div class="reftable">
+    <div class="row hd">
+      <div>UI label (dashboard)</div>
+      <div>API field (workflow body)</div>
+      <div>Gotcha</div>
+    </div>
+    <div class="row">
+      <div class="ui">Function</div>
+      <div class="api">abiFunction</div>
+      <div class="note">Canonical. API rejects <code>function</code> and <code>method</code>; <code>functionName</code> works as an undocumented legacy alias.</div>
+    </div>
+    <div class="row">
+      <div class="ui">Function Arguments</div>
+      <div class="api">functionArgs</div>
+      <div class="note">Must be a JSON-encoded <em>string</em>, not a raw array. Errors surface at exec, not create.</div>
+    </div>
+    <div class="row">
+      <div class="ui">Contract ABI</div>
+      <div class="api">abi</div>
+      <div class="note">Also a JSON-encoded string. Only the specific fragment KH will call is required.</div>
+    </div>
+    <div class="row">
+      <div class="ui">Web3 Connection</div>
+      <div class="api">web3Connection</div>
+      <div class="note">Sender routing: <code>"default"</code> (org policy), <code>"eoa"</code>, or <code>"safe:&lt;id&gt;"</code>. The wallet is your org's Turnkey wallet, resolved automatically. <code>integrationId</code> looks like the right field but is silently ignored.</div>
+    </div>
+    <div class="row">
+      <div class="ui">Contract</div>
+      <div class="api">contractAddress</div>
+      <div class="note">Only one that maps 1:1 with what you'd guess.</div>
+    </div>
+    <div class="row">
+      <div class="ui">Trigger payload</div>
+      <div class="api">{{@trigger-1:HTTP.x}}</div>
+      <div class="note">Not <code>{{@trigger.body.x}}</code>. And your POST body must wrap fields under <code>input</code>.</div>
+    </div>
+    </div>
+  </div>
+</section>
 
 <!-- =============== JSON GENERATOR =============== -->
 <section class="slab" id="gen">
@@ -923,58 +963,10 @@ curl -sS https://kajota-hub.onrender.com/concierge/coach/audit-workflow</pre>
 </section>
 
 
-<!-- =============== FIELD REFERENCE =============== -->
-<section class="slab" id="ref">
-  <div class="head">
-    <span class="num">05</span>
-    <h2>Field-name map.</h2>
-    <div class="why">The dashboard labels don't match the API fields. This is the mapping every integrator needs — now shipped in the docs.</div>
-  </div>
-
-  <div class="reftable">
-    <div class="row hd">
-      <div>UI label (dashboard)</div>
-      <div>API field (workflow body)</div>
-      <div>Gotcha</div>
-    </div>
-    <div class="row">
-      <div class="ui">Function</div>
-      <div class="api">abiFunction</div>
-      <div class="note">Canonical. API rejects <code>function</code> and <code>method</code>; <code>functionName</code> works as an undocumented legacy alias.</div>
-    </div>
-    <div class="row">
-      <div class="ui">Function Arguments</div>
-      <div class="api">functionArgs</div>
-      <div class="note">Must be a JSON-encoded <em>string</em>, not a raw array. Errors surface at exec, not create.</div>
-    </div>
-    <div class="row">
-      <div class="ui">Contract ABI</div>
-      <div class="api">abi</div>
-      <div class="note">Also a JSON-encoded string. Only the specific fragment KH will call is required.</div>
-    </div>
-    <div class="row">
-      <div class="ui">Web3 Connection</div>
-      <div class="api">web3Connection</div>
-      <div class="note">Sender routing: <code>"default"</code> (org policy), <code>"eoa"</code>, or <code>"safe:&lt;id&gt;"</code>. The wallet is your org's Turnkey wallet, resolved automatically. <code>integrationId</code> looks like the right field but is silently ignored.</div>
-    </div>
-    <div class="row">
-      <div class="ui">Contract</div>
-      <div class="api">contractAddress</div>
-      <div class="note">Only one that maps 1:1 with what you'd guess.</div>
-    </div>
-    <div class="row">
-      <div class="ui">Trigger payload</div>
-      <div class="api">{{@trigger-1:HTTP.x}}</div>
-      <div class="note">Not <code>{{@trigger.body.x}}</code>. And your POST body must wrap fields under <code>input</code>.</div>
-    </div>
-  </div>
-</section>
-
-
 <!-- =============== WORKFLOW CONFIG =============== -->
 <section class="slab">
   <div class="head">
-    <span class="num">06</span>
+    <span class="num">05</span>
     <h2>Live workflow (behind the proof).</h2>
     <div class="why">The exact IDs and addresses the workflow calls. Verified live before PR #1857 was opened.</div>
   </div>
