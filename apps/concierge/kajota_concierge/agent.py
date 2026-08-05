@@ -257,6 +257,39 @@ if _CASPER_MCP_ENABLED and _CSPR_CLOUD_API_KEY:
         "  say so.\n"
     )
 
+# ---- Escrow decision tools ---------------------------------------
+# Plain Python functions wrapping the deterministic rules engines. This
+# is what makes the agent story true rather than aspirational: the agent
+# picks WHICH question to ask and with WHAT inputs; the rules decide the
+# ANSWER. An LLM choosing to call should_release is fine; an LLM deciding
+# that a release is warranted is not — and structurally it cannot.
+from kajota_concierge.coach_tools import ESCROW_TOOLS  # noqa: E402
+
+_tools.extend(ESCROW_TOOLS)
+_escrow_instruction = (
+    "\n"
+    "ESCROW DECISIONS (local tools — `should_release`, "
+    "`triage_buyer_message`, `audit_keeperhub_workflow`):\n"
+    "- KaJota holds marketplace payments in a CosellEscrow contract on "
+    "Ethereum Sepolia until it is safe to pay the seller. When anyone asks "
+    "whether a payment can be released, paid out, or settled, call "
+    "`should_release` — do NOT answer from your own judgement.\n"
+    "- It returns release / hold / reject plus every rule it evaluated. "
+    "Report the verdict faithfully, name the rule that drove it, and say "
+    "plainly when it declines. You may explain a refusal; you may never "
+    "overturn one.\n"
+    "- If the user quotes something a buyer wrote, call "
+    "`triage_buyer_message` first, then pass its `isDispute` result into "
+    "`should_release` as `active_dispute`. That is the one judgement here "
+    "that is genuinely yours: reading English and deciding whether it is a "
+    "real complaint.\n"
+    "- `audit_keeperhub_workflow` checks a KeeperHub workflow for the "
+    "field-name traps we documented upstream. Use it when someone shares a "
+    "workflow or asks why theirs misbehaves.\n"
+    "- None of these move money. Releasing runs through the KeeperHub "
+    "workflow, which only the escrow's registered keeper can trigger.\n"
+)
+
 # ---- Agent definition --------------------------------------------
 
 root_agent = Agent(
@@ -349,6 +382,7 @@ root_agent = Agent(
         "  values). One card per item. Omit the block entirely on "
         "  non-product turns (greetings, clarifying questions, errors).\n"
     )
-    + _casper_instruction,
+    + _casper_instruction
+    + _escrow_instruction,
     tools=_tools,
 )

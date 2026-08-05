@@ -333,16 +333,38 @@ async def llm_narration(
             f"Amount: {signals.gross_amount_raw / 1_000_000:.2f} USDC\n"
             f"Rules evaluated:\n" + "\n".join(rule_lines)
         )
+        # gemini-2.5-pro is a THINKING model: reasoning tokens are drawn
+        # from max_output_tokens before any prose is emitted. At 180 the
+        # budget was exhausted mid-thought and callers got fragments like
+        # "We've released the 0". Disable thinking — this is a two-sentence
+        # restatement of an already-made decision, not a reasoning task —
+        # and leave real headroom.
+        cfg = gen_types.GenerateContentConfig(
+            temperature=0.2,
+            max_output_tokens=400,
+        )
+        try:
+            cfg.thinking_config = gen_types.ThinkingConfig(thinking_budget=0)
+        except Exception:
+            # Older SDKs / non-thinking models reject the field; the raised
+            # ceiling alone is enough for them.
+            pass
+
         result = client.models.generate_content(
             model=os.environ.get("GEMINI_MODEL", "gemini-2.5-pro"),
             contents=prompt,
-            config=gen_types.GenerateContentConfig(
-                temperature=0.2,
-                max_output_tokens=180,
-            ),
+            config=cfg,
         )
         text = (result.text or "").strip()
-        return text or None
+        if not text:
+            return None
+
+        # Never ship a truncated narration. If the model still ran out of
+        # room, the deterministic template is strictly better than half a
+        # sentence: it's complete, and it states the same facts.
+        if not text.endswith((".", "!", "?")):
+            return None
+        return text
     except Exception:
         return None
 
