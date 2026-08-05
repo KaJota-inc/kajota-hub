@@ -44,6 +44,7 @@ from kajota_concierge.coach_cfo import (
     evaluate as evaluate_release,
 )
 from kajota_concierge.coach_auditor import audit_workflow
+from kajota_concierge.coach_triage import triage_message
 
 APP_NAME = "kajota-concierge"
 
@@ -843,6 +844,68 @@ async def coach_audit_workflow_info(request: Request):
         "swaggerUi": "/concierge/docs",
         "htmlPage": "open this URL in a browser for the interactive version",
     })
+
+
+class TriageRequest(BaseModel):
+    """Body for POST /coach/triage — classify a free-text buyer message."""
+
+    message: str
+    preferLLM: bool = True
+
+
+class TriageResponse(BaseModel):
+    isDispute: bool
+    severity: str
+    category: str
+    summary: str
+    classifier: str
+    confidence: float
+
+
+@app.get("/coach/triage")
+async def coach_triage_info() -> dict[str, Any]:
+    """Self-describing GET so the URL is safe to share."""
+    return {
+        "endpoint": "/coach/triage",
+        "method": "POST",
+        "purpose": (
+            "Classify a free-text buyer message as a dispute or not. This is "
+            "the one judgement in Coach that a rules table cannot make — no "
+            "keyword list reads English properly. The output feeds "
+            "`activeDispute` on /coach/should-release, so a positive "
+            "classification can HOLD or REJECT a release but can never cause "
+            "one: the failure mode points at caution, not at loss."
+        ),
+        "requestBody": {
+            "message": "the buyer's message, verbatim — required",
+            "preferLLM": "bool, default true; false forces the keyword heuristic",
+        },
+        "curlExample": (
+            "curl -X POST https://kajota-hub.onrender.com/concierge/coach/triage "
+            "-H 'content-type: application/json' "
+            "-d '{\"message\":\"box arrived but the seal was broken and two units are missing\"}'"
+        ),
+        "swaggerUi": "/concierge/docs",
+    }
+
+
+@app.post("/coach/triage", response_model=TriageResponse)
+async def coach_triage(req: TriageRequest) -> TriageResponse:
+    """LLM dispute triage — the judgement rules can't make.
+
+    Deliberately the ONLY model-driven decision in the escrow path, and
+    deliberately not a release decision. It emits a classification that a
+    deterministic rule then consumes, which bounds the blast radius: a
+    wrong "dispute" stalls a payout for a human to look at; a wrong "no
+    dispute" merely declines to block, and every other hard rule still has
+    to pass on its own.
+
+    Falls back to a conservative keyword heuristic when Gemini is
+    unavailable — biased toward flagging, since over-flagging costs a
+    human glance and under-flagging costs the buyer their money.
+    """
+    result = await triage_message(req.message, prefer_llm=req.preferLLM)
+    return TriageResponse(**result.to_dict())
 
 
 @app.post("/coach/audit-workflow", response_model=AuditWorkflowResponse)
