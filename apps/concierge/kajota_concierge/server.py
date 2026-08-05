@@ -39,6 +39,11 @@ from kajota_concierge.x402_casper import (
     build_payment_requirements,
     require_payment,
 )
+from kajota_concierge.coach_cfo import (
+    ReleaseSignals,
+    evaluate as evaluate_release,
+)
+from kajota_concierge.coach_auditor import audit_workflow
 
 APP_NAME = "kajota-concierge"
 
@@ -216,6 +221,8 @@ async def banner() -> dict[str, Any]:
             "/chat",
             "/proactive",
             "/coach/premium",
+            "/coach/should-release",
+            "/coach/audit-workflow",
             "/healthz",
             "/docs",
         ],
@@ -453,6 +460,119 @@ def _summarise_event(event: Any) -> dict[str, Any]:
         "final": event.is_final_response(),
         "parts": parts,
     }
+
+
+# ---- Coach CFO + KH workflow auditor ------------------------------
+#
+# Two endpoints ported from the kajota-coach hackathon/keeperhub branch
+# so they ride the same Render deployment as the rest of the concierge.
+# The rules engines and narration modules (`coach_cfo.py`,
+# `coach_auditor.py`) are byte-for-byte copies of the coach-repo
+# versions; 34 tests in `tests/` cover them.
+
+class ShouldReleaseRequest(BaseModel):
+    """Body for POST /coach/should-release — CFO verdict on a proposed release."""
+
+    depositId: str
+    escrowState: str = "held"
+    buyer: str = "0x0000000000000000000000000000000000000000"
+    seller: str = "0x0000000000000000000000000000000000000000"
+    grossAmountRaw: int = 100_000            # 0.10 USDC default
+    listingId: str = "0x" + "00" * 32
+    depositedAt: int | None = None
+    now: int | None = None
+    buyerConfirmed: bool = True
+    sellerShipped: bool = True
+    activeDispute: bool = False
+    priorSuccessfulReleases: int = 10
+    priorDisputes: int = 0
+    maxAmountRaw: int = 10_000_000_000
+    preferLLM: bool = True
+
+
+class ShouldReleaseResponse(BaseModel):
+    depositId: str
+    decision: str
+    why: str
+    narrator: str
+    rules: list[dict[str, Any]]
+    signals: dict[str, Any]
+
+
+class AuditWorkflowRequest(BaseModel):
+    """Body for POST /coach/audit-workflow — static audit of a KH workflow."""
+
+    workflow: dict[str, Any]
+    workflowRef: str | None = None
+
+
+class AuditWorkflowResponse(BaseModel):
+    passed: bool
+    counts: dict[str, int]
+    issues: list[dict[str, Any]]
+    summary: str
+    actionNodesScanned: int
+    workflowRef: str
+
+
+@app.post("/coach/should-release", response_model=ShouldReleaseResponse)
+async def coach_should_release(req: ShouldReleaseRequest) -> ShouldReleaseResponse:
+    """Coach as the merchant's autonomous CFO — the AGENT decides.
+
+    Runs a deterministic rules engine over the deposit's signals and
+    returns one of three verdicts (release / hold / reject) with plain
+    -English reasoning. No release fires from this call — it's the
+    decision layer that sits IN FRONT of KeeperHub, not the executor.
+
+    Design invariant: deterministic decides, narration explains.
+    The Gemini narrator downgrades cleanly to template narration when
+    Vertex isn't configured. Every evaluated rule is returned so a
+    downstream audit can see exactly why Coach called it the way it did.
+    """
+    import time as _time
+
+    now = req.now if req.now is not None else int(_time.time())
+    deposited_at = req.depositedAt if req.depositedAt is not None else now - 3600
+    signals = ReleaseSignals(
+        deposit_id=req.depositId,
+        escrow_state=req.escrowState,
+        buyer=req.buyer,
+        seller=req.seller,
+        gross_amount_raw=req.grossAmountRaw,
+        listing_id=req.listingId,
+        deposited_at=deposited_at,
+        now=now,
+        buyer_confirmed=req.buyerConfirmed,
+        seller_shipped=req.sellerShipped,
+        active_dispute=req.activeDispute,
+        prior_successful_releases_for_seller=req.priorSuccessfulReleases,
+        prior_disputes_against_seller=req.priorDisputes,
+        max_amount_raw=req.maxAmountRaw,
+    )
+    verdict = await evaluate_release(signals, prefer_llm=req.preferLLM)
+    return ShouldReleaseResponse(
+        depositId=req.depositId,
+        decision=verdict.decision,
+        why=verdict.why,
+        narrator=verdict.narrator,
+        rules=[r.to_dict() for r in verdict.rules],
+        signals=verdict.signals.to_dict(),
+    )
+
+
+@app.post("/coach/audit-workflow", response_model=AuditWorkflowResponse)
+async def coach_audit_workflow(req: AuditWorkflowRequest) -> AuditWorkflowResponse:
+    """Second-opinion audit of a KH `web3/write-contract` workflow.
+
+    Runs the trap catalogue from KeeperHub/keeperhub#1857 (merged
+    Aug 3 2026 as commit ee4b6a0) against the supplied workflow
+    definition. Purely diagnostic — nothing signs or writes. Accepts
+    the workflow inline via `workflow`; workflow-id fetch is deferred
+    to the kajota-coach edition of this endpoint where a KH_API_KEY
+    is provisioned.
+    """
+    report = audit_workflow(req.workflow, workflow_ref=req.workflowRef or "inline")
+    return AuditWorkflowResponse(**report.to_dict())
 
 
 def main() -> None:
