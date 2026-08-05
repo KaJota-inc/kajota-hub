@@ -27,6 +27,7 @@ import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { createWatcher } from "./watcher.mjs";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.KH_ESCROW_PORT || process.env.PORT || 8108);
@@ -139,6 +140,39 @@ function publicConfig() {
   };
 }
 
+// ---- Autonomous Coach watcher ---------------------------------------
+// Proves Coach decides on its own, not just when a browser is open.
+//
+// SAFETY POSTURE: dry-run unless KH_WATCHER_LIVE=1. In dry-run the loop
+// reads chain state and evaluates the rules for real, and records the
+// verdict it would have acted on, but never asks KeeperHub to sign
+// anything. Unattended transaction submission is an explicit operator
+// decision, so it lives behind an env var that a human has to set —
+// it never starts happening merely because the process booted.
+const KH_RPC_URL = process.env.KH_RPC_URL || "https://ethereum-sepolia-rpc.publicnode.com";
+const KH_WATCHER_TICK_MS = Number(process.env.KH_WATCHER_TICK_MS || 20_000);
+const KH_WATCHER_ON = process.env.KH_WATCHER !== "0";
+const KH_WATCHER_LIVE = process.env.KH_WATCHER_LIVE === "1";
+
+const watcher = createWatcher({
+  rpcUrl: KH_RPC_URL,
+  contract: KH_CONTRACT,
+  tickMs: KH_WATCHER_TICK_MS,
+  enabled: KH_WATCHER_ON && Boolean(KH_KEY),
+  dryRun: !KH_WATCHER_LIVE,
+  // Injected, so the watcher holds no KH credential or transport of its
+  // own — it asks this server to fire, exactly as the browser does.
+  fireRelease: async (depositId) => {
+    const r = await kh(`/api/workflows/${KH_WORKFLOW_ID}/execute`, {
+      method: "POST",
+      body: JSON.stringify({ input: { depositId } }),
+    });
+    if (r.status !== 200) throw new Error(`KH ${r.status}: ${JSON.stringify(r.body).slice(0, 200)}`);
+    return { executionId: r.body.executionId, status: r.body.status };
+  },
+});
+watcher.start();
+
 // ---- HTTP server ----------------------------------------------------
 const server = createServer(async (req, res) => {
   try {
@@ -174,6 +208,28 @@ const server = createServer(async (req, res) => {
       res.end(CFO_JS);
       return;
     }
+    // ---- autonomous watcher -----------------------------------------
+    if (req.method === "GET" && path === "/autonomous") {
+      return json(res, 200, watcher.state());
+    }
+    if (req.method === "POST" && path === "/autonomous/track") {
+      let body = {};
+      try { body = await readBody(req); }
+      catch (e) { return json(res, 400, { error: "invalid_json", detail: String(e) }); }
+      const depositId = body.depositId;
+      if (!/^0x[0-9a-fA-F]{64}$/.test(depositId || "")) {
+        return json(res, 400, { error: "invalid_deposit_id", detail: "must be 0x + 64 hex chars" });
+      }
+      const rec = watcher.track(depositId, { source: body.source || "api" });
+      return json(res, 200, { tracked: true, depositId: rec.depositId, status: rec.status });
+    }
+    // One evaluation pass on demand — the same code the interval calls.
+    // Handy for a judge who does not want to wait out a tick.
+    if (req.method === "POST" && path === "/autonomous/tick") {
+      await watcher.tick();
+      return json(res, 200, watcher.state());
+    }
+
     if (req.method === "GET" && path === "/healthz") {
       res.writeHead(200, { "content-type": "text/plain" });
       res.end("ok");

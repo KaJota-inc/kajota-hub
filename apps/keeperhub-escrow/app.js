@@ -282,6 +282,18 @@ async function depositAndAutoRelease() {
     if (!depositId) throw new Error("Deposited event not found in receipt");
     line("ok", `  deposit landed. depositId = ${short(depositId, 10)}`);
 
+    // Hand the deposit to the autonomous watcher. From here Coach would
+    // reach the same verdict on its own schedule with no browser open —
+    // the click below just skips the wait.
+    try {
+      await fetch("autonomous/track", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ depositId, source: "console-deposit" }),
+      });
+      line("dim", `  registered with the autonomous watcher (see "Coach on its own")`);
+    } catch { /* watcher is optional — never block the demo on it */ }
+
     // 4. Coach CFO decision — deterministic rules over the deposit signals
     //    before we fire the release. Same rules the /coach/should-release
     //    endpoint runs server-side; kept client-side here so the decision
