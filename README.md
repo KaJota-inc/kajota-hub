@@ -1,5 +1,16 @@
 # kajota-hub
 
+> **KeeperHub — Agents Onchain 2026.** This repo serves the live submission.
+> **[/keeperhub](https://kajota-hub.onrender.com/keeperhub)** — Coach refuses a
+> release, then makes one · **[/concierge/coach/audit-workflow](https://kajota-hub.onrender.com/concierge/coach/audit-workflow)**
+> — paste any KeeperHub workflow and audit it · **[/keeperhub/autonomous](https://kajota-hub.onrender.com/keeperhub/autonomous)**
+> — the unattended watch loop.
+> Code: [`apps/keeperhub-escrow/`](apps/keeperhub-escrow) (console, watcher,
+> client-side rules) and [`apps/concierge/kajota_concierge/`](apps/concierge/kajota_concierge)
+> (`coach_cfo.py`, `coach_auditor.py`, `coach_triage.py`, `coach_tools.py`).
+> Merged upstream docs PR: [KeeperHub/keeperhub#1857](https://github.com/KeeperHub/keeperhub/pull/1857).
+> Autonomous release: [0x7d42968f…4d1c215a](https://sepolia.etherscan.io/tx/0x7d42968fffeed4bceeb224c438aeed518aa38bf1c08b3856a9dc82d64d1c215a).
+
 Consolidates six Render free-tier services into **one paid instance** to stop
 blowing the 750 free-hours/month budget. A [Caddy](Caddyfile) reverse proxy
 listens on `$PORT` and routes by path prefix to six app processes managed by
