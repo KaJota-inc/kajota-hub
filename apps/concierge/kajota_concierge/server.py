@@ -43,6 +43,17 @@ from kajota_concierge.coach_cfo import (
     ReleaseSignals,
     evaluate as evaluate_release,
 )
+from kajota_concierge.x402_ethereum import (
+    EthereumX402Config,
+    PaymentRequiredError as EthereumPaymentRequiredError,
+    build_payment_requirements as build_eth_payment_requirements,
+    require_payment as require_eth_payment,
+)
+from kajota_concierge.keeperhub_client import (
+    KeeperHubClient,
+    KeeperHubConfig,
+    KeeperHubError,
+)
 from kajota_concierge.coach_auditor import audit_workflow
 from kajota_concierge.coach_triage import triage_message
 
@@ -55,6 +66,20 @@ APP_NAME = "kajota-concierge"
 _X402 = X402Config.from_env(
     description="KaJota Coach — premium agentic purchase insight",
 )
+
+# Ethereum x402 paywall for the KeeperHub-driven escrow-release endpoint.
+# Same protocol contract as the Casper paywall above, but settled in USDC
+# via the Coinbase reference facilitator (Base Sepolia by default).
+_ETH_X402 = EthereumX402Config.from_env(
+    description="KaJota Coach — schedule KeeperHub-driven escrow release",
+)
+
+# Thin async client for KeeperHub. Fires the pre-created workflow that
+# calls CosellEscrow.release(depositId) on Ethereum Sepolia through the
+# web3/write-contract action, signed by the Turnkey keeper wallet we set
+# as the escrow's releaseAuth. Unconfigured on a clean checkout — the
+# handler still answers, with a 503 naming what is missing.
+_KEEPERHUB = KeeperHubClient(KeeperHubConfig.from_env())
 
 app = FastAPI(
     title="KaJota Concierge",
@@ -204,6 +229,37 @@ async def _payment_required_handler(
 ) -> JSONResponse:
     """Return the 402 the x402 gate built (price tag in body + header)."""
     return exc.response
+
+
+@app.exception_handler(EthereumPaymentRequiredError)
+async def _eth_payment_required_handler(
+    _request: Request, exc: EthereumPaymentRequiredError
+) -> JSONResponse:
+    """Return the 402 the Ethereum x402 gate built (USDC price tag)."""
+    return exc.response
+
+
+class ScheduleReleaseRequest(BaseModel):
+    """Body for POST /escrow/schedule-release.
+
+    ``depositId`` is the bytes32 handle CosellEscrow issued when the buyer
+    deposited. On release, KeeperHub calls
+    ``CosellEscrow.release(depositId)`` on Sepolia and the escrow splits
+    the deposit by the listing's commissionBps.
+    """
+
+    depositId: str
+    userId: str = "demo-user-1"
+    sessionId: str | None = None
+
+
+class ScheduleReleaseResponse(BaseModel):
+    """Combined receipt: the x402 settlement plus the KeeperHub release."""
+
+    sessionId: str | None = None
+    depositId: str
+    settlement: dict[str, Any]
+    keeper: dict[str, Any]
 
 
 @app.get("/")
@@ -921,6 +977,119 @@ async def coach_audit_workflow(req: AuditWorkflowRequest) -> AuditWorkflowRespon
     """
     report = audit_workflow(req.workflow, workflow_ref=req.workflowRef or "inline")
     return AuditWorkflowResponse(**report.to_dict())
+
+
+@app.get("/escrow/schedule-release")
+async def escrow_schedule_release_info(request: Request) -> JSONResponse:
+    """Discovery-friendly 402 for the KeeperHub-driven release endpoint.
+
+    Mirrors ``/coach/premium``: a GET returns the same x402 challenge a
+    paying agent gets on POST, so a browser — or a judge opening the URL
+    from the submission — sees the price, asset and network inline rather
+    than a bare 405.
+    """
+    resource = (
+        f"{request.headers.get('x-forwarded-proto') or request.url.scheme}"
+        f"://{request.headers.get('x-forwarded-host') or request.headers.get('host') or request.url.netloc}"
+        f"{request.headers.get('x-forwarded-prefix', '')}"
+        f"{request.url.path}"
+    )
+    requirements = build_eth_payment_requirements(_ETH_X402, resource)
+    body = {
+        "x402Version": 1,
+        "accepts": [requirements],
+        "message": (
+            "x402-paywalled endpoint. POST a JSON body with `depositId` and "
+            "an `X-PAYMENT` header carrying a signed EIP-3009 authorisation "
+            "over the requested USDC. On settlement, the KeeperHub keeper "
+            "calls CosellEscrow.release(depositId) on Sepolia and the "
+            "response returns both the settlement tx and the release tx."
+        ),
+        "howToPay": {
+            "method": "POST",
+            "resource": resource,
+            "priceAtomic": _ETH_X402.max_amount_required,
+            "asset": _ETH_X402.asset,
+            "network": _ETH_X402.network,
+            "facilitator": _ETH_X402.facilitator_url,
+            "configured": _ETH_X402.configured,
+        },
+        "keeper": {
+            "configured": _KEEPERHUB.configured,
+            "workflowId": _KEEPERHUB.workflow_id or None,
+        },
+        "docs": "/docs",
+    }
+    header_blob = base64.b64encode(json.dumps(requirements).encode()).decode()
+    return JSONResponse(
+        status_code=402,
+        content=body,
+        headers={
+            "PAYMENT-REQUIRED": header_blob,
+            "Access-Control-Expose-Headers": "PAYMENT-REQUIRED",
+        },
+    )
+
+
+@app.post("/escrow/schedule-release", response_model=ScheduleReleaseResponse)
+async def escrow_schedule_release(
+    req: ScheduleReleaseRequest, request: Request
+) -> JSONResponse:
+    """Pay in USDC via x402; KeeperHub then fires the release on Sepolia.
+
+    The full agent-pays-then-executes path:
+
+    1. Caller POSTs with an unsigned body.
+    2. ``require_eth_payment`` raises ``EthereumPaymentRequiredError``
+       (→ 402 with a USDC price tag on the configured network).
+    3. Caller retries with a signed ``X-PAYMENT`` header.
+    4. The reference facilitator ``/verify``s then ``/settle``s the
+       payment on-chain, and we hold the settlement receipt.
+    5. We fire the pre-created KeeperHub workflow with ``depositId``;
+       KeeperHub's keeper calls ``CosellEscrow.release(depositId)`` via
+       ``web3/write-contract``, with retries and gas handled its side.
+    6. Both receipts come back — settlement and release — plus the
+       standard ``X-PAYMENT-RESPONSE`` header.
+
+    Note the ordering: money is taken only after the payment settles, and
+    the release only fires after that. A failed settlement never reaches
+    the keeper.
+    """
+    settlement = await require_eth_payment(request, _ETH_X402)
+
+    try:
+        run = await _KEEPERHUB.trigger_release(req.depositId)
+    except KeeperHubError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"keeperhub trigger failed: {exc}",
+        ) from exc
+
+    body = ScheduleReleaseResponse(
+        sessionId=req.sessionId,
+        depositId=req.depositId,
+        settlement={
+            "network": settlement.network,
+            "transaction": settlement.transaction,
+            "payer": settlement.payer,
+            "settled": settlement.success,
+        },
+        keeper={
+            "executionId": run.execution_id,
+            "status": run.status,
+            "releaseTx": run.transaction_hash,
+            "network": run.network,
+            "blockNumber": run.block_number,
+            "error": run.error,
+        },
+    )
+    return JSONResponse(
+        content=body.model_dump(),
+        headers={
+            "X-PAYMENT-RESPONSE": settlement.response_header(),
+            "Access-Control-Expose-Headers": "X-PAYMENT-RESPONSE",
+        },
+    )
 
 
 def main() -> None:
