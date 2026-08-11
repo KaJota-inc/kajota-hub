@@ -1,0 +1,179 @@
+1
+00:00:00,000 --> 00:00:05,010
+Most escrow demos show you money moving.
+
+2
+00:00:05,010 --> 00:00:07,520
+This one starts with an agent refusing to
+
+3
+00:00:07,520 --> 00:00:10,390
+move it. A buyer just paid, and Coach
+
+4
+00:00:10,390 --> 00:00:11,280
+said no.
+
+5
+00:00:11,280 --> 00:00:16,290
+Kajota Coach is a CFO for onchain
+
+6
+00:00:16,290 --> 00:00:18,620
+escrow. It decides which payments are
+
+7
+00:00:18,620 --> 00:00:21,240
+safe to release, and KeeperHub signs the
+
+8
+00:00:21,240 --> 00:00:22,120
+transaction.
+
+9
+00:00:22,120 --> 00:00:25,110
+Coach never touches a private key. But the
+
+10
+00:00:25,110 --> 00:00:27,710
+interesting part isn't when it
+
+11
+00:00:27,710 --> 00:00:28,600
+says yes.
+
+12
+00:00:28,600 --> 00:00:31,390
+Money moved into escrow — and nothing
+
+13
+00:00:31,390 --> 00:00:33,960
+else happened yet. The buyer hasn't
+
+14
+00:00:33,960 --> 00:00:37,020
+confirmed anything, so Coach holds it and
+
+15
+00:00:37,020 --> 00:00:39,760
+tells you exactly which rule failed.
+
+16
+00:00:39,760 --> 00:00:43,750
+Now the buyer confirms. Same six
+
+17
+00:00:43,750 --> 00:00:47,440
+rules, one signal different. Release.
+
+18
+00:00:47,440 --> 00:00:51,200
+KeeperHub signs it. Fifteen seconds, on Sepolia.
+
+19
+00:00:51,200 --> 00:00:54,040
+People ask where the AI is. Here's the
+
+20
+00:00:54,040 --> 00:00:57,430
+honest answer. The release decision is
+
+21
+00:00:57,430 --> 00:01:01,480
+deterministic. Six rules, same inputs, same
+
+22
+00:01:01,480 --> 00:01:03,240
+verdict, every time.
+
+23
+00:01:03,240 --> 00:01:06,210
+Money shouldn't move on a sampled
+
+24
+00:01:06,210 --> 00:01:08,990
+token. The model does the job it's
+
+25
+00:01:08,990 --> 00:01:12,470
+actually better at — reading what a buyer
+
+26
+00:01:12,470 --> 00:01:15,170
+wrote and deciding if it's a real
+
+27
+00:01:15,170 --> 00:01:15,960
+complaint.
+
+28
+00:01:15,960 --> 00:01:20,240
+No keyword list reads English. And it can
+
+29
+00:01:20,240 --> 00:01:24,380
+only ever block a release. It can never
+
+30
+00:01:24,380 --> 00:01:25,240
+cause one.
+
+31
+00:01:25,240 --> 00:01:28,380
+While building this, we hit three field-name
+
+32
+00:01:28,380 --> 00:01:31,470
+traps in KeeperHub's own docs. One of them
+
+33
+00:01:31,470 --> 00:01:33,930
+silently ignores the field you set and
+
+34
+00:01:33,930 --> 00:01:36,440
+signs with a different wallet.
+
+35
+00:01:36,440 --> 00:01:38,960
+We filed the fix. KeeperHub merged it.
+
+36
+00:01:38,960 --> 00:01:41,720
+Then we built the tool that enforces it,
+
+37
+00:01:41,720 --> 00:01:44,320
+so Coach audits its own workflow before
+
+38
+00:01:44,320 --> 00:01:45,560
+it ever fires.
+
+39
+00:01:45,560 --> 00:01:50,580
+None of this needs a browser open. There's
+
+40
+00:01:50,580 --> 00:01:55,690
+a loop on the server reading Sepolia, running the same
+
+41
+00:01:55,690 --> 00:01:58,580
+rules on a timer. It released that one on
+
+42
+00:01:58,580 --> 00:02:01,080
+its own. Nobody clicked anything.
+
+43
+00:02:01,080 --> 00:02:04,230
+Coach decides. KeeperHub ships. And
+
+44
+00:02:04,230 --> 00:02:07,310
+every decision is one you can read, rule
+
+45
+00:02:07,310 --> 00:02:10,680
+by rule, before the money arrives.
