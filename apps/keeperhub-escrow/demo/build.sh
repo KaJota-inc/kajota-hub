@@ -43,11 +43,22 @@ clip s3c s3-runs        7.50 "$RUNS"  1
 clip s4a s3-release    11.35 "$PANEL" 1
 clip s4b s4-reject     11.35 "$PANEL" 0
 clip s4c s5-traps      11.34 "crop=3000:1688:100:120,scale=1920:1080:flags=lanczos" 1
-# §5 PR + AUDITOR — cropped to GitHub's actual content width, no dead band
-clip s5a s5-pr         10.15 "crop=2150:1209:0:110,scale=1920:1080:flags=lanczos" 1
+# §5 PR + AUDITOR — 2450 wide keeps "#1857" in the title. 2150 cut it, and
+# 3200 leaves a dead black band where GitHub's layout ends.
+clip s5a s5-pr         10.15 "crop=2450:1378:0:110,scale=1920:1080:flags=lanczos" 1
 clip s5b s5-audit      10.17 "$AUDIT" 1
-# §6 DOES THIS ALONE
-clip s6  s6-autonomous 15.52 "crop=2400:1350:400:70,scale=1920:1080:flags=lanczos" 1
+# §6 DOES THIS ALONE — the watcher, then third-party proof it actually fired.
+#
+# The panel's "released by coach" counter is in-memory and reads 0 after any
+# redeploy, which undercuts the line it plays under. A block explorer does
+# not have that problem, and is not our own page asserting our own success:
+# it carries the 85/15 split executing on-chain and "confirmed within 12.364
+# secs" against the ~15s claim. Cut to it just before "it released that one
+# on its own" lands at ~116.5s.
+clip s6a s6-autonomous  8.94 "crop=2400:1350:400:70,scale=1920:1080:flags=lanczos" 1
+# Cropped to the facts only — heading and tabs dropped — then matted so the
+# 0.085/0.015 split sits above the caption band instead of under it.
+clip s6b s6-explorer    6.58 "crop=2120:1193:180:800,scale=-1:900:flags=lanczos,pad=1920:1080:(ow-iw)/2:16:color=0xFFFFFF" 1
 # §7 CLOSE
 clip s7  s2-hero        9.72 "crop=2500:1406:180:260,scale=1920:1080:flags=lanczos" 0
 
