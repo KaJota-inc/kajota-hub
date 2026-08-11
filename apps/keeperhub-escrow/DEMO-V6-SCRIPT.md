@@ -1,6 +1,15 @@
 # Demo v6 — voice script
 
-**~95 seconds · ~230 words · conversational pace (~145 wpm)**
+**~115 seconds · 276 words · conversational pace (~145 wpm)**
+
+> Earlier revisions of this header said "~95 seconds · ~230 words". Both
+> numbers were wrong — the word count was eyeballed, not counted, and the
+> per-section spans were never checked against it. Section 4 claimed 16
+> seconds for 69 words, which is 259 wpm and not physically sayable.
+> Counted properly: 276 words, 114.2s at 145 wpm. The v2 take came in at
+> 115s of speech (144 wpm), i.e. correctly paced against the real number.
+> The in-section timecodes below are kept as ordering hints only — trust
+> the word counts, not the spans.
 
 Records as seven independent takes. Every claim below was verified live on
 2026-08-06 — see "Honesty notes" at the end for the two lines deliberately
@@ -120,10 +129,54 @@ audit page, click **Send request**, show the report card with red issues and gre
 
 ---
 
+# VO take 2 — recorded, edited, locked
+
+`keeper_hub_vo_v2.m4a`, recorded 2026-08-11. All seven sections present and
+in order, single continuous take rather than seven files. **Usable as-is.**
+
+Raw was 165.8s: ~115s speech + 50.8s of silence across 36 pauses. Delivery
+measured 144 wpm against the true 276-word count — on target, not slow. The
+"too long" reading came from the wrong word count in the old header.
+
+Edited to **`~/Downloads/vo-v2-tight.m4a` · 2:10.80** — pauses capped (0.75s
+at section breaks, 0.32s within), normalised to −16 LUFS / −0.3 dBTP from a
+quiet −33.7 dB mean, 80 Hz high-pass, light denoise. No words were cut;
+verified by transcribing the result in chunks.
+
+Captions: **`~/Downloads/v6-captions.srt`** — 45 cues, whisper `medium.en`
+timings with proper nouns repaired by hand (whisper hears "escrow" as
+"X scroll", "KeeperHub signs" as "keeper upsides", "Sepolia" as "seppolia").
+Where delivery differs from script, delivery wins: the close is "before the
+money **arrives**", not "moves".
+
+Two lines were re-checked at full fidelity because getting them wrong would
+invert the meaning — both are correct as delivered:
+- §4 "It can never **cause** one" (the safety boundary)
+- §7 "one you **can** read" — `base.en` mishears this as "can't"
+
+**Cut the screen capture to these marks:**
+
+| section | in → out | dur | screen |
+|---|---|---|---|
+| 1 · Hook | 0:00.00 → 0:11.28 | 11.3s | console mid-deposit, red ✗, `Verdict: HOLD` |
+| 2 · What it is | 0:11.28 → 0:28.60 | 17.3s | hero — "Coach decides. KeeperHub ships." |
+| 3 · The refusal | 0:28.60 → 0:51.20 | 22.6s | six rules zoomed → Confirm receipt → tx link |
+| 4 · Where the model is | 0:51.20 → 1:25.24 | 34.0s | "Where the agent actually is" → triage `isDispute:true` |
+| 5 · PR + auditor | 1:25.24 → 1:45.56 | 20.3s | merged PR #1857 badge → audit report card |
+| 6 · Does this alone | 1:45.56 → 2:01.08 | 15.5s | `/keeperhub/autonomous` — ticks + decision log |
+| 7 · Close | 2:01.08 → 2:10.80 | 9.7s | back to hero, then the URL card |
+
+Section 4 is the longest at 34s and needs two distinct screens to carry it —
+don't hold one frame that whole time.
+
+---
+
 # Production notes
 
 **Recording**
-- One file per section: `v6-1.m4a` … `v6-7.m4a`.
+- Take 2 was one continuous file and that worked fine — per-section files are
+  optional, not required.
+- One file per section if you prefer: `v6-1.m4a` … `v6-7.m4a`.
 - Leave ~1s of silence at each end — gives whisper clean word boundaries and
   room to breathe the cuts.
 - Flubbed line: pause two seconds, say it again. Last clean read wins; no need
