@@ -305,9 +305,11 @@ async def require_payment(
                 cfg,
                 resource,
                 error=(
-                    "x402 paywall is not fully configured on this server "
-                    "(set ETH_X402_PAY_TO and ETH_X402_ASSET). See "
-                    "agent/KEEPERHUB.md."
+                    "x402 paywall is not fully configured on this server: "
+                    "ETH_X402_PAY_TO is unset, so there is no merchant "
+                    "address to settle to. ETH_X402_ASSET and the network "
+                    "default to Circle test USDC on Base Sepolia. See "
+                    "apps/keeperhub-escrow/demo/x402-pay.mjs for a client."
                 ),
             )
         )
