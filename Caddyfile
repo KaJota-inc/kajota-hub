@@ -74,6 +74,16 @@
 		}
 	}
 
+	# Shield — static confidential agent-payment console. No backend process:
+	# the page is self-contained (inlined run data), so Caddy file-serves it directly.
+	handle /shield {
+		redir * /shield/ permanent
+	}
+	handle_path /shield/* {
+		root * /srv/apps/shield
+		file_server
+	}
+
 	# Landing page = route map.
 	handle / {
 		root * /srv
