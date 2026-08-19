@@ -15,7 +15,12 @@ FROM python:3.11-slim
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
     PYTHONUNBUFFERED=1 \
-    NODE_MAJOR=22
+    NODE_MAJOR=22 \
+    # Ride out transient PyPI/CDN hiccups (files.pythonhosted.org 502s) instead of
+    # failing the whole hub build — applies to every pip install below, including the
+    # isolated build-dependency fetches (setuptools) that broke the slack venv.
+    PIP_RETRIES=8 \
+    PIP_DEFAULT_TIMEOUT=120
 
 # ---- System deps in small layers (keeps peak build memory low) ------
 # Base tools + supervisor
