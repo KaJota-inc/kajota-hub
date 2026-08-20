@@ -106,40 +106,41 @@
       <h1>Kaj<span class="a">o</span>ta Shield</h1>
     </div>
     <div style="display:flex;gap:12px;align-items:center">
-      <span class="pill">Operator Console</span>
+      <span class="pill">Owner’s view</span>
       <button class="replay" id="replay">▶ Replay</button>
     </div>
   </header>
-  <p class="sub">Confidential guardrails for autonomous agent payments. Every spend is checked against the agent's
-    <b>encrypted mandate</b>, screened by the <b>shared fraud oracle</b>, and watched by an <b>anomaly monitor</b> — all over ciphertext.
-    <span class="dim">Local run · real FHE decisions.</span></p>
+  <p class="sub">This is what an <b>AI assistant’s spending</b> looks like from the owner’s side. Every payment it tries is
+    checked against your <b>spending limit</b> and your <b>list of allowed businesses</b>, cross-checked against a
+    <b>shared warning list</b>, and a <b>watchdog</b> freezes it the moment it behaves oddly.
+    <span class="dim">Real decisions — balances stay private.</span></p>
 
   <div class="grid">
     <div class="card" id="mandateCard">
-      <div class="lbl">Agent mandate</div>
-      <h3 id="agentAddr">agent</h3>
-      <div id="mstatus" class="status active"><span class="d"></span> ACTIVE</div>
-      <div class="cap">🔒 cap ≤ <span id="capv">1,000</span> cUSDT · <span class="dim">encrypted</span></div>
+      <div class="lbl">Spending limit</div>
+      <h3 id="agentAddr">assistant</h3>
+      <div id="mstatus" class="status active"><span class="d"></span> OK</div>
+      <div class="cap">🔒 limit <span id="capv">1,000</span> coins · <span class="dim">private</span></div>
       <div class="gauge"><i id="gauge"></i></div>
-      <div class="gauge-l"><span>spent <span id="spent" class="mono">0</span></span><span id="capr">/ 1,000</span></div>
+      <div class="gauge-l"><span>spent so far <span id="spent" class="mono">0</span></span><span id="capr">/ 1,000</span></div>
     </div>
 
     <div class="card">
-      <div class="lbl">Fraud oracle · shared, encrypted</div>
-      <h3><span id="flagct">1</span> flagged counterparty</h3>
+      <div class="lbl">Warning list · shared</div>
+      <h3><span id="flagct">1</span> flagged business</h3>
       <div class="mlist" id="mlist"></div>
     </div>
 
     <div class="card" id="monCard">
-      <div class="lbl">Anomaly monitor</div>
-      <h3>Self-watching</h3>
+      <div class="lbl">Watchdog</div>
+      <h3>Always watching</h3>
       <div id="mon" class="mon watch"><span class="d"></span> WATCHING</div>
-      <div class="mon-reason" id="monReason">Velocity &amp; new-counterparty patterns · deterministic policy.</div>
+      <div class="mon-reason" id="monReason">Watches for too-many-too-fast payments and unknown businesses.</div>
     </div>
   </div>
 
   <div class="feed-h">
-    <span class="t">Payment stream</span>
+    <span class="t">Payments it tried</span>
     <span class="t dim" id="counter"></span>
   </div>
   <div class="feed" id="feed"></div>
@@ -164,7 +165,7 @@
   "paused": true,
   "monitorTrip": {
     "at": 5,
-    "reason": "velocity 6 > 5 in 60s"
+    "reason": "6 payments in under a minute"
   },
   "merchants": [
     {
@@ -209,7 +210,7 @@
       "applied": 200,
       "spent": 200,
       "verdict": "APPROVED",
-      "reason": "within mandate · counterparty clean",
+      "reason": "within limit · business OK",
       "monitorTripped": false
     },
     {
@@ -220,7 +221,7 @@
       "applied": 300,
       "spent": 500,
       "verdict": "APPROVED",
-      "reason": "within mandate · counterparty clean",
+      "reason": "within limit · business OK",
       "monitorTripped": false
     },
     {
@@ -231,7 +232,7 @@
       "applied": 0,
       "spent": 500,
       "verdict": "BLOCKED",
-      "reason": "counterparty network-flagged",
+      "reason": "business is on the warning list",
       "monitorTripped": false
     },
     {
@@ -242,7 +243,7 @@
       "applied": 0,
       "spent": 500,
       "verdict": "BLOCKED",
-      "reason": "over encrypted budget",
+      "reason": "over the spending limit",
       "monitorTripped": false
     },
     {
@@ -253,7 +254,7 @@
       "applied": 40,
       "spent": 540,
       "verdict": "APPROVED",
-      "reason": "within mandate · counterparty clean",
+      "reason": "within limit · business OK",
       "monitorTripped": false
     },
     {
@@ -264,7 +265,7 @@
       "applied": 40,
       "spent": 580,
       "verdict": "APPROVED",
-      "reason": "within mandate · counterparty clean",
+      "reason": "within limit · business OK",
       "monitorTripped": true
     },
     {
@@ -275,7 +276,7 @@
       "applied": 0,
       "spent": 580,
       "verdict": "BLOCKED",
-      "reason": "agent frozen by anomaly monitor",
+      "reason": "assistant is frozen",
       "monitorTripped": false
     },
     {
@@ -286,7 +287,7 @@
       "applied": 0,
       "spent": 580,
       "verdict": "BLOCKED",
-      "reason": "agent frozen by anomaly monitor",
+      "reason": "assistant is frozen",
       "monitorTripped": false
     },
     {
@@ -297,7 +298,7 @@
       "applied": 0,
       "spent": 580,
       "verdict": "BLOCKED",
-      "reason": "agent frozen by anomaly monitor",
+      "reason": "assistant is frozen",
       "monitorTripped": false
     }
   ]
@@ -314,18 +315,18 @@
   $("mlist").innerHTML = RUN.merchants
     .map((m) => `<div class="m"><span>${m.label}</span>${m.flagged
       ? '<span class="badge flag">⚠ flagged</span>'
-      : '<span class="badge clean">clean</span>'}</div>`)
+      : '<span class="badge clean">OK</span>'}</div>`)
     .join("");
   const es = (a) => `https://sepolia.etherscan.io/address/${a}#code`;
   const tx = (h) => `https://sepolia.etherscan.io/tx/${h}`;
   const L = (href, t) => `<a href="${href}" target="_blank" rel="noreferrer" style="color:var(--gold);text-decoration:none;border-bottom:1px solid color-mix(in oklab,var(--gold) 35%,transparent)">${t}</a>`;
   $("foot").innerHTML =
-    `Live &amp; verified on Sepolia — ` +
-    `Mandate ${L(es("0x3FF6A6cBF7429Da3572Ff858b2d677Bd8EdCCE6E"), "0x3FF6…CE6E")} · ` +
-    `Oracle ${L(es("0x14C93328e19e602Fd6d63bcC90053eB8b7537BAc"), "0x14C9…7BAc")} · ` +
-    `cUSDT ${L(es("0x6Be1122CE0e08DBD847f0C02cfc6188246F790B8"), "0x6Be1…90B8")}<br>` +
-    `Real FHE on-chain — ${L(tx("0x10a066f1a34472416d8e4797ad0a91046692b3fadee25bd2eb9d403aac270627"), "an approved payment")} + ` +
-    `${L(tx("0x09b5c60c498ac297da7dd8f5ab5b651952a364a5d54eab2ef6aac73d158331c2"), "a blocked one")}`;
+    `Really running on a test blockchain — ` +
+    `spending rules ${L(es("0x3FF6A6cBF7429Da3572Ff858b2d677Bd8EdCCE6E"), "0x3FF6…CE6E")} · ` +
+    `warning list ${L(es("0x14C93328e19e602Fd6d63bcC90053eB8b7537BAc"), "0x14C9…7BAc")} · ` +
+    `coin ${L(es("0x6Be1122CE0e08DBD847f0C02cfc6188246F790B8"), "0x6Be1…90B8")}<br>` +
+    `Real on-chain decisions — ${L(tx("0x10a066f1a34472416d8e4797ad0a91046692b3fadee25bd2eb9d403aac270627"), "a payment it allowed")} + ` +
+    `${L(tx("0x09b5c60c498ac297da7dd8f5ab5b651952a364a5d54eab2ef6aac73d158331c2"), "one it blocked")}`;
 
   const feed = $("feed");
   let timers = [];
@@ -334,9 +335,9 @@
     feed.innerHTML = "";
     $("gauge").style.width = "0%"; $("spent").textContent = "0";
     const mc = $("mandateCard"); mc.classList.remove("frozen-card");
-    $("mstatus").className = "status active"; $("mstatus").innerHTML = '<span class="d"></span> ACTIVE';
+    $("mstatus").className = "status active"; $("mstatus").innerHTML = '<span class="d"></span> OK';
     $("mon").className = "mon watch"; $("mon").innerHTML = '<span class="d"></span> WATCHING';
-    $("monReason").innerHTML = "Velocity &amp; new-counterparty patterns · deterministic policy.";
+    $("monReason").innerHTML = "Watches for too-many-too-fast payments and unknown businesses.";
     $("monCard").classList.remove("frozen-card");
   }
   function render(t, i) {
@@ -347,7 +348,7 @@
       `<span class="n">${String(t.step).padStart(2, "0")}</span>` +
       `<span class="who"><span class="m">${t.flagged ? '<span class="flag-ic">⚠ </span>' : ""}${t.merchant}</span><span class="rs">${t.reason}</span></span>` +
       `<span class="amt">req ${nf(t.requested)}</span>` +
-      `<span class="v ${ok ? "ok" : "no"}">${ok ? "✓ APPROVED" : "✕ BLOCKED"}</span>`;
+      `<span class="v ${ok ? "ok" : "no"}">${ok ? "✓ ALLOWED" : "✕ BLOCKED"}</span>`;
     feed.appendChild(el);
     requestAnimationFrame(() => el.classList.add("in"));
     // update gauge to running spent
@@ -355,8 +356,8 @@
     $("spent").textContent = nf(t.spent);
     $("counter").textContent = `${i + 1} / ${RUN.timeline.length}`;
     if (t.monitorTripped) {
-      $("mon").className = "mon tripped"; $("mon").innerHTML = '<span class="d"></span> ⛔ TRIPPED';
-      $("monReason").innerHTML = `<span class="r">${RUN.monitorTrip.reason}</span> — consistent with a hijacked agent. Kill switch engaged; human review required.`;
+      $("mon").className = "mon tripped"; $("mon").innerHTML = '<span class="d"></span> ⛔ STOPPED IT';
+      $("monReason").innerHTML = `<span class="r">${RUN.monitorTrip.reason}</span> — looks like it may be hijacked. Frozen automatically; a human needs to check.`;
       $("monCard").classList.add("frozen-card");
       $("mstatus").className = "status frozen"; $("mstatus").innerHTML = '<span class="d"></span> FROZEN';
       $("mandateCard").classList.add("frozen-card");
