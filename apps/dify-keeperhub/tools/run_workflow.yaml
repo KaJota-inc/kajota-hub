@@ -1,0 +1,45 @@
+description:
+  human:
+    en_US: Trigger a KeeperHub workflow you already authored and reviewed,
+      passing input from your Dify workflow.
+  llm: Trigger a stored KeeperHub workflow by its ID. Prefer this over
+    execute_call when a suitable workflow already exists, because a stored
+    workflow was reviewed by a human before it could be run. Returns
+    confirmation that the trigger was accepted, not that the run completed.
+extra:
+  python:
+    source: tools/run_workflow.py
+identity:
+  author: kajota
+  label:
+    en_US: Run KeeperHub workflow
+  name: run_workflow
+parameters:
+- form: llm
+  human_description:
+    en_US: The KeeperHub workflow ID to trigger
+  label:
+    en_US: Workflow ID
+  llm_description: The ID of the stored KeeperHub workflow to run
+  name: workflow_id
+  required: true
+  type: string
+- form: llm
+  human_description:
+    en_US: JSON object of inputs the workflow's trigger expects
+  label:
+    en_US: Input
+  llm_description: JSON object matching the workflow's declared input schema
+  name: input
+  required: false
+  type: string
+- form: llm
+  human_description:
+    en_US: Optional key so a retry does not fire the workflow twice
+  label:
+    en_US: Idempotency key
+  llm_description: A stable unique string for this logical run, so retries are
+    de-duplicated rather than executed twice
+  name: idempotency_key
+  required: false
+  type: string

@@ -1,0 +1,30 @@
+credentials_for_provider:
+  api_key:
+    help:
+      en_US: Organisation-scoped KeeperHub API key (starts with kh_). A wfb_
+        workflow-builder key will not work against the MCP surface.
+    label:
+      en_US: KeeperHub API key
+    placeholder:
+      en_US: kh_...
+    required: true
+    type: secret-input
+    url: https://app.keeperhub.com/settings/api-keys
+extra:
+  python:
+    source: provider/keeperhub.py
+identity:
+  author: kajota
+  description:
+    en_US: Execute onchain value movement from a Dify workflow through KeeperHub,
+      with simulate-first safety and a full audit trail.
+  icon: icon.svg
+  label:
+    en_US: KeeperHub
+  name: keeperhub
+  tags:
+  - other
+tools:
+- tools/simulate_call.yaml
+- tools/execute_call.yaml
+- tools/run_workflow.yaml

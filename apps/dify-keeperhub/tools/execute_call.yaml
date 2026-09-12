@@ -1,0 +1,85 @@
+description:
+  human:
+    en_US: Execute a contract call through KeeperHub. This moves value onchain.
+      Requires acknowledge_moves_value to be true; otherwise it simulates and
+      refuses.
+  llm: Execute an onchain contract call through KeeperHub. THIS MOVES REAL VALUE
+    AND CANNOT BE UNDONE. You must first call simulate_call with the same
+    arguments and show the result to the user. Only set acknowledge_moves_value
+    to true when a human has approved this specific call. If the flag is not
+    set, this tool refuses and simulates instead.
+extra:
+  python:
+    source: tools/execute_call.py
+identity:
+  author: kajota
+  label:
+    en_US: Execute contract call
+  name: execute_call
+parameters:
+- form: llm
+  human_description:
+    en_US: Contract address to call
+  label:
+    en_US: Contract address
+  llm_description: The 0x-prefixed address of the contract to call
+  name: contract_address
+  required: true
+  type: string
+- form: llm
+  human_description:
+    en_US: Name of the contract function
+  label:
+    en_US: Function name
+  llm_description: The contract function to call
+  name: function_name
+  required: true
+  type: string
+- form: llm
+  human_description:
+    en_US: JSON ABI fragment for this function
+  label:
+    en_US: ABI
+  llm_description: JSON ABI array containing the fragment for this one function
+  name: abi
+  required: true
+  type: string
+- form: llm
+  human_description:
+    en_US: JSON array of arguments for the function
+  label:
+    en_US: Function arguments
+  llm_description: JSON array of the arguments to pass, in order
+  name: function_args
+  required: false
+  type: string
+- form: form
+  default: '11155111'
+  human_description:
+    en_US: Chain ID. Defaults to Ethereum Sepolia (11155111).
+  label:
+    en_US: Chain ID
+  llm_description: Numeric chain ID; defaults to Sepolia testnet
+  name: chain_id
+  required: false
+  type: string
+- form: llm
+  human_description:
+    en_US: Native value to send, in wei
+  label:
+    en_US: Value (wei)
+  llm_description: Native token amount in wei, as a string. Omit for none.
+  name: value
+  required: false
+  type: string
+- form: form
+  default: false
+  human_description:
+    en_US: Must be true to actually execute. Leave false to simulate only.
+  label:
+    en_US: I understand this moves value
+  llm_description: Set true ONLY after a human has approved this specific call.
+    When false, the tool simulates and refuses to execute.
+  name: acknowledge_moves_value
+  required: false
+  type: boolean
