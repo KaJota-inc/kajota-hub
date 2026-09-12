@@ -101,6 +101,33 @@ assertion:
 The negative tests are the load-bearing ones: an accepted real key proves
 nothing on its own unless a bad key is refused, and both are.
 
+## Running inside a Dify workflow
+
+`examples/workflow-simulate-first.json` is the graph: **Start → Simulate
+through KeeperHub → End**. Run against the live service, every node
+succeeded, and the tool's output became the workflow's output:
+
+```json
+{ "simulated": true, "signed": false, "broadcast": false,
+  "result": { "status": "simulated", "wouldRevert": false, "success": true,
+              "gasEstimate": "35862",
+              "from": "0x4c629ad0…", "to": "0x1c7D4B19…" } }
+```
+
+Event sequence from the draft run: `workflow_started` → `Start: succeeded`
+→ `Simulate through KeeperHub: succeeded` → `End: succeeded` →
+`workflow_finished: succeeded`.
+
+So the whole chain is exercised: **Dify workflow → tool node → this plugin →
+`keeperhub-mcp` → KeeperHub → Sepolia**, with `signed: false` and
+`broadcast: false` visible to the workflow author as data.
+
+The graph is committed as JSON rather than a Dify DSL export on purpose:
+Dify refuses to export a DSL while a plugin is installed in remote/debug
+mode — *"You used a remote plugin … please remove it first if you want to
+export the DSL"*. Packaging as `.difypkg` and installing normally is what
+makes a portable DSL possible, and that is the next step for reproducibility.
+
 ## The transaction
 
 Executed through this plugin's `execute_call` tool, on Ethereum Sepolia:
