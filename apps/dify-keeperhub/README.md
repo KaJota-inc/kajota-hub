@@ -101,6 +101,41 @@ assertion:
 The negative tests are the load-bearing ones: an accepted real key proves
 nothing on its own unless a bad key is refused, and both are.
 
+## Install it
+
+```bash
+# 1. install the plugin (Integrations -> Install -> local package file)
+keeperhub.difypkg            # 108 KB, checksum f32a6f4a035ac5a7f6c…
+
+# 2. import the workflow
+examples/workflow-simulate-first.dsl.yaml
+
+# 3. add your KeeperHub API key to the provider, then Run
+```
+
+Both were verified by doing exactly that: the package installs as
+`source: package`, `runtime: local`, with Dify deriving
+`kajota/keeperhub:0.1.0@f32a6f4a…` — an identifier that embeds the package
+digest, so the DSL's `dependencies` block pins this exact build. Importing
+the DSL created a fresh app that ran green on the first try, returning the
+same `simulated: true / signed: false / gasEstimate: 35862`.
+
+### A packaging constraint worth knowing
+
+A default self-hosted Dify **refuses third-party plugins outright**:
+
+> *plugin verification has been enabled, and the plugin you want to install
+> has a bad signature*
+
+Unsigned third-party packages need `FORCE_VERIFYING_SIGNATURE=false` in the
+Dify `.env`, or a signature Dify trusts — which in practice means going
+through marketplace review. Worth knowing before promising anyone a
+drop-in install.
+
+Packaging also needs `uv` on `PATH`: the CLI shells out to it to export
+`requirements.txt` from `pyproject.toml`, and fails with
+`failed to find uv executable` otherwise.
+
 ## Running inside a Dify workflow
 
 `examples/workflow-simulate-first.json` is the graph: **Start → Simulate

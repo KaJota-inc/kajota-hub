@@ -1,4 +1,5 @@
 .env
 .venv/
 __pycache__/
-*.difypkg
+# keeperhub.difypkg is committed on purpose: it is what a judge installs.
+!keeperhub.difypkg
