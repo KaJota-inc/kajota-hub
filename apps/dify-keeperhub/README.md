@@ -101,6 +101,44 @@ assertion:
 The negative tests are the load-bearing ones: an accepted real key proves
 nothing on its own unless a bad key is refused, and both are.
 
+## The transaction
+
+Executed through this plugin's `execute_call` tool, on Ethereum Sepolia:
+
+**[`0x4c316e389ad51ca7e8bf88e1d0f656215164b8ec1a11f8d21c00239ae7eb0335`](https://sepolia.etherscan.io/tx/0x4c316e389ad51ca7e8bf88e1d0f656215164b8ec1a11f8d21c00239ae7eb0335)**
+
+Verified against a public RPC rather than taken from KeeperHub's own response:
+`status: SUCCESS`, block **11690913**, gas used **57,804**, one `Approval` log
+emitted by the USDC contract — so state genuinely changed. Gas was paid by
+KeeperHub's relayer (`0xa17cb6ad…`) through the EIP-7702 account, not by the
+caller.
+
+The call was `approve(escrow, 0)` on Sepolia test USDC, chosen deliberately:
+`approve` is permissionless and needs no balance, so it can succeed from the
+keeper wallet, and an amount of `0` moves nothing. The point was to produce a
+real state-changing transaction, not to move funds.
+
+**Both halves of the guard ran in the same invocation:**
+
+```
+1. tool called WITHOUT acknowledge_moves_value
+   -> executed: False, simulated_instead: True
+   -> "Refused to execute: this call moves value onchain..."
+
+2. tool called WITH acknowledge_moves_value
+   -> executed: True
+   -> tx 0x4c316e38…eb0335
+```
+
+And the paired simulations, on the same contract shape:
+
+| call | simulate result |
+|---|---|
+| `approve(escrow, 0)` — valid | `wouldRevert: false`, `success: true`, with a gas estimate |
+| `release(settledDeposit)` — invalid | `wouldRevert: true`, `DepositNotPending(0xe713d5a3…)` |
+
+No gas was spent discovering the second one.
+
 ## Status
 
 Testnet-first and honest about it: Sepolia by default, mainnet reachable by
