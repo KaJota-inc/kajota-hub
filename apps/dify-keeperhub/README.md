@@ -83,9 +83,31 @@ uv run pytest -q          # 30 tests, no network required
 Tests stub the KeeperHub call and assert on what *would* have been sent —
 the only way to prove "simulate cannot broadcast" without broadcasting.
 
+## Verified inside a real Dify instance
+
+Installed into Dify (self-hosted, full docker stack) over the plugin daemon's
+remote-install path, and confirmed through Dify's own APIs rather than by
+assertion:
+
+| check | evidence |
+|---|---|
+| Plugin loads | `Installed tool: keeperhub` from the plugin runtime |
+| Dify recognises the provider | `/tool-providers` lists `kajota/keeperhub/keeperhub`; `/plugin/list` shows `kajota/keeperhub:0.1.0@d0ec0ee…`, `runtime_type: remote` |
+| Credential validation runs **through this code** | a `wfb_` key is rejected with a traceback through `provider/keeperhub.py:18`; a bogus `kh_` key is rejected from `tools/_kh.py:69` after reaching KeeperHub |
+| A real key is accepted | `{"result":"success"}` — which means `_validate_credentials` made a live `list_integrations` call to KeeperHub and it passed |
+| The reason reaches the user | *"This key starts with `wfb_`… MCP requires an organization key (`kh_`) from Settings → API Keys"*, surfaced as `ToolProviderCredentialValidationError` |
+| Keys are not leaked | the same error masks it as `wfb_…beef` |
+
+The negative tests are the load-bearing ones: an accepted real key proves
+nothing on its own unless a bad key is refused, and both are.
+
 ## Status
 
 Testnet-first and honest about it: Sepolia by default, mainnet reachable by
 setting `chain_id`. Not yet published to the Dify marketplace.
+
+**Not yet done:** a Dify workflow that calls the tool end to end (tool
+invocation goes through a workflow Tool node, not a console endpoint), and one
+*executed* transaction to sit alongside the simulations.
 
 Licence: Apache-2.0
