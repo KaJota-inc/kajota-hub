@@ -147,3 +147,69 @@ Why this one:
 
 - `KH_WATCHER_LIVE=1` still armed on Render from the last hackathon (21,591 ticks, `dryRun:false`). No HTTP disarm route exists — needs the env var unset and a redeploy.
 - KH API key `kh_pypg1J6-…` still live and compromised (pasted in chat). Rotate before reusing it here.
+
+---
+
+# ⚠️ Verification pass — 2026-09-12 (supersedes the recommendation above)
+
+The Daydreams/CrewAI recommendation above did **not** survive checking.
+Recorded in full because the elimination chain is the actual finding.
+
+## What killed each candidate
+
+| candidate | why it's out |
+|---|---|
+| **Almanak** | No public SDK or repo. Its GitHub namespace is a Twitter-archive reader and a calendar library. Not integrable. |
+| **Daydreams** | Already contested — `Ubaibe/keeperhub-daydreams-testnet`. Note "testnet" in the name. |
+| **CrewAI / LangChain / ElizaOS** | `danilaverbena/keeperkit` covers all three in one plugin. Also `@ethglobal-openagent/{langchain,elizaos,openclaw}-keeperhub`, `@sbo3l/langchain-keeperhub`, `@keepergate/{langchain,elizaos,openclaw}`, PyPI `langchain-keeperhub` + `keeperhub-langchain`. **26 KeeperHub packages on npm.** |
+| **Aave, Morpho, Uniswap, Safe, Lido, Curve, Pendle, Hyperliquid, Superfluid, Compound, Yearn, Sky, Ajna, Spark, Ethena, Aerodrome, Chronicle, Chainlink, Rocket Pool, Robinhood, Tempo** | **Already native.** `search_protocol_actions` returns **457 actions across 42 protocols**. Integrating one of these is not an integration — it is using their product. This is probably why three liquidation-defence entries placed nowhere last round. |
+| **Payflow** | Memory is explicit: "⬜ First pilot signed". No users → fails "live… with users", and self-integration is the "standalone demo" the brief rejects. |
+| **Remita** | Live with real users, but ex-employer not integration partner; fiat NIP rails; needs merchant credentials and their cooperation inside the window. Naming them without a partnership is a claim we should not make. |
+| **A guardrail / spend-policy layer** | Saturated: `@arbiterlabs/keeperhub`, `keeperhub-tab`, `mandate-sdk`, `mandate-mcp`, `tx-guardrail-sdk`, `outcome-sdk`. This was our angle last time; five other people shipped it. |
+
+## The one slot that survives: Dify
+
+| check | result |
+|---|---|
+| Live product with real users? | ★155,313, self-hosted + cloud, deployed in real businesses |
+| Permissionless integration surface? | Yes — `langgenius/dify-plugins` marketplace, ★552, **pushed 2026-09-12** (today) |
+| KeeperHub already there? | **Absent** — no plugin, no package, nothing in the marketplace repo |
+| Already a KH native integration? | No. Not among the 42. |
+| Shippable in the window? | `dify-plugin` SDK on PyPI **v0.10.2**, Python ≥3.12 |
+
+It is the n8n play one rung larger, in the slot nobody took: Dify users build
+LLM agents and workflows; those agents cannot move value onchain; that is
+exactly the gap KeeperHub fills.
+
+## The centrepiece — corrected
+
+My earlier pitch was "dry-run the workflow through KeeperHub". **There is no
+dry-run MCP tool.** What exists, verified against the live server:
+
+- `execute_contract_call` takes **`simulate: true`** — *"simulate an EVM operation without signing or broadcasting"*
+- `execute_check_and_execute` takes the same flag
+- `validate_workflow` takes a `deepCheck` tier I had missed
+
+This is better than a workflow dry-run: it is per-call, and it is the same
+primitive the winning n8n node advertises ("simulate-first safety"), which
+tells us it is the primitive KeeperHub wants adapters to surface.
+
+So: **a Dify node that simulates first, shows the simulated outcome inside the
+Dify workflow, and executes only the identical call on approval.** Their own
+thesis — "nothing is inferred at execution time" — rendered as a Dify surface.
+
+## Bounty still stands, re-verified today
+
+`validate_workflow` on our production workflow (`1pyjp0c15z2h558jld8pn`, signer
+set via the silently-ignored `integrationId`):
+
+- fast tier → `{"valid": true, "nodeCount": 2}`
+- **`deepCheck: true` → `{"valid": true, "nodeCount": 2}`**
+
+Still passes, a month after we reported the trap and got the docs merged.
+PR to `keeperhub/keeperhub`; separate BUIDL; bounty judged on mergeability.
+
+## Revised clock
+
+Today is **Sep 12**. Deadline **Sep 18, 12:00 CEST / 11:00 WAT** — **6 days**,
+not 8.
