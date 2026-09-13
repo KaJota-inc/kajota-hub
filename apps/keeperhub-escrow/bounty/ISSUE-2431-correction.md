@@ -54,6 +54,14 @@ them and I'll extend it — that's the one thing I'd still like you to confirm
 rather than guess at.
 
 Rule and tests are written and green against `f8c8f18` (my earlier message
-said they already were; they weren't at the time — they are now). Happy to
-open the PR on `accepted`, or to drop this if you'd rather solve it at the
-node schema instead.
+said they already were; they weren't at the time — they are now):
+
+https://github.com/KeeperHub/keeperhub/compare/staging...KaJota-inc:keeperhub-1:issue-2431
+
++338/-1 across three files, 20 tests, `biome check` clean. I ran the full unit
+suite on clean `staging` and again with the change: identical failure counts
+(37 files / 27 tests, pre-existing and environment-dependent), +20 passing,
+which is exactly this file's test count.
+
+Happy to open the PR on `accepted`, or to drop it if you'd rather solve this at
+the node schema instead.
