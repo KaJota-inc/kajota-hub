@@ -1,0 +1,425 @@
+From 60efbadd985c347fcb731fb7c8f46c8d2a0d552b Mon Sep 17 00:00:00 2001
+From: KaJota-inc <oluwaboriife@gmail.com>
+Date: Sun, 13 Sep 2026 22:01:29 +0100
+Subject: [PATCH] fix: #2431 warn when a signed write names an ignored
+ signer-routing key
+
+A web3 write node that sets `integrationId` and no `web3Connection` has
+no sender routing: `integrationId` is a real config key elsewhere (the
+database integration id) but nothing reads it for signer resolution, so
+the node silently falls back to organization policy rather than the
+integration named. Both validation tiers passed such a workflow.
+
+Deliberately narrow. The issue originally proposed warning whenever a
+signer-routed node had no `web3Connection`, which is not shippable:
+omitting it IS the documented default ("default" = org policy), so that
+rule fires on almost every legitimate workflow and breaks this repo's own
+happy-path assertion of `warnings: []`. The signal is not "routing is
+unset" but "the author named a signer with a key that does not route
+one", so the warning requires `integrationId` present and
+`web3Connection` absent.
+
+Extends `readNodeActionConfig` rather than adding a second config reader,
+so the two cannot drift. Covers `isWriteActionType` plus
+`BATCH_WRITE_CONTRACT_ACTION_TYPE` so the sibling surfaces go together.
+
+Stays a warning: `valid` is unchanged and only `warnings` grows, which
+the codes file notes agents tolerate.
+---
+ lib/mcp/validate-workflow-codes.ts            |   3 +
+ lib/mcp/validate-workflow.ts                  |  63 +++-
+ .../validate-workflow-signer-routing.test.ts  | 273 ++++++++++++++++++
+ 3 files changed, 338 insertions(+), 1 deletion(-)
+ create mode 100644 tests/unit/validate-workflow-signer-routing.test.ts
+
+diff --git a/lib/mcp/validate-workflow-codes.ts b/lib/mcp/validate-workflow-codes.ts
+index 6b669990a..5382f5f4a 100644
+--- a/lib/mcp/validate-workflow-codes.ts
++++ b/lib/mcp/validate-workflow-codes.ts
+@@ -24,6 +24,9 @@ export const VALIDATION_WARNING_CODES = {
+   // Configure-time hint: write-contract uses an allowance-consuming method
+   // (transferFrom / redeem / withdrawFrom) with no check-allowance node.
+   MISSING_ALLOWANCE_PREFLIGHT: "missing-allowance-preflight",
++  // Configure-time hint: a signer-routed node sets `integrationId`, which the
++  // runtime does not read. Sender routing comes from `web3Connection`.
++  SIGNER_ROUTING_KEY_IGNORED: "signer-routing-key-ignored",
+ } as const;
+ 
+ export type ValidationErrorCode =
+diff --git a/lib/mcp/validate-workflow.ts b/lib/mcp/validate-workflow.ts
+index a6a6b4f80..56f370b65 100644
+--- a/lib/mcp/validate-workflow.ts
++++ b/lib/mcp/validate-workflow.ts
+@@ -84,6 +84,10 @@ export function validateWorkflow(
+   // allowance-consuming method with no check-allowance node in the workflow.
+   runAllowancePreflightCheck(workflow, warnings);
+ 
++  // Signer-routing hint: a signed write names an integration with a key the
++  // runtime does not read for routing.
++  runSignerRoutingCheck(workflow, warnings);
++
+   // VALID-05: chain ID existence — only when caller pre-fetched chainIds.
+   // Per-node check mitigates Pitfall 12 (multi-chain WETH false positives).
+   if (opts.chainIds !== undefined) {
+@@ -355,6 +359,8 @@ type NodeActionConfig = {
+   actionType: unknown;
+   abiFunction: unknown;
+   calls: unknown;
++  web3Connection: unknown;
++  integrationId: unknown;
+ };
+ 
+ function readNodeActionConfig(node: unknown): NodeActionConfig | null {
+@@ -372,7 +378,13 @@ function readNodeActionConfig(node: unknown): NodeActionConfig | null {
+   const cfg = config as Record<string, unknown>;
+   const actionType =
+     cfg.actionType ?? (data as Record<string, unknown>).actionType;
+-  return { actionType, abiFunction: cfg.abiFunction, calls: cfg.calls };
++  return {
++    actionType,
++    abiFunction: cfg.abiFunction,
++    calls: cfg.calls,
++    web3Connection: cfg.web3Connection,
++    integrationId: cfg.integrationId,
++  };
+ }
+ 
+ function bareMethodName(abiFunction: unknown): string | null {
+@@ -575,6 +587,55 @@ function isAllowanceGated(gate: AllowanceGate, node: unknown): boolean {
+   return false;
+ }
+ 
++// `web3Connection` is the field the runtime reads to route a signer — see
++// lib/safe/signer-resolver.ts, and the "Web3 Connection" row in
++// docs/plugins/web3.md and docs/api/workflows.md. `integrationId` is a real
++// config key elsewhere (workflow-schema-constants.ts documents it as the
++// database integration id), which is what makes it reachable by mistake on a
++// web3 write node, where nothing reads it.
++//
++// Deliberately narrow: this warns only when `integrationId` is present AND
++// `web3Connection` is absent. A node with neither is the documented default
++// path — `web3Connection: "default"` means org policy, so omitting it is
++// normal and warning on it would fire on almost every workflow. The signal is
++// not "routing is unset"; it is "the author specified a signer using a key
++// that does not route one".
++function runSignerRoutingCheck(
++  workflow: ValidatorWorkflow,
++  warnings: ValidationIssue[]
++): void {
++  if (!Array.isArray(workflow.nodes)) {
++    return;
++  }
++  for (const [idx, node] of workflow.nodes.entries()) {
++    const cfg = readNodeActionConfig(node);
++    if (cfg === null) {
++      continue;
++    }
++    // Covers write-contract, protocol-write and the batch variant: every
++    // actionType whose broadcast is signed from the org wallet routes through
++    // the same per-node field.
++    const isSignerRouted =
++      isWriteActionType(cfg.actionType) ||
++      cfg.actionType === BATCH_WRITE_CONTRACT_ACTION_TYPE;
++    if (!isSignerRouted) {
++      continue;
++    }
++    const hasRouting =
++      typeof cfg.web3Connection === "string" && cfg.web3Connection !== "";
++    const hasIntegrationId =
++      typeof cfg.integrationId === "string" && cfg.integrationId !== "";
++    if (hasRouting || !hasIntegrationId) {
++      continue;
++    }
++    warnings.push({
++      code: VALIDATION_WARNING_CODES.SIGNER_ROUTING_KEY_IGNORED,
++      message: `nodes[${idx}].config sets "integrationId" but no "web3Connection". Sender routing for a signed write is read from "web3Connection" only, so "integrationId" is ignored here and this node falls back to organization policy rather than the integration named. Set "web3Connection" to "default" (org policy), "eoa" (force the Turnkey EOA) or "safe:<safeWalletId>"; remove "integrationId" if it was not intended.`,
++      parameterPath: `nodes[${idx}].config.integrationId`,
++    });
++  }
++}
++
+ function runAllowancePreflightCheck(
+   workflow: ValidatorWorkflow,
+   warnings: ValidationIssue[]
+diff --git a/tests/unit/validate-workflow-signer-routing.test.ts b/tests/unit/validate-workflow-signer-routing.test.ts
+new file mode 100644
+index 000000000..33fbecdcf
+--- /dev/null
++++ b/tests/unit/validate-workflow-signer-routing.test.ts
+@@ -0,0 +1,273 @@
++import { describe, expect, it, vi } from "vitest";
++
++vi.mock("server-only", () => ({}));
++
++import { BATCH_WRITE_CONTRACT_ACTION_TYPE } from "@/lib/mcp/action-type";
++import {
++  type ValidatorWorkflow,
++  validateWorkflow,
++} from "@/lib/mcp/validate-workflow";
++import { VALIDATION_WARNING_CODES } from "@/lib/mcp/validate-workflow-codes";
++
++// ---------------------------------------------------------------------------
++// Fixture helpers
++// ---------------------------------------------------------------------------
++
++const triggerNode = (id = "trigger-1") => ({
++  id,
++  type: "trigger",
++  data: {
++    label: "Trigger",
++    type: "trigger",
++    config: { triggerType: "Manual" },
++  },
++});
++
++const writeNode = (
++  id = "write-1",
++  overrides: Record<string, unknown> = {},
++  actionType = "web3/write-contract"
++) => ({
++  id,
++  type: "action",
++  data: {
++    label: "Write Contract",
++    type: "action",
++    config: {
++      actionType,
++      contractAddress: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
++      abi: "[]",
++      abiFunction: "transfer",
++      ...overrides,
++    },
++  },
++});
++
++const makeWorkflow = (
++  overrides: Partial<ValidatorWorkflow> = {}
++): ValidatorWorkflow => ({
++  id: "wf-1",
++  nodes: [triggerNode(), writeNode()],
++  edges: [{ id: "e1", source: "trigger-1", target: "write-1" }],
++  inputSchema: null,
++  outputMapping: null,
++  isListed: false,
++  workflowType: "write",
++  ...overrides,
++});
++
++const routingWarnings = (wf: ValidatorWorkflow) =>
++  validateWorkflow(wf).warnings.filter(
++    (w) => w.code === VALIDATION_WARNING_CODES.SIGNER_ROUTING_KEY_IGNORED
++  );
++
++// ---------------------------------------------------------------------------
++// The fault this catches (issue #2431)
++// ---------------------------------------------------------------------------
++
++describe("validateWorkflow — signer routing key ignored", () => {
++  it("warns when a write node sets integrationId and no web3Connection", () => {
++    const result = routingWarnings(
++      makeWorkflow({
++        nodes: [
++          triggerNode(),
++          writeNode("write-1", { integrationId: "xv7x4qalziyodoir6wyu4" }),
++        ],
++      })
++    );
++    expect(result).toHaveLength(1);
++    expect(result[0].parameterPath).toBe("nodes[1].config.integrationId");
++  });
++
++  it("names both fields and the accepted web3Connection values in the message", () => {
++    const [warning] = routingWarnings(
++      makeWorkflow({
++        nodes: [
++          triggerNode(),
++          writeNode("write-1", { integrationId: "int_x" }),
++        ],
++      })
++    );
++    expect(warning.message).toContain("integrationId");
++    expect(warning.message).toContain("web3Connection");
++    expect(warning.message).toContain("safe:");
++  });
++
++  it("stays a warning — the workflow is still valid", () => {
++    const result = validateWorkflow(
++      makeWorkflow({
++        nodes: [
++          triggerNode(),
++          writeNode("write-1", { integrationId: "int_x" }),
++        ],
++      })
++    );
++    expect(result.valid).toBe(true);
++    expect(result.errors).toEqual([]);
++  });
++});
++
++// ---------------------------------------------------------------------------
++// Deliberately NOT warned about. These are the false positives that make the
++// broader "routing is unset" rule unshippable: omitting web3Connection is the
++// documented default (org policy), so almost every real workflow omits it.
++// ---------------------------------------------------------------------------
++
++describe("validateWorkflow — signer routing, cases that must stay silent", () => {
++  it("does not warn when neither key is set (the documented default path)", () => {
++    expect(routingWarnings(makeWorkflow())).toEqual([]);
++  });
++
++  it("does not warn when web3Connection is set alongside integrationId", () => {
++    expect(
++      routingWarnings(
++        makeWorkflow({
++          nodes: [
++            triggerNode(),
++            writeNode("write-1", {
++              integrationId: "int_x",
++              web3Connection: "default",
++            }),
++          ],
++        })
++      )
++    ).toEqual([]);
++  });
++
++  it.each(["default", "eoa", "safe:sw_123"])(
++    "does not warn for web3Connection=%s",
++    (value) => {
++      expect(
++        routingWarnings(
++          makeWorkflow({
++            nodes: [
++              triggerNode(),
++              writeNode("write-1", {
++                integrationId: "int_x",
++                web3Connection: value,
++              }),
++            ],
++          })
++        )
++      ).toEqual([]);
++    }
++  );
++
++  it("does not warn on a read node that carries integrationId", () => {
++    expect(
++      routingWarnings(
++        makeWorkflow({
++          workflowType: "read",
++          nodes: [
++            triggerNode(),
++            writeNode(
++              "read-1",
++              { integrationId: "int_x" },
++              "web3/read-contract"
++            ),
++          ],
++          edges: [{ id: "e1", source: "trigger-1", target: "read-1" }],
++        })
++      )
++    ).toEqual([]);
++  });
++
++  it("ignores an empty-string integrationId", () => {
++    expect(
++      routingWarnings(
++        makeWorkflow({
++          nodes: [triggerNode(), writeNode("write-1", { integrationId: "" })],
++        })
++      )
++    ).toEqual([]);
++  });
++
++  it("treats an empty-string web3Connection as unset", () => {
++    expect(
++      routingWarnings(
++        makeWorkflow({
++          nodes: [
++            triggerNode(),
++            writeNode("write-1", {
++              integrationId: "int_x",
++              web3Connection: "",
++            }),
++          ],
++        })
++      )
++    ).toHaveLength(1);
++  });
++});
++
++// ---------------------------------------------------------------------------
++// Sibling surfaces — a fix applied to one actionType and not its siblings is
++// the failure mode ISSUES.md calls out, so every signed-write type is covered.
++// ---------------------------------------------------------------------------
++
++describe("validateWorkflow — signer routing across signed-write action types", () => {
++  it.each([
++    ["web3/write-contract", "web3/write-contract"],
++    ["batch write-contract", BATCH_WRITE_CONTRACT_ACTION_TYPE],
++    ["a protocol-write", "aave-v3/protocol-write-supply"],
++  ])("warns for %s", (_label, actionType) => {
++    expect(
++      routingWarnings(
++        makeWorkflow({
++          nodes: [
++            triggerNode(),
++            writeNode("write-1", { integrationId: "int_x" }, actionType),
++          ],
++        })
++      )
++    ).toHaveLength(1);
++  });
++
++  it("warns once per offending node, not once per workflow", () => {
++    expect(
++      routingWarnings(
++        makeWorkflow({
++          nodes: [
++            triggerNode(),
++            writeNode("write-1", { integrationId: "a" }),
++            writeNode("write-2", { integrationId: "b" }),
++          ],
++          edges: [
++            { id: "e1", source: "trigger-1", target: "write-1" },
++            { id: "e2", source: "write-1", target: "write-2" },
++          ],
++        })
++      )
++    ).toHaveLength(2);
++  });
++});
++
++// ---------------------------------------------------------------------------
++// Malformed input — the validator is pure and must not throw on junk.
++// ---------------------------------------------------------------------------
++
++describe("validateWorkflow — signer routing, malformed nodes", () => {
++  it.each([
++    ["nodes not an array", { nodes: "nope" as unknown as unknown[] }],
++    ["a null node", { nodes: [null] as unknown[] }],
++    ["a node with no data", { nodes: [{ id: "x" }] as unknown[] }],
++    [
++      "a node with null config",
++      { nodes: [{ id: "x", data: { config: null } }] as unknown[] },
++    ],
++  ])("does not throw for %s", (_label, overrides) => {
++    expect(() => validateWorkflow(makeWorkflow(overrides))).not.toThrow();
++  });
++
++  it("ignores a non-string integrationId", () => {
++    expect(
++      routingWarnings(
++        makeWorkflow({
++          nodes: [
++            triggerNode(),
++            writeNode("write-1", { integrationId: { id: "int_x" } }),
++          ],
++        })
++      )
++    ).toEqual([]);
++  });
++});
+-- 
+2.50.1 (Apple Git-155)
+
