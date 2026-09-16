@@ -1,136 +1,109 @@
 # BUIDL 2 — Bounty: Best KeeperHub Feature
 
-**Status: ⚠️ BLOCKED on two things — do not submit as-is. See "The problem" below.**
-$1,000 split between two winners. Stacks with the main track. Must be a
-**separate BUIDL** from `BUIDL-1-main-track.md`.
+**Status: UNBLOCKED — ready to submit.** The PR exists and the issue was
+accepted. $1,000 split between two winners, stacks with the main track, and
+must be a **separate BUIDL** from `BUIDL-1-main-track.md`.
 
 ---
 
-## The problem, stated plainly
+## Name
 
-The bounty is *"Ship a feature as a pull request to the KeeperHub repository …
-**Judged on whether we can merge it** and build on it."* The rubric is
-mergeability, value to the platform, code quality and tests, scope.
+**`validate_workflow`: catch the signer-routing key that does nothing**
 
-**There is no pull request yet, and I cannot open one cleanly.** KeeperHub's
-own `CONTRIBUTING.md` and `ISSUES.md` require an issue carrying the
-`accepted` label *before* any behaviour-changing PR, and "validation" is
-explicitly on their Required list. Issue
-**[#2431](https://github.com/KeeperHub/keeperhub/issues/2431)** is filed and
-sitting at **no labels, no comments**. It was filed Saturday, so their stated
-two-working-day triage clock only started Monday.
+## Vision / tagline
 
-**Second problem, and it is mine.** In that issue I wrote *"The rule and its
-tests are already written against `f8c8f18`, so I can have the pull request up
-the day this is accepted."* **That is not true yet** — I have not written the
-validator code. That sentence needs to become true before this BUIDL is
-submitted, or be corrected on the issue. Writing it is a couple of hours: it is
-a pure function in an established pattern plus tests.
+An agent composing a KeeperHub workflow reaches for `integrationId` to pick a
+wallet. No web3 step reads it. This makes the validator say so — and names the
+field that does work, which the MCP surface never mentioned.
 
-## Decision needed
-
-| option | what it means | risk |
-|---|---|---|
-| **A — write the code, wait for `accepted`, then PR** *(recommended)* | Makes the issue statement true. Submit the BUIDL when the PR exists. | The label may not land before Sep 18. If it doesn't, the bounty is a no-show — but the main track is unaffected. |
-| **B — write the code, open a draft PR now referencing #2431** | Produces the artefact the bounty is judged on. Mark it draft, say explicitly it is not for merge before #2431 is accepted, and offer to close it. | Technically jumps their gate. Their policy exists because premature PRs waste reviewer time — a draft that says so may read as respectful or as not reading the rules. Their call, not ours. |
-| **C — submit pointing at the issue + a public branch** | Honest, no process violation, and shows completed work. | Weakest against a rubric whose first criterion is literally mergeability. |
-
-My read: **A, with B as a fallback on Sep 17 if the label still hasn't landed** —
-at that point a draft PR with an explicit "not for merge until #2431 is
-accepted, happy to close" note costs little and is the only way the bounty gets
-judged at all.
-
----
-
-## Draft content (ready once the above resolves)
-
-### Name
-
-**`validate_workflow`: catch unset signer routing**
-
-### Vision / tagline
-
-KeeperHub's own workflow validator passes a write-contract node that has no
-sender routing at all. This adds the rule that catches it.
-
-### Required links
+## Required links
 
 | field | value |
 |---|---|
-| Source code | ⬜ PR to `KeeperHub/keeperhub` — **does not exist yet** |
-| Issue | https://github.com/KeeperHub/keeperhub/issues/2431 |
-| Demo video | Reuse the main-track cut, or a short screen capture of both tiers returning `valid: true` |
-| Transaction | Not applicable — this is a validator rule. Point at the main-track tx if the form demands one. |
+| Source code / PR | **https://github.com/KeeperHub/keeperhub/pull/2538** |
+| Issue | https://github.com/KeeperHub/keeperhub/issues/2431 (`accepted`, `confirmed`) |
+| Demo video | Reuse the main-track cut, or skip — this is a validator rule, nothing renders |
+| Transaction | Not applicable. If the form insists, point at the main-track tx `0x4c316e38…eb0335` |
 
-### What it does
+## What it does
 
-Adds a warning to `validate_workflow` when a signer-routed node carries no
-`web3Connection`, so the misconfiguration is caught at authoring time rather
-than discovered at broadcast.
+Adds a `validate_workflow` warning when a web3 write node carries
+`integrationId`, and documents `web3Connection` on the MCP surface for the
+first time.
 
-### The gap, verified
+## Mergeability — the bounty's first criterion
 
-Workflow `1pyjp0c15z2h558jld8pn` — a single `web3/write-contract` node whose
-config sets `integrationId` and no `web3Connection`:
+- **Issue-first, per their own policy.** #2431 filed, triaged, and carries
+  `accepted` + `confirmed`. Their `ISSUES.md` says `accepted` is the signal to
+  start; nothing was written against the repo before it landed.
+- **Built to triage's plan, not mine.** @suisuss replaced my plan in a comment,
+  and their policy says that comment is the plan. The PR is built to it.
+- **Their checklist, honestly ticked.** Targets `staging`; title carries the
+  issue number; `pnpm check` clean over 2,251 files; `pnpm type-check` 0 errors
+  after `pnpm discover-plugins`; no secrets.
+- **Additive and reversible.** A new warning code, one pure function, one
+  extended config reader, one doc section. `valid` is unchanged — only the
+  `warnings` array grows, which the codes file notes agents tolerate.
 
-```
-validate_workflow { workflowId }                  -> { "valid": true, "nodeCount": 2 }
-validate_workflow { workflowId, deepCheck: true } -> { "valid": true, "nodeCount": 2 }
-```
+## Value to the platform
 
-Both tiers. Confirmed in source at `staging` `f8c8f18` — neither validator
-mentions either field:
+Two layers, and the second is the one triage asked for:
 
-```
-grep -c web3Connection lib/mcp/validate-workflow.ts       -> 0
-grep -c integrationId  lib/mcp/validate-workflow.ts       -> 0
-grep -c web3Connection lib/mcp/validate-workflow-deep.ts  -> 0
-grep -c integrationId  lib/mcp/validate-workflow-deep.ts  -> 0
-```
+1. **The warning.** `integrationId` is inert on a `web3/*` node — zero
+   references under `plugins/web3/` — and the editor never writes it there, so
+   it is only reachable from the API or MCP surface. Exactly the path an agent
+   is on.
+2. **The root cause.** `web3Connection` appeared in **no doc under
+   `docs/agent/`**, so nothing an agent reads named the field that actually
+   routes the signer. That is what sends it to `integrationId`.
+   `docs/agent/mcp-server.md` now documents the field and its three branches.
 
-Meanwhile `docs/plugins/web3.md:492` and `docs/api/workflows.md:194` both
-document `web3Connection` as the sender-routing field, and
-`lib/safe/signer-resolver.ts:340` resolves the signer from exactly that key.
-`integrationId` is a real key elsewhere — `workflow-schema-constants.ts:74`
-documents it as *"ID of the database integration"* — which is why it is
-reachable by mistake and why nothing complains.
+It also continues the merged docs PR
+[#1857](https://github.com/KeeperHub/keeperhub/pull/1857): that made these
+traps findable by humans reading docs, this makes one findable by the validator
+and names the missing field on the agent surface.
 
-### Planned implementation
+## Code quality and tests
 
-Additive, in the existing idiom:
+`+351/-1` across four files. **20 test cases**, and two of them exist to stop
+the reasoning regressing:
 
-1. `MISSING_SIGNER_ROUTING: "missing-signer-routing"` in
-   `lib/mcp/validate-workflow-codes.ts` — additive, per that file's note that
-   adding a code is safe and renaming is not.
-2. A pure `runSignerRoutingCheck(workflow, warnings)` called from
-   `validateWorkflow` in spec order, with `parameterPath` on the node config.
-3. Tests beside the existing validator tests.
+- **warns for every `web3Connection` state** — absent, `""`, `"default"`,
+  `"eoa"`, `"safe:<id>"`. This fails if the rule is ever re-keyed on absence,
+  which was the loophole in my first draft: `parseWeb3Connection` maps
+  missing, empty and `"default"` to one branch, so a rule keyed on absence
+  could be silenced by writing a value that changes nothing.
+- **the message never matches `/unset|unrouted|no sender routing/i` and never
+  contains `"eoa"`** — because absence routes to org policy and `"eoa"` is the
+  branch that bypasses it, so calling routing "unset" would point an agent at
+  the bypass.
 
-Ships as a **warning**, so `valid` stays `true` and only the `warnings` array
-grows — nothing a caller depends on changes. Severity is triage's call and the
-issue says so.
+Plus: silent for a read node carrying the key, empty-string and non-string
+values; one warning per offending node; all three write action types; and no
+throw on malformed nodes.
 
-### Value to the platform
+Verification, baselined rather than asserted: 159 tests green across the five
+validator suites, and the full `tests/unit` suite fails identically on clean
+`staging` and on this branch (37 files / 27 tests, pre-existing and
+environment-dependent).
 
-The traps this catches are the same ones documented in our merged PR
-**[#1857](https://github.com/KeeperHub/keeperhub/pull/1857)**. That PR made
-them findable by humans reading docs; this makes them findable by the
-validator, which is where an agent-authored workflow gets checked.
+## Scope and completeness
 
-### Honest scope limits
+One change, deliberately. The warning and the doc are interdependent: the
+warning tells an author to use `web3Connection`, and until this PR nothing on
+the agent surface named that field.
 
-- It is a **warning**, not a schema rejection. Rejecting `integrationId` on a
-  web3 node outright is more breaking and can ship independently, so by their
-  one-issue test it is a separate issue.
-- **I cannot demonstrate a wrong-wallet broadcast**, because our org has one
-  web3 integration and therefore no second wallet to mis-route to. The failure
-  is latent until an org adds one. Said plainly on the issue too.
-- The **sibling surface list is an open question** on the issue:
-  `NON_CALLDATA_MUTATING_ACTION_TYPES` names `approve-token`,
-  `transfer-funds`, `transfer-token` and the Tempo writes as also broadcasting
-  from the org wallet, and I have not verified which the resolver covers. I
-  asked them to name the set rather than guess and fix one surface out of four.
+Scoped to `isWriteActionType` rather than every mutating action, because
+widening it warns on shipped templates — 12 seed workflows carry a
+`web3/approve-token` node, and `validate-workflow-seed-workflows.test.ts`
+holds a seed warning to be a false positive. No seed sets `integrationId`, so
+this starts at zero.
 
-### Contact
+**Left out on purpose:** the `protocol-write` config-drop triage identified
+(`protocol-write.ts` not copying the field through while the editor renders
+the selector for those actions). Real, and separable, so it gets its own issue
+rather than riding along here.
+
+## Contact
 
 oluwaboriife@gmail.com · X @Oluwabori6 · GitHub @KaJota-inc
