@@ -27,7 +27,7 @@ Crypto / Web3 · AI Agents · Infra / API
 | field | value | verified |
 |---|---|---|
 | Source code | https://github.com/KaJota-inc/kajota-hub/tree/main/apps/dify-keeperhub | 200, public |
-| Demo video | ⬜ **needs upload** — `~/Downloads/kajota-dify-keeperhub-demo.mp4` (78s, 1920x1080, 4.8 MB) | — |
+| Demo video | https://youtu.be/kq3OB3RNJiE | 200, public, 78s, 1080p |
 | Transaction | https://eth-sepolia.blockscout.com/tx/0x4c316e389ad51ca7e8bf88e1d0f656215164b8ec1a11f8d21c00239ae7eb0335 | 200 |
 
 ---

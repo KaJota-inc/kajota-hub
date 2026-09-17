@@ -22,7 +22,7 @@ field that does work, which the MCP surface never mentioned.
 |---|---|
 | Source code / PR | **https://github.com/KeeperHub/keeperhub/pull/2538** |
 | Issue | https://github.com/KeeperHub/keeperhub/issues/2431 (`accepted`, `confirmed`) |
-| Demo video | Reuse the main-track cut, or skip — this is a validator rule, nothing renders |
+| Demo video | https://youtu.be/kq3OB3RNJiE — the main-track cut; this is a validator rule, so nothing of it renders on screen |
 | Transaction | Not applicable. If the form insists, point at the main-track tx `0x4c316e38…eb0335` |
 
 ## What it does
