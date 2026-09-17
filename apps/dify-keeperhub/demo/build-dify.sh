@@ -24,6 +24,26 @@ shot () {
   echo "file '$PWD/$W/$n.mp4'" >> $W/list.txt; printf '  ✓ %-11s %ss  %s\n' "$n" "$dur" "$img"
 }
 
+# Every input this cut needs, asserted before ffmpeg burns 40s of CPU.
+# Two of these are NOT produced by shoot-dify.mjs (see README: provenance),
+# which is why a missing one used to surface as a confusing ffmpeg error
+# about a nonexistent file rather than as the real problem.
+need_frames="d1-canvas d4-tracing d3-detail d5-detail e1-explorer"
+need_cards="c1-title c6-guard c8-close cap-canvas cap-tracing cap-result cap-detail cap-explorer"
+missing=""
+for f in $need_frames; do [ -f "frames-dify/$f.png" ] || missing="$missing frames-dify/$f.png"; done
+for c in $need_cards;  do [ -f "cards/$c.png" ]       || missing="$missing cards/$c.png"; done
+if [ -n "$missing" ]; then
+  echo "cannot build — missing inputs:" >&2
+  for m in $missing; do echo "  $m" >&2; done
+  echo "" >&2
+  echo "cards/*.png come from 'python3 cards.py'." >&2
+  echo "frames-dify/*.png are committed; d3-detail and e1-explorer are not" >&2
+  echo "reproducible from shoot-dify.mjs alone — see README provenance table." >&2
+  exit 1
+fi
+echo "inputs ok — $(echo $need_frames | wc -w | tr -d ' ') frames, $(echo $need_cards | wc -w | tr -d ' ') cards"
+
 echo "rendering…"
 card s1 cards/c1-title.png            7
 shot s2 d1-canvas   10 "crop=1250:703:520:653"   cap-canvas
