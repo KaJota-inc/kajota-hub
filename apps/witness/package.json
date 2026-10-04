@@ -7,7 +7,12 @@
     "hello": "tsx src/hello.ts",
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "flare:smoke": "tsx scripts/flare/smoke-compile.ts",
+    "flare:deploy:sepolia": "tsx scripts/flare/deploy-sepolia-anchor.ts",
+    "flare:deploy:coston2": "tsx scripts/flare/deploy-coston2.ts",
+    "flare:anchor": "tsx scripts/flare/anchor-on-sepolia.ts",
+    "flare:attest": "tsx scripts/flare/attest-verdict.ts"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +29,7 @@
     "tsx": "^4.22.4"
   },
   "devDependencies": {
+    "@flarenetwork/flare-periphery-contracts": "^0.1.52",
     "@types/node": "^26.0.0",
     "typescript": "^6.0.3"
   }
