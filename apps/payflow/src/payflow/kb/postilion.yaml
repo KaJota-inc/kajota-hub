@@ -1,0 +1,105 @@
+# Postilion (card switch) response codes. Source: postilion.properties.
+# Interswitch back-end for many NG banks; ISO 8583 aligned.
+codes:
+  "00":
+    raw_message: "Approved or completed successfully"
+    category: success
+    retry: never
+    customer_message: "Payment completed successfully."
+    ops_action: "None."
+  "05":
+    raw_message: "Do not honor"
+    category: not_permitted
+    retry: never
+    customer_message: "The transfer was declined by the destination bank."
+    ops_action: "No action. Bank-side decline."
+  "12":
+    raw_message: "Invalid transaction"
+    category: format_error
+    retry: never
+    customer_message: "A technical error occurred."
+    ops_action: "Do NOT retry. Inspect envelope."
+  "13":
+    raw_message: "Invalid amount"
+    category: invalid_amount
+    retry: never
+    customer_message: "The transfer amount is invalid."
+    ops_action: "No action."
+  "14":
+    raw_message: "Invalid card number"
+    category: invalid_account
+    retry: never
+    customer_message: "The destination account number is not valid."
+    ops_action: "No action."
+  "30":
+    raw_message: "Format error"
+    category: format_error
+    retry: never
+    customer_message: "A technical error occurred."
+    ops_action: "Do NOT retry. Envelope malformed."
+  "51":
+    raw_message: "Not sufficient funds"
+    category: insufficient_funds
+    retry: never
+    customer_message: "Your account does not have enough funds for this transfer."
+    ops_action: "No action. Correctly declined."
+  "54":
+    raw_message: "Expired card"
+    category: card_issue
+    retry: never
+    customer_message: "The card/account has expired."
+    ops_action: "No action."
+  "55":
+    raw_message: "Incorrect PIN"
+    category: authentication_error
+    retry: never
+    customer_message: "The PIN was incorrect."
+    ops_action: "No action."
+  "57":
+    raw_message: "Transaction not permitted to cardholder"
+    category: not_permitted
+    retry: never
+    customer_message: "This transaction type is not permitted."
+    ops_action: "No action."
+  "58":
+    raw_message: "Transaction not permitted on terminal"
+    category: not_permitted
+    retry: never
+    customer_message: "This transaction is not permitted on this channel."
+    ops_action: "No action."
+  "61":
+    raw_message: "Exceeds withdrawal limit"
+    category: limit_exceeded
+    retry: never
+    customer_message: "This transfer exceeds your daily limit."
+    ops_action: "No action."
+  "68":
+    raw_message: "Response received too late"
+    category: timeout
+    retry: status_query
+    customer_message: "The destination bank response was delayed."
+    ops_action: "TSQ. Do NOT retry blindly."
+  "90":
+    raw_message: "Cut-off in progress"
+    category: system_malfunction
+    retry: backoff
+    customer_message: "The destination bank is in maintenance."
+    ops_action: "Backoff retry (10-30 min). EOD cut-over."
+  "91":
+    raw_message: "Issuer or switch inoperative"
+    category: connection_error
+    retry: status_query
+    customer_message: "The destination bank is temporarily unavailable."
+    ops_action: "TSQ then backoff."
+  "94":
+    raw_message: "Duplicate transaction"
+    category: duplicate
+    retry: status_query
+    customer_message: "This transfer appears already in progress."
+    ops_action: "TSQ. Do not resend without confirmation."
+  "96":
+    raw_message: "System malfunction"
+    category: system_malfunction
+    retry: backoff
+    customer_message: "A temporary system error."
+    ops_action: "Backoff retry."

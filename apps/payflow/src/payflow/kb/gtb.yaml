@@ -1,0 +1,117 @@
+# GTBank proprietary response codes. Source: gtb.properties.
+# GTB uses ISO 8583 style codes across a wide surface.
+codes:
+  "00":
+    raw_message: "Completed Successful"
+    category: success
+    retry: never
+    customer_message: "Payment completed successfully."
+    ops_action: "None."
+  "05":
+    raw_message: "Do not Honour"
+    category: not_permitted
+    retry: never
+    customer_message: "The transfer was declined by the destination bank."
+    ops_action: "No action. Bank-side decline. If customer disputes, they must contact destination bank."
+  "13":
+    raw_message: "Invalid Amount"
+    category: invalid_amount
+    retry: never
+    customer_message: "The transfer amount is invalid."
+    ops_action: "No action. Validate amount upstream."
+  "14":
+    raw_message: "Invalid Card Number"
+    category: invalid_account
+    retry: never
+    customer_message: "The destination account number is not valid."
+    ops_action: "No action."
+  "30":
+    raw_message: "Invalid Format"
+    category: format_error
+    retry: never
+    customer_message: "A technical error occurred. Please contact support."
+    ops_action: "Do NOT retry. Envelope malformed. Inspect payload."
+  "51":
+    raw_message: "Not Sufficient Funds"
+    category: insufficient_funds
+    retry: never
+    customer_message: "Your account does not have enough funds for this transfer."
+    ops_action: "No action. Correctly declined."
+  "52":
+    raw_message: "No Chequing Account"
+    category: invalid_account
+    retry: never
+    customer_message: "The destination account type is not supported."
+    ops_action: "No action."
+  "53":
+    raw_message: "No Savings Account"
+    category: invalid_account
+    retry: never
+    customer_message: "The destination account type is not supported."
+    ops_action: "No action."
+  "54":
+    raw_message: "Expired Card"
+    category: card_issue
+    retry: never
+    customer_message: "The card/account has expired."
+    ops_action: "No action."
+  "57":
+    raw_message: "Txn not permitted to Cardholder"
+    category: not_permitted
+    retry: never
+    customer_message: "This transaction type is not permitted."
+    ops_action: "No action."
+  "58":
+    raw_message: "Txn not permitted to Terminal"
+    category: not_permitted
+    retry: never
+    customer_message: "This transaction type is not permitted on this channel."
+    ops_action: "No action. Verify channel config."
+  "59":
+    raw_message: "Suspected Fraud (Decline)"
+    category: fraud_suspected
+    retry: never
+    customer_message: "This transfer was declined. Please contact your bank if you have questions."
+    ops_action: "Do NOT retry. Log for fraud review. Alert AFC if pattern."
+  "61":
+    raw_message: "Withdrawal Amt Exceeds Limit"
+    category: limit_exceeded
+    retry: never
+    customer_message: "This transfer exceeds your daily limit."
+    ops_action: "No action."
+  "65":
+    raw_message: "Exceeds Withdrawal Freq Limit"
+    category: limit_exceeded
+    retry: never
+    customer_message: "You have made too many transfers today. Try again tomorrow."
+    ops_action: "No action. Rate-limit reset at next day."
+  "68":
+    raw_message: "Response Arrived Too Late"
+    category: timeout
+    retry: status_query
+    customer_message: "The destination bank response was delayed. We are confirming your transfer status."
+    ops_action: "TSQ. Do NOT retry blindly."
+  "90":
+    raw_message: "Cutoff in progress"
+    category: system_malfunction
+    retry: backoff
+    customer_message: "The destination bank is in maintenance. We will retry shortly."
+    ops_action: "Backoff retry (10-30 minutes). EOD cut-over window."
+  "91":
+    raw_message: "Issuer Inoperative"
+    category: connection_error
+    retry: status_query
+    customer_message: "The destination bank is temporarily unavailable."
+    ops_action: "TSQ then backoff. Bank-side outage."
+  "94":
+    raw_message: "Duplicate Trasmission"
+    category: duplicate
+    retry: status_query
+    customer_message: "This transfer appears already in progress."
+    ops_action: "TSQ. Do not resend without confirmation."
+  "96":
+    raw_message: "System Malfunction"
+    category: system_malfunction
+    retry: backoff
+    customer_message: "A temporary error at the destination bank."
+    ops_action: "Backoff retry."

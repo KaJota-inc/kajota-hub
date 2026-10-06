@@ -1,0 +1,123 @@
+# Finacle CBS response codes. Source: finacle.properties.
+# Top operationally-important entries normalized; the tail can be added incrementally.
+codes:
+  "800":
+    raw_message: "Network message was accepted"
+    category: success
+    retry: never
+    customer_message: "Payment completed successfully."
+    ops_action: "None."
+  "111":
+    raw_message: "Invalid Scheme type"
+    category: format_error
+    retry: never
+    customer_message: "A technical error occurred. Please contact support."
+    ops_action: "Do NOT retry. Scheme code mismatched at CBA. Verify product/scheme mapping."
+  "114":
+    raw_message: "Invalid account number"
+    category: invalid_account
+    retry: never
+    customer_message: "The destination account number is not valid. Please confirm and try again."
+    ops_action: "No action. Customer must supply valid account."
+  "116":
+    raw_message: "Insufficient funds"
+    category: insufficient_funds
+    retry: never
+    customer_message: "Your account does not have enough funds for this transfer."
+    ops_action: "No action. Correctly declined."
+  "119":
+    raw_message: "Txn not permitted"
+    category: not_permitted
+    retry: never
+    customer_message: "This transaction type is not permitted on your account."
+    ops_action: "No action. Account restriction. Customer must contact their bank."
+  "121":
+    raw_message: "Withdrawal limit exceeded"
+    category: limit_exceeded
+    retry: never
+    customer_message: "This transfer exceeds your daily withdrawal limit."
+    ops_action: "No action. Customer must reduce amount or request limit increase from their bank."
+  "180":
+    raw_message: "Tfr Limit Exceeded"
+    category: limit_exceeded
+    retry: never
+    customer_message: "This transfer exceeds your transfer limit."
+    ops_action: "No action. Customer must reduce amount."
+  "184":
+    raw_message: "Account is closed"
+    category: closed_account
+    retry: never
+    customer_message: "The account is closed."
+    ops_action: "No action."
+  "185":
+    raw_message: "Inv Txn Currency or Amount"
+    category: invalid_amount
+    retry: never
+    customer_message: "The amount or currency is invalid."
+    ops_action: "No action. Validate amount and currency upstream."
+  "902":
+    raw_message: "Invalid Txn"
+    category: format_error
+    retry: never
+    customer_message: "A technical error occurred. Please contact support."
+    ops_action: "Do NOT retry. Envelope violated Finacle contract. Inspect payload."
+  "904":
+    raw_message: "Format Error"
+    category: format_error
+    retry: never
+    customer_message: "A technical error occurred. Please contact support."
+    ops_action: "Do NOT retry. Inspect envelope."
+  "906":
+    raw_message: "Cut-over in progress"
+    category: system_malfunction
+    retry: backoff
+    customer_message: "The destination bank is undergoing maintenance. We will retry shortly."
+    ops_action: "Backoff retry (10-30 minutes). Bank in EOD cut-over. Log time and same-bank pattern."
+  "907":
+    raw_message: "Card issuer inoperative"
+    category: connection_error
+    retry: status_query
+    customer_message: "The destination bank is temporarily unavailable."
+    ops_action: "TSQ then backoff. Bank-side outage."
+  "909":
+    raw_message: "Malfunction"
+    category: system_malfunction
+    retry: backoff
+    customer_message: "A temporary error at the destination bank. We will retry shortly."
+    ops_action: "Backoff retry."
+  "911":
+    raw_message: "Card issuer timed out"
+    category: timeout
+    retry: status_query
+    customer_message: "The destination bank did not respond in time."
+    ops_action: "TSQ within 60s. Do NOT retry blindly."
+  "913":
+    raw_message: "Duplicate transmission"
+    category: duplicate
+    retry: status_query
+    customer_message: "This transfer appears already in progress. We are confirming its status."
+    ops_action: "TSQ. Do not resend without confirmation."
+  "999":
+    raw_message: "Invalid Response"
+    category: unknown
+    retry: status_query
+    customer_message: "We could not determine the status of your transfer."
+    ops_action: "TSQ. Response payload was malformed — do NOT assume failure."
+  "11059":
+    raw_message: "The Debit and Credit Accounts are Same"
+    category: duplicate_account
+    retry: never
+    customer_message: "You cannot transfer to the same account you are sending from."
+    ops_action: "No action. Client-side validation should have caught this."
+  "14045":
+    raw_message: "INSUFFICIENT FUNDS"
+    category: insufficient_funds
+    retry: never
+    customer_message: "Your account does not have enough funds for this transfer."
+    ops_action: "No action. Correctly declined."
+  "14055":
+    raw_message: "DUPLICATE TRANSACTION"
+    category: duplicate
+    retry: status_query
+    customer_message: "This transfer appears already in progress. We are confirming its status."
+    ops_action: "TSQ. Do not resend without confirmation."
