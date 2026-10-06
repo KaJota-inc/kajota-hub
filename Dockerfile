@@ -15,7 +15,12 @@ FROM python:3.11-slim
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
     PYTHONUNBUFFERED=1 \
-    NODE_MAJOR=22
+    NODE_MAJOR=22 \
+    # Ride out transient PyPI/CDN hiccups (files.pythonhosted.org 502s) instead of
+    # failing the whole hub build — applies to every pip install below, including the
+    # isolated build-dependency fetches (setuptools) that broke the slack venv.
+    PIP_RETRIES=8 \
+    PIP_DEFAULT_TIMEOUT=120
 
 # ---- System deps in small layers (keeps peak build memory low) ------
 # Base tools + supervisor
@@ -41,13 +46,20 @@ WORKDIR /srv
 COPY apps /srv/apps
 
 # ---- Isolated Python venvs (one layer each: low peak memory + caching) --
-# Agent family (installable packages: `pip install -e .`)
+# Agent family (installable packages: `pip install -e .`). The `google-adk`
+# 2.x line moved `McpToolset` behind the `[mcp]` extra; the vendored source
+# imports it directly (`from google.adk.tools.mcp_tool import McpToolset`),
+# so all three ADK-based apps need the extra installed explicitly — the
+# apps' pyproject.toml only pins bare `google-adk>=1.2.0`.
 RUN python -m venv /srv/venvs/coach-okx && /srv/venvs/coach-okx/bin/pip install -q --upgrade pip \
- && /srv/venvs/coach-okx/bin/pip install -q -e /srv/apps/coach-okx
+ && /srv/venvs/coach-okx/bin/pip install -q -e /srv/apps/coach-okx \
+ && /srv/venvs/coach-okx/bin/pip install -q "google-adk[mcp]"
 RUN python -m venv /srv/venvs/concierge && /srv/venvs/concierge/bin/pip install -q --upgrade pip \
- && /srv/venvs/concierge/bin/pip install -q -e /srv/apps/concierge
+ && /srv/venvs/concierge/bin/pip install -q -e /srv/apps/concierge \
+ && /srv/venvs/concierge/bin/pip install -q "google-adk[mcp]"
 RUN python -m venv /srv/venvs/slack && /srv/venvs/slack/bin/pip install -q --upgrade pip \
- && /srv/venvs/slack/bin/pip install -q -e /srv/apps/slack
+ && /srv/venvs/slack/bin/pip install -q -e /srv/apps/slack \
+ && /srv/venvs/slack/bin/pip install -q "google-adk[mcp]"
 
 # Mesh family — upstream Dockerfiles run from source (no `-e .`), so install
 # the explicit runtime deps and let supervisord launch from the app cwd.
@@ -60,10 +72,12 @@ RUN python -m venv /srv/venvs/mesh-skill && /srv/venvs/mesh-skill/bin/pip instal
 
 # ---- Payflow (NIP payment-ops triage — freshdesk + zendesk webhooks) --
 # Single venv; both integrations run from the same source at different ports.
-# `[webhook]` pulls fastapi + uvicorn; `[gemini]` enables the Gemini triager
-# so PAYFLOW_PROVIDER=gemini works without a rebuild.
+# `[webhook]` pulls fastapi + uvicorn (+ python-multipart for the batch upload);
+# `[gemini]` enables the Gemini triager so PAYFLOW_PROVIDER=gemini works
+# without a rebuild; `[beacon]` pulls eth-hash so the `verify-anchor` keccak
+# selector works out of the box.
 RUN python -m venv /srv/venvs/payflow && /srv/venvs/payflow/bin/pip install -q --upgrade pip \
- && /srv/venvs/payflow/bin/pip install -q -e '/srv/apps/payflow[webhook,gemini]'
+ && /srv/venvs/payflow/bin/pip install -q -e '/srv/apps/payflow[webhook,gemini,beacon]'
 
 # Pre-pull the MongoDB MCP server (Node) the agents spawn on first chat.
 RUN npx -y mongodb-mcp-server@latest --help > /dev/null 2>&1 || true
@@ -85,6 +99,17 @@ RUN apt-get update \
 RUN apt-get update \
  && apt-get install -y --no-install-recommends build-essential \
  && cd /srv/apps/judge && npm install --omit=dev \
+ && apt-get purge -y build-essential && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/*
+
+# ---- OKX A2A daemon (XMTP) — hosts the identity that owns ASP 5855 --
+# Pinned rather than @latest so we don't get surprised by a bad release
+# mid-review; bump manually when doctor flags a new version.
+# Includes build-essential because @xmtp/node-bindings has an optional
+# arm64-linux native binary via node-gyp on some platforms.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends build-essential \
+ && npm install -g @okxweb3/a2a-node@0.1.10 \
  && apt-get purge -y build-essential && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 

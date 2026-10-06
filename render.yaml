@@ -76,6 +76,19 @@ services:
       - { key: CONC_X402_FACILITATOR_API_KEY, sync: false }
       - { key: CONC_CASPER_MCP_ENABLED, value: "0" }
       - { key: CONC_COACH_BACKEND_URL, sync: false }
+      # concierge also settles x402 on Base Sepolia (USDC) for the
+      # KeeperHub-driven release endpoint, /escrow/schedule-release.
+      # Separate ETH_X402_* namespace from the Casper X402_* block above,
+      # so the two paywalls cannot read each other's config. Everything
+      # else (facilitator, network, asset, 0.01 USDC price) takes the
+      # defaults in x402_ethereum.py; only the merchant address is set
+      # here. Receiving address only — it never signs, so it lives in the
+      # blueprint like the Casper payTo above rather than as a secret.
+      - { key: CONC_ETH_X402_PAY_TO, value: "0xd5fb4bfd1fa5d2ea0c22cc30713033738be05291" }
+      # KeeperHub creds for the release trigger are the unprefixed KH_*
+      # vars further down — supervisord passes them to every child, and
+      # KeeperHubConfig.from_env falls back to those names, so they are
+      # deliberately not duplicated under CONC_.
 
       # ---- slack -----------------------------------------------------
       - { key: SLK_GEMINI_MODEL, value: gemini-2.5-pro }

@@ -31,6 +31,14 @@ webhook = [
 gemini = [
     "google-genai>=1.0",
 ]
+beacon = [
+    "eth-abi>=5.0",
+    "eth-hash[pycryptodome]>=0.7",
+]
+web3 = [
+    "web3>=7.0",
+    "eth-hash[pycryptodome]>=0.7",
+]
 
 [project.scripts]
 payflow = "payflow.cli:app"

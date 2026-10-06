@@ -40,6 +40,15 @@ dependencies = [
     # Casper x402 paywall (server.py → CSPR.cloud facilitator, /verify +
     # /settle). Pinned so neither relies on a transitive accident.
     "httpx>=0.27.0",
+
+    # x402 self-facilitator — verifies EIP-3009 signatures in-process and
+    # (optionally) broadcasts transferWithAuthorization on XLayer with our
+    # own gas. See LocalXLayerFacilitator in kajota_concierge/x402_xlayer.py.
+    # Only web3 (which pulls eth-account transitively) is needed at runtime,
+    # but we pin eth-account explicitly because `encode_typed_data` is the
+    # bit we lean on and web3's peer range changes.
+    "web3>=7.4.0",
+    "eth-account>=0.13.0",
 ]
 
 [project.optional-dependencies]

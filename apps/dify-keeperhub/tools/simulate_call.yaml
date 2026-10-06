@@ -1,0 +1,72 @@
+description:
+  human:
+    en_US: Simulate a contract call through KeeperHub without signing or
+      broadcasting it. Shows what the call would do. Cannot move value.
+  llm: Simulate an onchain contract call and return the outcome WITHOUT signing
+    or broadcasting any transaction. Always call this before execute_call so you
+    can see what a transaction would do before it happens. This tool is safe and
+    cannot move value.
+extra:
+  python:
+    source: tools/simulate_call.py
+identity:
+  author: kajota
+  label:
+    en_US: Simulate contract call
+  name: simulate_call
+parameters:
+- form: llm
+  human_description:
+    en_US: Contract address to call
+  label:
+    en_US: Contract address
+  llm_description: The 0x-prefixed address of the contract to call
+  name: contract_address
+  required: true
+  type: string
+- form: llm
+  human_description:
+    en_US: Name of the contract function
+  label:
+    en_US: Function name
+  llm_description: The contract function to call, e.g. release or transfer
+  name: function_name
+  required: true
+  type: string
+- form: llm
+  human_description:
+    en_US: JSON ABI fragment for this function
+  label:
+    en_US: ABI
+  llm_description: JSON ABI array containing the fragment for this one function
+  name: abi
+  required: true
+  type: string
+- form: llm
+  human_description:
+    en_US: JSON array of arguments for the function
+  label:
+    en_US: Function arguments
+  llm_description: JSON array of the arguments to pass, in order
+  name: function_args
+  required: false
+  type: string
+- form: form
+  default: '11155111'
+  human_description:
+    en_US: Chain ID. Defaults to Ethereum Sepolia (11155111).
+  label:
+    en_US: Chain ID
+  llm_description: Numeric chain ID; defaults to Sepolia testnet
+  name: chain_id
+  required: false
+  type: string
+- form: llm
+  human_description:
+    en_US: Native value to send, in wei
+  label:
+    en_US: Value (wei)
+  llm_description: Native token amount in wei, as a string. Omit for none.
+  name: value
+  required: false
+  type: string

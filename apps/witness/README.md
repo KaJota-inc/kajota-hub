@@ -2,6 +2,8 @@
 
 **Encrypted seller memory + AI jury for African micro-commerce disputes — all on 0G Galileo.**
 
+> 🌟 **Flare Summer Signal 2026 submission on branch [`hackathon/flare-summer-signal`](https://github.com/KaJota-inc/kajota-witness/tree/hackathon/flare-summer-signal) — see [`docs/FLARE.md`](docs/FLARE.md).** Bounty 1 (Interoperable Asset Products): Kajota AI-jury verdicts, imported cross-chain into Flare Coston2 via the **Flare Data Connector** `EVMTransaction` attestation type, gating a Flare-native escrow release. No bridge, no trusted server.
+
 > 🌐 **Live demo:** https://kajota-hub.onrender.com/witness · [`/ui`](https://kajota-hub.onrender.com/witness/ui) · [`/verify`](https://kajota-hub.onrender.com/witness/verify)
 > 📜 **Anchor contract:** [`0x2f1D3a88…cEC94`](https://chainscan-galileo.0g.ai/address/0x2f1D3a881cfbeA01Cf55f3cAd125aA32Bf8cEC94) on 0G Galileo
 > ⌖ **Try /verify yourself:** paste `0xa9183d1ac0e9558fbac8501ce6034383122d36b4955259cf14d02448c092e5fb` into the live `/verify` page — all 4 cross-checks go green including `matchesStorageCid=true`
@@ -237,3 +239,13 @@ MIT.
 Built start-to-finish during the Zero Cup tournament window — no pre-existing code. Submitted Mon Jun 22, 2026 to https://0g.ai/arena/zero-cup.
 
 Co-author trail and milestone-by-milestone progress are in the commit history.
+
+<!-- kajota-hub-note -->
+## KaJota infrastructure — this service is on the hub
+
+Deployed as part of the consolidated **[kajota-hub](https://kajota-hub.onrender.com)** instance.
+
+- **Live:** https://kajota-hub.onrender.com/witness — `/ui`, `/verify`, `/health`
+- Previously standalone at `https://kajota-witness.onrender.com`
+
+See [HUB_MIGRATION.md](HUB_MIGRATION.md) for the full mapping.

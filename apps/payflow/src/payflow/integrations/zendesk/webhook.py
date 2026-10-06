@@ -5,6 +5,7 @@ import logging
 import time
 from typing import Optional
 
+from payflow.integrations._shared.alerts import AlertDispatcher
 from payflow.integrations._shared.extract import extract_envelope_from_ticket
 from payflow.integrations._shared.format import format_triage_note
 from payflow.integrations._shared.observability import (
@@ -14,6 +15,7 @@ from payflow.integrations._shared.observability import (
     snapshot,
     uptime_seconds,
 )
+from payflow.integrations.slack.config import SlackAlertConfig
 from payflow.integrations.zendesk.client import ZendeskClient
 from payflow.integrations.zendesk.config import ZendeskConfig
 from payflow.kb import KB, load_kb
@@ -51,6 +53,7 @@ def build_app(
     kb: Optional[KB] = None,
     client: Optional[ZendeskClient] = None,
     configure_logging: bool = False,
+    alert_dispatcher: Optional[AlertDispatcher] = None,
 ):
     """Build the Zendesk webhook FastAPI app.
 
@@ -69,6 +72,8 @@ def build_app(
     kb = kb or load_kb()
     if client is None and not config.dry_run:
         client = ZendeskClient(config)
+    if alert_dispatcher is None:
+        alert_dispatcher = AlertDispatcher(slack_config=SlackAlertConfig.from_env())
 
     if configure_logging:
         setup_json_logging(config.log_level)
@@ -133,6 +138,8 @@ def build_app(
             "retry_strategy": result.retry_strategy.value, "confidence": result.confidence,
             "duration_ms": duration_ms, "dry_run": config.dry_run,
         })
+
+        alert_dispatcher.dispatch(result, integration="zendesk", ticket_id=ticket_id)
 
         if config.dry_run or client is None:
             incr("ticket_dry_run_total", integration="zendesk")

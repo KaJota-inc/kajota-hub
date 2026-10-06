@@ -1,0 +1,153 @@
+# Dify workflow DSL — importable.
+#
+# Exported from a real Dify instance after installing keeperhub.difypkg as a
+# package (source: package, runtime: local). Dify refuses to export a DSL
+# while a plugin is installed in remote/debug mode, so packaging is what made
+# this file possible.
+#
+# The `dependencies` block pins the plugin by package digest, so importing
+# this asks Dify for that exact build.
+app:
+  description: Simulates an onchain call through KeeperHub, then executes only on
+    approval.
+  icon: 🔗
+  icon_background: '#0B0B0D'
+  icon_type: emoji
+  mode: workflow
+  name: KeeperHub — simulate before you sign
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: package
+  value:
+    plugin_unique_identifier: kajota/keeperhub:0.1.0@f32a6f4a035ac5a7f6cfb30f7eb8bc7d32d246e21c615e5f613c2fa711de4e43
+    version: null
+kind: app
+version: 0.7.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload: {}
+    sensitive_word_avoidance:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        iteration_id: null
+        loop_id: null
+        sourceType: start
+        targetType: tool
+      id: e1
+      source: start
+      sourceHandle: source
+      target: sim
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        iteration_id: null
+        loop_id: null
+        sourceType: tool
+        targetType: end
+      id: e2
+      source: sim
+      sourceHandle: source
+      target: end
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: ''
+        title: Start
+        type: start
+        variables: []
+      height: 73
+      id: start
+      position:
+        x: 80
+        y: 240
+      positionAbsolute:
+        x: 80
+        y: 240
+      sourcePosition: null
+      targetPosition: null
+      type: custom
+      width: 242
+      zIndex: 0
+    - data:
+        desc: Cannot sign or broadcast
+        provider_id: kajota/keeperhub/keeperhub
+        provider_name: kajota/keeperhub/keeperhub
+        provider_type: builtin
+        title: Simulate through KeeperHub
+        tool_configurations:
+          chain_id:
+            type: constant
+            value: '11155111'
+        tool_label: Simulate contract call
+        tool_name: simulate_call
+        tool_node_version: '2'
+        tool_parameters:
+          abi:
+            type: mixed
+            value: '[{"type":"function","name":"approve","stateMutability":"nonpayable","inputs":[{"name":"spender","type":"address"},{"name":"amount","type":"uint256"}],"outputs":[{"name":"","type":"bool"}]}]'
+          contract_address:
+            type: mixed
+            value: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
+          function_args:
+            type: mixed
+            value: '["0x599869cef2e4c52e2c9074caaf8f9fb0cb191776","0"]'
+          function_name:
+            type: mixed
+            value: approve
+        type: tool
+      height: 116
+      id: sim
+      position:
+        x: 420
+        y: 240
+      positionAbsolute:
+        x: 420
+        y: 240
+      sourcePosition: null
+      targetPosition: null
+      type: custom
+      width: 242
+      zIndex: 0
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - sim
+          - json
+          variable: simulation
+        title: End
+        type: end
+      height: 88
+      id: end
+      position:
+        x: 800
+        y: 240
+      positionAbsolute:
+        x: 800
+        y: 240
+      sourcePosition: null
+      targetPosition: null
+      type: custom
+      width: 242
+      zIndex: 0
+    viewport:
+      x: 0
+      y: 0
+      zoom: 0.8
+  rag_pipeline_variables: []

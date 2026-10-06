@@ -31,6 +31,7 @@ from payflow.ingest import (
 from payflow.demo import run_demo, run_pilot_demo
 from payflow.doctor import format_doctor_report, run_doctor
 from payflow.explain import format_explain, run_explain
+from payflow.research import format_thesis_report, generate_thesis_report
 from payflow.kb import load_kb
 from payflow.models import Dialect, TriageResult
 from payflow.parser import parse_file
@@ -103,6 +104,75 @@ def explain(
         llm_model=llm_model, verifier_model=verifier_model,
     )
     format_explain(report, console)
+
+
+@app.command()
+def research(
+    sample: int = typer.Option(0, help="If >0, cap fixture count for faster iteration."),
+) -> None:
+    """Thesis-aligned metrics report mapping each Payflow subsystem to one of three primitives.
+
+    Intended as supplementary material for PhD / MSc submissions anchored on
+    the "Risk-Adaptive AI Infrastructure for Trustworthy Autonomous Financial
+    Systems" thesis.
+    """
+    report = generate_thesis_report(sample=sample)
+    format_thesis_report(report, console)
+
+
+@app.command("verify-anchor")
+def verify_anchor_cmd(
+    path: Path = typer.Argument(..., help="Envelope file (SOAP XML / JSON / audit-trail row)."),
+    dialect: Dialect = typer.Option(Dialect.CORE, help="CBA dialect for the response code."),
+    submit: bool = typer.Option(False, "--submit", help="Broadcast the anchor tx. Default is dry-run."),
+) -> None:
+    """Compute a commitment hash over (envelope, verdict, evidence) and optionally anchor on-chain.
+
+    Dry-run by default — prints the commitment hash and the call data that would
+    have been submitted. Pass --submit (plus env configuration) to broadcast.
+    """
+    from datetime import datetime, timezone
+
+    from rich.panel import Panel
+    from rich.table import Table
+
+    from payflow.verify import AnchorConfig, WitnessAnchorClient, build_commitment
+
+    env = parse_file(path)
+    env.dialect = dialect
+    result = _triage(env, load_kb())
+    commitment = build_commitment(result, ts=datetime.now(timezone.utc).isoformat())
+
+    cfg = AnchorConfig.from_env()
+    if cfg is None:
+        # No env configured — show just the commitment, no tx shape
+        from payflow.verify.commitment import commitment_hash
+        console.print(Panel(
+            f"[bold]Commitment hash:[/bold] [green]{commitment_hash(commitment)}[/green]\n"
+            f"[dim]No PAYFLOW_ANCHOR_RPC_URL / CONTRACT / CHAIN_ID set — call data not computed.[/dim]",
+            title="Verify-anchor (local only)", expand=False,
+        ))
+        return
+
+    if submit:
+        cfg = cfg.model_copy(update={"dry_run": False})
+    client = WitnessAnchorClient(cfg)
+    receipt = client.submit(commitment)
+
+    tab = Table.grid(padding=(0, 2))
+    tab.add_column(style="bold")
+    tab.add_column()
+    tab.add_row("Commitment hash:", f"[green]{receipt.commitment_hash}[/green]")
+    tab.add_row("Contract:", receipt.contract_address)
+    tab.add_row("Chain ID:", str(receipt.chain_id))
+    tab.add_row("Function:", f"{receipt.function_name}(bytes32)")
+    tab.add_row("Call data:", receipt.call_data)
+    tab.add_row("Submitted:", "[green]yes[/green]" if receipt.submitted else "[yellow]dry-run[/yellow]")
+    if receipt.tx_hash:
+        tab.add_row("Tx hash:", f"[cyan]{receipt.tx_hash}[/cyan]")
+    if receipt.note:
+        tab.add_row("Note:", receipt.note)
+    console.print(Panel(tab, title="Anchor receipt", expand=False))
 
 
 @app.command()

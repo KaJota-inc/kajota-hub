@@ -1,0 +1,41 @@
+{
+  "_comment": [
+    "Minimal Dify workflow proving the integration: Start -> KeeperHub simulate -> End.",
+    "Import via POST /console/api/apps/{id}/workflows/draft with body {graph, features:{}}.",
+    "Dify refuses to export a DSL while the plugin is installed remotely (debug mode):",
+    "  'You used a remote plugin ... please remove it first if you want to export the DSL'.",
+    "So this is the graph as sent, not a DSL export. Packaging the plugin as .difypkg",
+    "and installing it normally is what makes a portable DSL possible."
+  ],
+  "nodes": [
+    { "id": "start", "type": "custom", "position": { "x": 80, "y": 240 },
+      "data": { "type": "start", "title": "Start", "desc": "", "variables": [] } },
+    { "id": "sim", "type": "custom", "position": { "x": 420, "y": 240 },
+      "data": {
+        "type": "tool", "title": "Simulate through KeeperHub",
+        "desc": "Cannot sign or broadcast",
+        "provider_id": "kajota/keeperhub/keeperhub",
+        "provider_name": "kajota/keeperhub/keeperhub",
+        "provider_type": "builtin",
+        "tool_name": "simulate_call",
+        "tool_label": "Simulate contract call",
+        "tool_parameters": {
+          "contract_address": { "type": "mixed", "value": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238" },
+          "function_name": { "type": "mixed", "value": "approve" },
+          "abi": { "type": "mixed", "value": "[{\"type\":\"function\",\"name\":\"approve\",\"stateMutability\":\"nonpayable\",\"inputs\":[{\"name\":\"spender\",\"type\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}]}]" },
+          "function_args": { "type": "mixed", "value": "[\"0x599869cef2e4c52e2c9074caaf8f9fb0cb191776\",\"0\"]" }
+        },
+        "tool_configurations": { "chain_id": "11155111" }
+      } },
+    { "id": "end", "type": "custom", "position": { "x": 800, "y": 240 },
+      "data": { "type": "end", "title": "End", "desc": "",
+        "outputs": [ { "variable": "simulation", "value_selector": ["sim", "json"] } ] } }
+  ],
+  "edges": [
+    { "id": "e1", "source": "start", "target": "sim", "sourceHandle": "source", "targetHandle": "target",
+      "type": "custom", "data": { "sourceType": "start", "targetType": "tool", "isInIteration": false } },
+    { "id": "e2", "source": "sim", "target": "end", "sourceHandle": "source", "targetHandle": "target",
+      "type": "custom", "data": { "sourceType": "tool", "targetType": "end", "isInIteration": false } }
+  ],
+  "viewport": { "x": 0, "y": 0, "zoom": 0.8 }
+}
