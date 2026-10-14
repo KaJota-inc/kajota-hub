@@ -119,6 +119,13 @@ RUN apt-get update \
  && apt-get purge -y build-essential && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/*
 
+# ---- DSA Native (Express + mongodb) --------------------------------
+# Static SPA + /api/sync route. mongodb driver has no native build deps
+# so no toolchain layer is needed. The SPA + content.json ship inside the
+# apps/dsa-native/public directory and are served by Express; the Caddy
+# reverse-proxy at /dsa-native/* strips the mount prefix.
+RUN cd /srv/apps/dsa-native && npm install --omit=dev
+
 # ---- Proxy + process manager + landing page ------------------------
 COPY Caddyfile /etc/caddy/Caddyfile
 COPY supervisord.conf /etc/supervisor/conf.d/kajota-hub.conf

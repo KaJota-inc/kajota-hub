@@ -1,0 +1,4596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0908">
+<meta name="description" content="DSA + AI-native interview prep — 150-day daily driver with pattern decision tree, code templates, pre-seeded walkthroughs, and MELSAN workflow library.">
+<title>DSA Native</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0908'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%2300e5ff' stroke-width='3'/%3E%3C/svg%3E">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/13.0.3/marked.min.js"></script>
+
+<style>
+html, body { margin: 0; padding: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+/* Premium dark-first operator tool. Monospace + serif pairing, deliberate restraint. */
+/* Layout: single-screen daily driver with hero bar, 2-col body, floating modals + toasts. */
+:root {
+  --bg: #0a0908;
+  --bg-elev-1: #11100e;
+  --panel: #141210;
+  --panel-raised: #1b1816;
+  --panel-raised-2: #241f1b;
+  --border: #2a2521;
+  --border-strong: #3a3430;
+  --fg: #f5f2ec;
+  --fg-dim: #c7bfb3;
+  --muted: #85807a;
+  --faint: #4a4540;
+  --accent: #00e5ff;
+  --accent-glow: #00c8e0;
+  --accent-dim: #006b7a;
+  --accent-wash: rgba(0, 229, 255, 0.08);
+  --accent-wash-2: rgba(0, 229, 255, 0.14);
+  --good: #3ddc97;
+  --warn: #ffb800;
+  --crit: #ff5252;
+  --streak: #ff8a3d;
+  --font-display: 'IBM Plex Serif', Georgia, serif;
+  --font-body: 'IBM Plex Sans', -apple-system, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 10px;
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-lg: 0 24px 64px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.4);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #faf7f2;
+    --bg-elev-1: #f3efe8;
+    --panel: #ffffff;
+    --panel-raised: #f3efe8;
+    --panel-raised-2: #eae4d9;
+    --border: #d8d1c6;
+    --border-strong: #c0b8aa;
+    --fg: #141210;
+    --fg-dim: #39342f;
+    --muted: #726a62;
+    --faint: #a09890;
+    --accent: #006b7a;
+    --accent-glow: #008fa3;
+    --accent-dim: #4ec3d4;
+    --accent-wash: rgba(0, 107, 122, 0.08);
+    --accent-wash-2: rgba(0, 107, 122, 0.14);
+    --good: #0a8757;
+    --warn: #b87a00;
+    --crit: #c82323;
+    --streak: #d9550a;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #faf7f2;
+  --bg-elev-1: #f3efe8;
+  --panel: #ffffff;
+  --panel-raised: #f3efe8;
+  --panel-raised-2: #eae4d9;
+  --border: #d8d1c6;
+  --border-strong: #c0b8aa;
+  --fg: #141210;
+  --fg-dim: #39342f;
+  --muted: #726a62;
+  --faint: #a09890;
+  --accent: #006b7a;
+  --accent-glow: #008fa3;
+  --accent-dim: #4ec3d4;
+  --accent-wash: rgba(0, 107, 122, 0.08);
+  --accent-wash-2: rgba(0, 107, 122, 0.14);
+  --good: #0a8757;
+  --warn: #b87a00;
+  --crit: #c82323;
+  --streak: #d9550a;
+  color-scheme: light;
+}
+
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+* { box-sizing: border-box; }
+button { font: inherit; color: inherit; -webkit-tap-highlight-color: transparent; }
+code, pre, .mono { font-family: var(--font-mono); font-feature-settings: 'calt' 1, 'ss01' 1; }
+::selection { background: var(--accent); color: #000; }
+
+/* ============ HERO BAR ============ */
+.hero {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 20;
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg) 85%, transparent 100%);
+  padding: 16px 24px 10px;
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+}
+.hero-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.brand-ring {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+}
+.brand-ring svg { display: block; }
+.brand-ring .ring-bg { fill: none; stroke: var(--border); stroke-width: 3; }
+.brand-ring .ring-fg { fill: none; stroke: url(#ringGrad); stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset 0.8s var(--ease); }
+.brand-ring-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+.brand-ring-label .n {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+.brand-ring-label .d {
+  font-size: 8px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  margin-top: 2px;
+}
+.brand-text { min-width: 0; }
+.brand-mark {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 24px;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  color: var(--fg);
+  margin-bottom: 4px;
+}
+.brand-mark em {
+  font-style: italic;
+  color: var(--accent);
+  font-weight: 400;
+}
+.brand-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  line-height: 1;
+}
+.stat-k {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.stat-v {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.stat-v .unit { font-size: 11px; color: var(--muted); font-weight: 400; }
+.streak-flame {
+  display: inline-block;
+  width: 12px;
+  height: 14px;
+  margin-right: 4px;
+  color: var(--streak);
+  vertical-align: -2px;
+  opacity: 0.3;
+  transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.streak-flame.on { opacity: 1; transform: scale(1); }
+.streak-flame.hot { opacity: 1; filter: drop-shadow(0 0 6px var(--streak)); animation: flicker 2.4s ease-in-out infinite; }
+@keyframes flicker { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(0.95); } }
+
+.hero-controls { display: flex; align-items: center; gap: 6px; }
+.icon-btn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--fg-dim);
+  padding: 8px 11px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.14s var(--ease);
+  min-width: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-wash); }
+.icon-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-wash); }
+.icon-btn kbd {
+  font-family: inherit;
+  font-size: inherit;
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+.ribbon-wrap {
+  margin-top: 14px;
+  padding: 0;
+}
+.ribbon {
+  height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+.ribbon-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-dim) 0%, var(--accent) 50%, var(--accent-glow) 100%);
+  width: 0%;
+  transition: width 1s var(--ease);
+  position: relative;
+}
+.ribbon-fill::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--accent);
+}
+.ribbon-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ============ LAYOUT ============ */
+.wrap {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 24px 24px 60px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+  gap: 24px;
+}
+@media (max-width: 880px) {
+  .grid { grid-template-columns: 1fr; }
+  .wrap { padding: 20px 16px 48px; }
+  .hero { padding: 14px 16px 10px; }
+}
+
+/* ============ CARDS ============ */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  margin-bottom: 20px;
+  transition: border-color 0.2s var(--ease);
+}
+.card:hover { border-color: var(--border-strong); }
+.card.hero-card { padding: 28px; background: linear-gradient(180deg, var(--panel) 0%, var(--bg-elev-1) 100%); }
+
+.card-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 16px 0;
+  gap: 10px;
+  min-width: 0;
+}
+.card-title .label-left { display: flex; align-items: center; gap: 10px; min-width: 0; overflow: hidden; }
+.card-title .count {
+  background: var(--panel-raised);
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: var(--fg-dim);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* Today card (hero of the grid) */
+.today-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.today-head-main { min-width: 0; }
+.today-day {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 40px;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  color: var(--fg);
+  margin-bottom: 10px;
+}
+.today-day em { font-style: italic; color: var(--accent); font-weight: 600; }
+.today-sub {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.today-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.today-progress-bar {
+  flex: 1;
+  height: 3px;
+  background: var(--panel-raised);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.today-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+  transition: width 0.5s var(--ease);
+}
+
+/* Problem list items */
+.problem-list { list-style: none; padding: 0; margin: 18px 0 0; }
+.problem-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 14px;
+  margin-bottom: 6px;
+  background: var(--panel-raised);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.18s var(--ease);
+  min-width: 0;
+  position: relative;
+}
+.problem-item:hover {
+  border-color: var(--accent-dim);
+  background: var(--panel-raised-2);
+  transform: translateX(2px);
+}
+.problem-item:active { transform: translateX(2px) scale(0.995); }
+.problem-item.has-walkthrough { border-left: 2px solid var(--accent); }
+.problem-item.done { opacity: 0.42; }
+.problem-item.focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+.problem-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.problem-badge.v-green { background: var(--good); border-color: var(--good); color: #000; }
+.problem-badge.v-yellow { background: var(--warn); border-color: var(--warn); color: #000; }
+.problem-badge.v-red { background: var(--crit); border-color: var(--crit); color: #000; }
+.problem-main { flex: 1; min-width: 0; }
+.problem-name {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+.problem-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 3px;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.problem-meta .ai-tag { color: var(--accent); font-weight: 500; }
+.problem-meta .ready-tag { color: var(--good); }
+.problem-arrow { color: var(--faint); font-family: var(--font-mono); flex-shrink: 0; transition: color 0.14s var(--ease), transform 0.14s var(--ease); }
+.problem-item:hover .problem-arrow { color: var(--accent); transform: translateX(2px); }
+
+/* Pattern coverage grid */
+.pattern-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+}
+.pattern-cell {
+  aspect-ratio: 1;
+  background: var(--panel-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 7px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  cursor: default;
+  transition: border-color 0.2s var(--ease);
+}
+.pattern-cell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--accent-wash) 0%, transparent 70%);
+  opacity: var(--fill, 0);
+  transition: opacity 0.3s var(--ease);
+  pointer-events: none;
+}
+.pattern-cell:hover { border-color: var(--accent-dim); }
+.pattern-cell-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+}
+.pattern-cell-count {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  position: relative;
+  line-height: 1;
+}
+.pattern-cell-count.zero { color: var(--faint); }
+
+/* Primitive card */
+.primitive-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; gap: 10px; }
+.primitive-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--fg);
+  min-width: 0;
+}
+.primitive-interview {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: right;
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+.primitive-note { color: var(--fg-dim); font-size: 13px; margin: 0 0 12px; line-height: 1.5; }
+.code-block {
+  position: relative;
+  background: var(--bg-elev-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.code-block pre {
+  margin: 0;
+  padding: 14px 44px 14px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--fg-dim);
+  overflow-x: auto;
+  white-space: pre;
+}
+.copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--panel-raised);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.14s var(--ease);
+}
+.copy-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+.copy-btn.copied { background: var(--good); color: #000; border-color: var(--good); }
+
+.chip-nav {
+  display: flex;
+  gap: 5px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.chip-nav button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 4px 9px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  transition: all 0.14s var(--ease);
+}
+.chip-nav button:hover { border-color: var(--accent); color: var(--accent); }
+.chip-nav button.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 500; }
+
+/* Decision tree */
+.dt-clue {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--fg);
+  padding: 14px 16px;
+  background: var(--panel-raised);
+  border-radius: var(--radius-sm);
+  border-left: 2px solid var(--border);
+}
+.dt-arrow {
+  text-align: center;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 20px;
+  margin: 10px 0;
+  font-weight: 600;
+  animation: pulse-arrow 2.4s ease-in-out infinite;
+}
+@keyframes pulse-arrow { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+.dt-answer {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--accent);
+  background: var(--accent-wash);
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  border-left: 2px solid var(--accent);
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.4;
+}
+.dt-why {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--fg-dim);
+  line-height: 1.55;
+}
+.dt-nav { margin-top: 14px; display: flex; gap: 8px; }
+.dt-nav button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fg-dim);
+  padding: 7px 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  flex: 1;
+  transition: all 0.14s var(--ease);
+}
+.dt-nav button:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-wash); }
+
+/* Template card */
+.tpl-head { margin-bottom: 8px; }
+.tpl-title {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--fg);
+  letter-spacing: -0.015em;
+}
+.tpl-when {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+.code-lang-nav {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.code-lang-nav button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 4px 11px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  transition: all 0.14s var(--ease);
+}
+.code-lang-nav button:hover { border-color: var(--accent); color: var(--accent); }
+.code-lang-nav button.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 500; }
+
+/* Complexity grid */
+.complexity-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.complexity-grid .op {
+  padding: 7px 10px;
+  background: var(--panel-raised);
+  color: var(--fg-dim);
+  border-radius: 3px 0 0 3px;
+  transition: background 0.14s var(--ease);
+}
+.complexity-grid .big-o {
+  padding: 7px 12px;
+  background: var(--panel-raised);
+  color: var(--accent);
+  text-align: right;
+  font-weight: 600;
+  border-radius: 0 3px 3px 0;
+  transition: background 0.14s var(--ease);
+}
+.complexity-grid .op:hover, .complexity-grid .op:hover + .big-o,
+.complexity-grid .big-o:hover, .complexity-grid .op:has(+ .big-o:hover) {
+  background: var(--panel-raised-2);
+}
+
+/* Difficulty grid */
+.diff-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.diff-cell {
+  background: var(--panel-raised);
+  padding: 16px 12px;
+  border-radius: var(--radius-sm);
+  text-align: center;
+  border: 1px solid transparent;
+  transition: border-color 0.2s var(--ease);
+}
+.diff-cell:hover { border-color: var(--border-strong); }
+.diff-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-bottom: 8px;
+}
+.diff-label.good { color: var(--good); }
+.diff-label.warn { color: var(--warn); }
+.diff-label.crit { color: var(--crit); }
+.diff-count {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* Mode banner */
+.mode-banner {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--warn);
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: var(--fg-dim);
+  line-height: 1.5;
+}
+.mode-banner strong { color: var(--warn); font-weight: 600; }
+
+/* Mini actions */
+.mini-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.mini-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fg-dim);
+  padding: 8px 14px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.14s var(--ease);
+}
+.mini-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-wash); }
+
+/* Empty state */
+.empty-state {
+  padding: 18px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  font-style: italic;
+  font-family: var(--font-display);
+}
+
+/* ============ MODAL ============ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px;
+  padding-top: calc(32px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+  z-index: 100;
+  overflow-y: auto;
+  animation: fade-in 0.18s var(--ease);
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 900px;
+  box-shadow: var(--shadow-lg);
+  animation: slide-up 0.26s var(--ease);
+  display: flex;
+  flex-direction: column;
+}
+@keyframes slide-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.modal-head {
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.modal-title-wrap { flex: 1; min-width: 0; }
+.modal-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  margin: 0;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+.modal-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 8px;
+  letter-spacing: 0.04em;
+}
+.modal-close {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fg-dim);
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  flex-shrink: 0;
+  transition: all 0.14s var(--ease);
+}
+.modal-close:hover { border-color: var(--crit); color: var(--crit); background: rgba(255,82,82,0.08); }
+
+/* Timer bar with circular ring */
+.timer-bar {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: var(--panel-raised);
+  flex-wrap: wrap;
+}
+.timer-ring-wrap { position: relative; width: 72px; height: 72px; flex-shrink: 0; }
+.timer-ring-wrap svg { display: block; }
+.timer-ring-bg { fill: none; stroke: var(--border); stroke-width: 4; }
+.timer-ring-fg { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+.timer-ring-fg.over { stroke: var(--crit); }
+.timer-display {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+.timer-display.over { color: var(--crit); animation: subtle-pulse 1.5s infinite; }
+@keyframes subtle-pulse { 50% { opacity: 0.55; } }
+.timer-info { flex: 1; min-width: 0; }
+.timer-info-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.timer-controls { display: flex; gap: 6px; flex-wrap: wrap; }
+.timer-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fg-dim);
+  padding: 7px 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  transition: all 0.14s var(--ease);
+}
+.timer-btn:hover { border-color: var(--accent); color: var(--accent); }
+.timer-btn.active { background: var(--panel-raised-2); border-color: var(--accent-dim); color: var(--accent); }
+.timer-btn.start { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; letter-spacing: 0.04em; padding: 7px 16px; }
+.timer-btn.start:hover { background: var(--fg); color: #000; border-color: var(--fg); box-shadow: 0 2px 8px rgba(0,229,255,0.3); }
+.timer-btn.stop { border-color: var(--border); color: var(--muted); }
+.timer-btn.stop:hover { border-color: var(--crit); color: var(--crit); }
+
+/* Walkthrough tabs */
+.wt-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  background: var(--panel);
+  scrollbar-width: thin;
+}
+.wt-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  padding: 13px 14px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: all 0.14s var(--ease);
+  margin-bottom: -1px;
+}
+.wt-tab:hover { color: var(--fg-dim); }
+.wt-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.wt-body {
+  padding: 24px;
+  max-height: 54vh;
+  overflow-y: auto;
+  min-height: 320px;
+}
+.wt-section { font-size: 15px; line-height: 1.65; color: var(--fg-dim); }
+.wt-section h3 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--fg);
+  margin: 0 0 14px;
+  letter-spacing: -0.02em;
+}
+.wt-section h4 {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  margin: 20px 0 10px;
+  font-weight: 600;
+}
+.wt-section p { margin: 0 0 12px; }
+.wt-section ul { margin: 0 0 12px; padding-left: 20px; }
+.wt-section li { margin-bottom: 6px; }
+.wt-section strong { color: var(--fg); font-weight: 600; }
+.wt-section code {
+  background: var(--panel-raised);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 13px;
+  color: var(--accent);
+}
+.wt-section pre {
+  background: var(--bg-elev-1);
+  border: 1px solid var(--border);
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--fg-dim);
+}
+.wt-section pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* Modal footer */
+.modal-foot {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  background: var(--panel-raised);
+  flex-wrap: wrap;
+  align-items: center;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+.verdict-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin-right: 4px;
+}
+.verdict-btn {
+  flex: 1;
+  min-width: 100px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--fg-dim);
+  transition: all 0.16s var(--ease);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.verdict-btn kbd {
+  font-family: inherit;
+  font-size: 10px;
+  background: var(--panel-raised);
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: var(--muted);
+  font-weight: 400;
+}
+.verdict-btn.green:hover { background: var(--good); color: #000; border-color: var(--good); transform: translateY(-1px); }
+.verdict-btn.yellow:hover { background: var(--warn); color: #000; border-color: var(--warn); transform: translateY(-1px); }
+.verdict-btn.red:hover { background: var(--crit); color: #000; border-color: var(--crit); transform: translateY(-1px); }
+.verdict-btn:hover kbd { background: rgba(0,0,0,0.2); color: inherit; }
+
+/* Mock scoring */
+.mock-scores { display: grid; gap: 10px; margin-top: 18px; }
+.mock-score-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 14px;
+  background: var(--panel-raised);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  transition: border-color 0.14s var(--ease);
+}
+.mock-score-row:hover { border-color: var(--border-strong); }
+.mock-score-row label { font-family: var(--font-mono); font-size: 12px; color: var(--fg); }
+.mock-stars { display: flex; gap: 5px; }
+.mock-star {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 12px;
+  transition: all 0.14s var(--ease);
+}
+.mock-star:hover { border-color: var(--accent-dim); color: var(--accent); }
+.mock-star.on { background: var(--accent); color: #000; border-color: var(--accent); }
+
+/* Help modal (keyboard shortcuts) */
+.help-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 18px; }
+.help-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  padding: 10px 14px;
+  background: var(--panel-raised);
+  border-radius: var(--radius-sm);
+  align-items: center;
+}
+.help-row-desc { font-size: 13px; color: var(--fg-dim); }
+.help-keys { display: flex; gap: 4px; }
+.help-keys kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 3px 8px;
+  border-radius: 3px;
+  color: var(--fg);
+  min-width: 22px;
+  text-align: center;
+  box-shadow: 0 1px 0 var(--border-strong);
+}
+
+/* ============ LIBRARY ============ */
+/* Baked workflow content from your prep folders — read-only reference drawer. */
+.lib-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 320px;
+  max-height: 68vh;
+}
+@media (max-width: 720px) { .lib-shell { grid-template-columns: 1fr; max-height: 72vh; } }
+
+.lib-sidebar {
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  background: var(--panel-raised);
+  padding: 10px 0;
+}
+@media (max-width: 720px) {
+  .lib-sidebar { border-right: none; border-bottom: 1px solid var(--border); max-height: 160px; }
+}
+.lib-cat {
+  padding: 10px 16px 6px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  position: sticky;
+  top: 0;
+  background: var(--panel-raised);
+}
+.lib-item {
+  display: block;
+  padding: 7px 16px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--fg-dim);
+  border-left: 2px solid transparent;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  transition: all 0.12s var(--ease);
+  user-select: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lib-item:hover { background: var(--panel-raised-2); color: var(--fg); }
+.lib-item.active {
+  background: var(--accent-wash);
+  color: var(--accent);
+  border-left-color: var(--accent);
+}
+.lib-content {
+  overflow-y: auto;
+  padding: 24px 28px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--fg-dim);
+}
+.lib-content h1 { font-family: var(--font-display); font-size: 26px; font-weight: 600; letter-spacing: -0.025em; color: var(--fg); margin: 0 0 8px; line-height: 1.2; text-wrap: balance; }
+.lib-content h2 { font-family: var(--font-display); font-size: 20px; font-weight: 600; color: var(--fg); margin: 24px 0 10px; letter-spacing: -0.015em; }
+.lib-content h3 { font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin: 20px 0 8px; font-weight: 600; }
+.lib-content h4 { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg); margin: 16px 0 6px; }
+.lib-content p { margin: 0 0 12px; }
+.lib-content ul, .lib-content ol { padding-left: 22px; margin: 0 0 12px; }
+.lib-content li { margin-bottom: 6px; }
+.lib-content strong { color: var(--fg); font-weight: 600; }
+.lib-content em { color: var(--fg); font-style: italic; }
+.lib-content code { background: var(--panel-raised); padding: 1px 5px; border-radius: 3px; font-size: 12px; color: var(--accent); font-family: var(--font-mono); }
+.lib-content pre { background: var(--bg-elev-1); border: 1px solid var(--border); padding: 14px; border-radius: var(--radius-sm); overflow-x: auto; font-size: 12px; line-height: 1.65; color: var(--fg-dim); margin: 0 0 14px; }
+.lib-content pre code { background: none; padding: 0; color: inherit; font-size: inherit; }
+.lib-content blockquote { border-left: 2px solid var(--accent); padding: 2px 14px; margin: 0 0 14px; color: var(--fg-dim); background: var(--accent-wash); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.lib-content blockquote p:last-child { margin-bottom: 0; }
+.lib-content table { border-collapse: collapse; margin: 0 0 14px; font-size: 12px; display: block; overflow-x: auto; max-width: 100%; }
+.lib-content th, .lib-content td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+.lib-content th { background: var(--panel-raised); color: var(--fg); font-family: var(--font-mono); font-weight: 600; font-size: 11px; letter-spacing: 0.04em; }
+.lib-content a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted var(--accent-dim); }
+.lib-content a:hover { border-bottom-style: solid; }
+.lib-content hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+.lib-meta {
+  padding-top: 12px;
+  margin-top: 20px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  word-break: break-all;
+}
+.lib-search {
+  margin: 8px 12px 10px;
+  padding: 7px 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  width: calc(100% - 24px);
+  outline: none;
+  transition: border-color 0.14s var(--ease);
+}
+.lib-search:focus { border-color: var(--accent); }
+.lib-empty { padding: 32px 20px; color: var(--muted); font-style: italic; font-family: var(--font-display); text-align: center; }
+
+/* Sync dot — tiny indicator next to the solved stat in the hero */
+.sync-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--faint);
+  display: inline-block;
+  margin-left: 6px;
+  vertical-align: middle;
+  transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease);
+  cursor: pointer;
+}
+.sync-dot.on { background: var(--good); box-shadow: 0 0 6px rgba(61,220,151,0.5); }
+.sync-dot.syncing { background: var(--accent); animation: dot-blink 1s ease-in-out infinite; }
+.sync-dot.error { background: var(--crit); }
+
+/* Sync modal */
+.sync-info { padding: 24px; font-size: 14px; color: var(--fg-dim); line-height: 1.6; }
+.sync-token {
+  margin: 14px 0;
+  padding: 12px 14px;
+  background: var(--bg-elev-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent);
+  word-break: break-all;
+}
+.sync-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.sync-row-k { color: var(--muted); }
+.sync-row-v { color: var(--fg); }
+
+/* ============ WEEKLY VIEW ============ */
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--panel-raised);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+}
+.week-nav button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fg-dim);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  transition: all 0.14s var(--ease);
+}
+.week-nav button:hover { border-color: var(--accent); color: var(--accent); }
+.week-nav-label {
+  font-size: 13px;
+  color: var(--fg);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.week-nav-label .sub { color: var(--muted); font-weight: 400; margin-left: 6px; font-size: 11px; }
+
+.week-body { padding: 20px 24px; max-height: 68vh; overflow-y: auto; }
+
+.week-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.week-kpi {
+  background: var(--panel-raised);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 14px 10px;
+  text-align: center;
+  transition: border-color 0.14s var(--ease);
+}
+.week-kpi:hover { border-color: var(--border-strong); }
+.week-kpi-val {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.week-kpi-val.good { color: var(--good); }
+.week-kpi-val.warn { color: var(--warn); }
+.week-kpi-val.crit { color: var(--crit); }
+.week-kpi-val.accent { color: var(--accent); }
+.week-kpi-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.week-section-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 22px 0 10px;
+}
+
+.week-heatmap {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.week-heat-cell {
+  background: var(--panel-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 8px;
+  text-align: center;
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color 0.14s var(--ease);
+}
+.week-heat-cell:hover { border-color: var(--border-strong); }
+.week-heat-cell.today { border-color: var(--accent); }
+.week-heat-cell.future { opacity: 0.4; }
+.week-heat-day {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.week-heat-date {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--faint);
+}
+.week-heat-count {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.week-heat-count.zero { color: var(--faint); }
+.week-heat-dots {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  min-height: 7px;
+}
+.week-heat-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--border);
+}
+.week-heat-dot.v-green { background: var(--good); }
+.week-heat-dot.v-yellow { background: var(--warn); }
+.week-heat-dot.v-red { background: var(--crit); }
+
+.week-pattern-list { display: grid; gap: 5px; }
+.week-pattern-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 32px;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  background: var(--panel-raised);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.week-pattern-name { color: var(--fg-dim); letter-spacing: 0.02em; }
+.week-pattern-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.week-pattern-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+  border-radius: 3px;
+  transition: width 0.5s var(--ease);
+}
+.week-pattern-count {
+  color: var(--accent);
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.week-day-group { margin-bottom: 14px; }
+.week-day-header {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.week-problem-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--panel-raised);
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.week-problem-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.week-problem-dot.v-green { background: var(--good); }
+.week-problem-dot.v-yellow { background: var(--warn); }
+.week-problem-dot.v-red { background: var(--crit); }
+.week-problem-name { flex: 1; color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.week-problem-time { color: var(--muted); font-size: 11px; flex-shrink: 0; }
+
+.week-mock-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--panel-raised);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.week-mock-score {
+  color: var(--accent);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.week-insight {
+  margin-top: 20px;
+  padding: 14px 16px;
+  background: var(--accent-wash);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--fg-dim);
+  line-height: 1.5;
+}
+
+.week-empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--muted);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 15px;
+}
+
+@media (max-width: 540px) {
+  .week-kpi-row { grid-template-columns: repeat(3, 1fr); }
+  .week-heatmap { gap: 4px; }
+  .week-heat-cell { padding: 8px 4px; min-height: 60px; }
+  .week-pattern-row { grid-template-columns: 90px 1fr 28px; }
+}
+
+/* ============ SESSION SUMMARY ============ */
+/* Replaces the walkthrough body + tabs when the timer hits zero. Self-review beat before verdict. */
+.session-summary {
+  padding: 28px 24px 20px;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: summary-in 0.4s var(--ease);
+  background: linear-gradient(180deg, var(--panel) 0%, var(--panel-raised) 100%);
+}
+@keyframes summary-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.summary-head {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.summary-ring {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  flex-shrink: 0;
+}
+.summary-ring svg { display: block; }
+.summary-ring .ring-bg { fill: none; stroke: var(--border); stroke-width: 5; }
+.summary-ring .ring-fg { fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round; }
+.summary-ring .ring-fg.over { stroke: var(--crit); }
+.summary-ring-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+.summary-ring-label .pct {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+.summary-ring-label .pct.over { color: var(--crit); }
+.summary-ring-label .lbl {
+  font-size: 8px;
+  color: var(--muted);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+.summary-head-text { min-width: 0; }
+.summary-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.summary-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  margin: 0 0 6px;
+  line-height: 1.1;
+}
+.summary-elapsed {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--fg-dim);
+  letter-spacing: 0.04em;
+}
+.summary-elapsed .over { color: var(--crit); font-weight: 600; }
+
+.summary-checklist-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.summary-checklist {
+  display: grid;
+  gap: 6px;
+}
+.summary-check-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--panel-raised);
+  border: 1px solid transparent;
+  border-left: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.14s var(--ease);
+  font-size: 13px;
+  color: var(--fg-dim);
+  user-select: none;
+}
+.summary-check-row:hover { border-color: var(--accent-dim); color: var(--fg); }
+.summary-check-row.checked {
+  background: var(--accent-wash);
+  border-left-color: var(--accent);
+  color: var(--fg);
+}
+.summary-check-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1.5px solid var(--border-strong);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  font-size: 11px;
+  font-weight: 700;
+  transition: all 0.14s var(--ease);
+  font-family: var(--font-mono);
+}
+.summary-check-row.checked .summary-check-box {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.summary-check-row.checked .summary-check-box::after { content: '✓'; }
+
+.summary-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+.summary-extend-group { display: flex; gap: 6px; flex: 1; min-width: 180px; }
+.summary-extend-group button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fg-dim);
+  padding: 9px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.14s var(--ease);
+  flex: 1;
+}
+.summary-extend-group button:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-wash); }
+.summary-dismiss {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 9px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.14s var(--ease);
+}
+.summary-dismiss:hover { border-color: var(--fg-dim); color: var(--fg); }
+
+/* When summary is on, dim the regular timer bar */
+body.summary-on .wt-tabs, body.summary-on .wt-body { display: none; }
+body.summary-on .modal-foot { background: var(--panel); }
+body.summary-on .timer-bar { opacity: 0.42; pointer-events: none; }
+
+/* ============ FOCUS MODE ============ */
+/* Engages on timer start — dims modal chrome, enlarges timer, deepens backdrop blur. */
+body.focus-on .modal-backdrop {
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+body.focus-on .modal {
+  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.6), 0 0 60px rgba(0, 229, 255, 0.08);
+  border-color: var(--accent-dim);
+}
+body.focus-on .modal-head {
+  padding-bottom: 12px;
+}
+body.focus-on .modal-tag,
+body.focus-on .modal-meta,
+body.focus-on .modal-close,
+body.focus-on .verdict-label,
+body.focus-on .verdict-btn kbd {
+  opacity: 0.25;
+  transition: opacity 0.3s var(--ease);
+}
+body.focus-on .wt-tabs { opacity: 0.42; transition: opacity 0.3s var(--ease); }
+body.focus-on .wt-tabs:hover { opacity: 1; }
+body.focus-on .timer-bar {
+  padding: 22px 24px;
+  background: var(--bg-elev-1);
+}
+body.focus-on .timer-ring-wrap {
+  transform: scale(1.28);
+  margin-right: 16px;
+  transition: transform 0.4s var(--ease);
+}
+body.focus-on .timer-ring-fg { stroke-width: 5; }
+body.focus-on .wt-body {
+  padding: 28px 24px 24px;
+  max-height: 48vh;
+}
+body.focus-on .mode-banner, body.focus-on .toast-stack { opacity: 0.6; }
+
+.focus-badge {
+  position: fixed;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  left: 16px;
+  z-index: 150;
+  background: var(--accent);
+  color: #000;
+  padding: 7px 13px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 0 28px rgba(0, 229, 255, 0.5), 0 2px 10px rgba(0,0,0,0.4);
+  animation: focus-pulse 2.6s ease-in-out infinite;
+  cursor: pointer;
+  user-select: none;
+}
+@keyframes focus-pulse {
+  0%, 100% { box-shadow: 0 0 28px rgba(0, 229, 255, 0.5), 0 2px 10px rgba(0,0,0,0.4); }
+  50%      { box-shadow: 0 0 44px rgba(0, 229, 255, 0.75), 0 2px 10px rgba(0,0,0,0.4); }
+}
+body.focus-on .focus-badge { display: inline-flex; }
+.focus-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #000;
+  animation: dot-blink 1.4s ease-in-out infinite;
+}
+@keyframes dot-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+.focus-badge kbd {
+  background: rgba(0, 0, 0, 0.22);
+  color: #000;
+  padding: 1px 6px;
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+/* Toasts */
+.toast-stack {
+  position: fixed;
+  top: calc(16px + env(safe-area-inset-top, 0px));
+  right: 16px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+  max-width: 90vw;
+}
+.toast {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--accent);
+  color: var(--fg);
+  padding: 11px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  box-shadow: var(--shadow-md);
+  animation: toast-in 0.26s var(--ease), toast-out 0.3s var(--ease) 2.5s forwards;
+  pointer-events: auto;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+.toast.good { border-left-color: var(--good); }
+.toast.warn { border-left-color: var(--warn); }
+.toast.crit { border-left-color: var(--crit); }
+@keyframes toast-in { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes toast-out { to { opacity: 0; transform: translateX(16px); } }
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* Focus */
+button:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .brand-ring { width: 46px; height: 46px; }
+  .brand-mark { font-size: 20px; }
+  .today-day { font-size: 32px; }
+  .modal-title { font-size: 22px; }
+  .modal-head, .timer-bar, .wt-body, .modal-foot { padding-left: 18px; padding-right: 18px; }
+  .wt-tabs { padding: 0 18px; }
+  .stat { align-items: flex-start; }
+  .hero-stats { gap: 16px; }
+  .verdict-btn { min-width: 70px; font-size: 11px; padding: 10px 8px; }
+  .verdict-btn kbd { display: none; }
+}
+</style>
+
+</head>
+<body>
+<!-- Prep-app cross-nav. When this page is loaded standalone (default), show
+     a small floating link back to the Prep app so the two sides feel like
+     one tool. When embedded inside the Prep app's /dsa iframe (query
+     ?embed=1), hide the chip — the iframe's parent already provides
+     navigation and a duplicate chip would look like a bug. -->
+<a id="prep-chip" href="https://app-swart-xi-33.vercel.app/" rel="noopener"
+   style="position:fixed;top:12px;right:12px;z-index:999;font:600 11px/1 'IBM Plex Mono','Menlo',monospace;
+          color:#f5f2ec;background:rgba(10,9,8,.72);backdrop-filter:blur(8px);
+          border:1px solid #3a3430;border-radius:999px;padding:7px 11px;
+          text-decoration:none;letter-spacing:.08em;text-transform:uppercase;
+          box-shadow:0 2px 8px rgba(0,0,0,.3);transition:transform .15s ease, border-color .15s ease;">
+  Prep ↗
+</a>
+<script>
+  // Hide the chip when embedded (iframe loads ?embed=1 or runs inside a
+  // same-ancestor frame). This is purely cosmetic; the chip never ships
+  // data anywhere.
+  (function () {
+    try {
+      var embedded = /[?&]embed=1(&|$)/.test(location.search) || window.top !== window.self;
+      if (embedded) document.getElementById('prep-chip').style.display = 'none';
+    } catch (e) {
+      /* top-access blocked by sandbox — treat as embedded */
+      var el = document.getElementById('prep-chip');
+      if (el) el.style.display = 'none';
+    }
+  })();
+</script>
+<div class="hero">
+  <div class="hero-row">
+    <div class="brand">
+      <div class="brand-ring" id="brand-ring">
+        <svg viewBox="0 0 54 54" width="54" height="54">
+          <defs>
+            <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="var(--accent-dim)"/>
+              <stop offset="100%" stop-color="var(--accent)"/>
+            </linearGradient>
+          </defs>
+          <circle class="ring-bg" cx="27" cy="27" r="24"/>
+          <circle class="ring-fg" cx="27" cy="27" r="24" transform="rotate(-90 27 27)"
+                  stroke-dasharray="150.8" stroke-dashoffset="150.8" id="ring-fg"/>
+        </svg>
+        <div class="brand-ring-label">
+          <span class="n" id="ring-day">1</span>
+          <span class="d">/150</span>
+        </div>
+      </div>
+      <div class="brand-text">
+        <div class="brand-mark">dsa<em>·native</em></div>
+        <div class="brand-sub">patterns · walkthroughs · templates · complexity</div>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-k">streak</div>
+        <div class="stat-v">
+          <svg class="streak-flame" id="streak-flame" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2s4 4 4 8-2 6-4 6-4-2-4-6 4-8 4-8zm0 10c1 0 2 1 2 3 0 2-1 3-2 3s-2-1-2-3c0-2 1-3 2-3z"/>
+          </svg>
+          <span id="stat-streak">0</span><span class="unit">d</span>
+        </div>
+      </div>
+      <div class="stat">
+        <div class="stat-k">solved</div>
+        <div class="stat-v"><span id="stat-solved">0</span><span class="sync-dot" id="sync-dot" title="Sync status (click for details)"></span></div>
+      </div>
+      <div class="hero-controls">
+        <button class="icon-btn" id="btn-mode" title="Maintenance / Full mode (M)">M</button>
+        <button class="icon-btn" id="btn-theme" title="Toggle theme (T)">◐</button>
+        <button class="icon-btn" id="btn-help" title="Keyboard shortcuts (?)">?</button>
+      </div>
+    </div>
+  </div>
+  <div class="ribbon-wrap">
+    <div class="ribbon"><div class="ribbon-fill" id="ribbon-fill"></div></div>
+    <div class="ribbon-labels">
+      <span>oct 06 · start</span>
+      <span id="ribbon-mid">foundations</span>
+      <span>may 10 · loop-ready</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="mode-banner" class="mode-banner" hidden></div>
+
+  <div class="grid">
+    <div>
+      <section class="card hero-card">
+        <div class="today-head">
+          <div class="today-head-main">
+            <div class="today-day">Day <em id="today-num">1</em> <span style="color:var(--muted); font-size:0.65em;">·</span> <span id="today-pattern-main" style="font-size:0.6em; color:var(--fg-dim); font-weight:400;">arrays</span></div>
+            <div class="today-sub" id="today-sub">6 problems · 90 min full · 15 min maintenance</div>
+            <div class="today-progress" id="today-progress-wrap" hidden>
+              <span id="today-progress-text">0 of 0</span>
+              <div class="today-progress-bar"><div class="today-progress-fill" id="today-progress-fill"></div></div>
+            </div>
+          </div>
+          <button class="icon-btn" id="btn-advance" title="Next day">next&nbsp;›</button>
+        </div>
+        <ul class="problem-list" id="today-list"></ul>
+        <div class="mini-actions">
+          <button class="mini-btn" id="btn-mock">launch 60-min mock</button>
+          <button class="mini-btn" id="btn-weekly">this week</button>
+          <button class="mini-btn" id="btn-library">library · 40 workflows</button>
+          <button class="mini-btn" id="btn-view-roadmap">150-day map</button>
+          <button class="mini-btn" id="btn-export">export log</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-title">
+          <span class="label-left">spaced repetition queue</span>
+          <span class="count" id="srs-count">0</span>
+        </div>
+        <ul class="problem-list" id="srs-list"></ul>
+      </section>
+
+      <section class="card">
+        <div class="card-title">
+          <span class="label-left">code templates · reusable skeletons</span>
+          <span class="count" id="tpl-count">0/10</span>
+        </div>
+        <div class="tpl-head">
+          <div class="tpl-title" id="tpl-title">—</div>
+          <div class="tpl-when" id="tpl-when"></div>
+        </div>
+        <div class="code-lang-nav" id="tpl-lang-nav">
+          <button class="active" data-l="python">Python</button>
+          <button data-l="java">Java</button>
+        </div>
+        <div class="code-block">
+          <button class="copy-btn" id="tpl-copy">copy</button>
+          <pre id="tpl-code"></pre>
+        </div>
+        <div class="chip-nav" id="tpl-nav"></div>
+      </section>
+    </div>
+
+    <div>
+      <section class="card">
+        <div class="card-title">
+          <span class="label-left">pattern coverage</span>
+          <span class="count" id="coverage-total">0</span>
+        </div>
+        <div class="pattern-grid" id="pattern-grid"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-title">
+          <span class="label-left">pattern decision tree · <em style="font-style:italic; color:var(--accent); text-transform:none; letter-spacing:0;">what do I reach for?</em></span>
+          <span class="count" id="dt-count">1/18</span>
+        </div>
+        <div class="dt-clue" id="dt-clue">—</div>
+        <div class="dt-arrow">↓</div>
+        <div class="dt-answer" id="dt-answer">—</div>
+        <div class="dt-why" id="dt-why"></div>
+        <div class="dt-nav">
+          <button id="dt-prev">◂ prev</button>
+          <button id="dt-rand">random</button>
+          <button id="dt-next">next ▸</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-title">
+          <span class="label-left">ai-native primitive</span>
+          <span class="count" id="prim-count">1/8</span>
+        </div>
+        <div class="primitive-head">
+          <div class="primitive-title" id="prim-title">—</div>
+          <div class="primitive-interview" id="prim-interview"></div>
+        </div>
+        <p class="primitive-note" id="prim-note"></p>
+        <div class="code-block">
+          <button class="copy-btn" id="prim-copy">copy</button>
+          <pre id="prim-code"></pre>
+        </div>
+        <div class="chip-nav" id="prim-nav"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-title">complexity cheatsheet · state these unprompted</div>
+        <div class="complexity-grid" id="complexity-grid"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-title">difficulty breakdown · solved</div>
+        <div class="diff-grid">
+          <div class="diff-cell">
+            <div class="diff-label good">easy</div>
+            <div class="diff-count" id="diff-easy">0</div>
+          </div>
+          <div class="diff-cell">
+            <div class="diff-label warn">medium</div>
+            <div class="diff-count" id="diff-medium">0</div>
+          </div>
+          <div class="diff-cell">
+            <div class="diff-label crit">hard</div>
+            <div class="diff-count" id="diff-hard">0</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- Walkthrough modal -->
+<div class="modal-backdrop" id="wt-modal" hidden>
+  <div class="modal" role="dialog" aria-labelledby="wt-title" aria-modal="true">
+    <div class="modal-head">
+      <div class="modal-title-wrap">
+        <div class="modal-tag" id="wt-tag">LC · pattern · day</div>
+        <h2 class="modal-title" id="wt-title">—</h2>
+        <div class="modal-meta" id="wt-meta"></div>
+      </div>
+      <button class="modal-close" id="wt-close" aria-label="Close">✕</button>
+    </div>
+
+    <div class="timer-bar">
+      <div class="timer-ring-wrap">
+        <svg viewBox="0 0 72 72" width="72" height="72">
+          <circle class="timer-ring-bg" cx="36" cy="36" r="32"/>
+          <circle class="timer-ring-fg" id="timer-ring" cx="36" cy="36" r="32"
+                  transform="rotate(-90 36 36)" stroke-dasharray="201.06" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-display" id="timer-disp">15:00</div>
+      </div>
+      <div class="timer-info">
+        <div class="timer-info-label">time-box</div>
+        <div class="timer-controls">
+          <button class="timer-btn active" data-min="15">15m</button>
+          <button class="timer-btn" data-min="25">25m</button>
+          <button class="timer-btn" data-min="45">45m</button>
+          <button class="timer-btn start" id="timer-start">start <kbd style="font-size:9px;opacity:0.6;margin-left:4px;">␣</kbd></button>
+          <button class="timer-btn stop" id="timer-stop">reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="wt-tabs" id="wt-tabs"></div>
+    <div class="wt-body" id="wt-body"></div>
+
+    <div class="session-summary" id="session-summary" hidden>
+      <div class="summary-head">
+        <div class="summary-ring">
+          <svg viewBox="0 0 90 90" width="90" height="90">
+            <circle class="ring-bg" cx="45" cy="45" r="40"/>
+            <circle class="ring-fg" id="summary-ring-fg" cx="45" cy="45" r="40"
+                    transform="rotate(-90 45 45)" stroke-dasharray="251.33" stroke-dashoffset="0"/>
+          </svg>
+          <div class="summary-ring-label">
+            <span class="pct" id="summary-pct">100%</span>
+            <span class="lbl">elapsed</span>
+          </div>
+        </div>
+        <div class="summary-head-text">
+          <div class="summary-tag">time's up · self-review</div>
+          <h3 class="summary-title" id="summary-title">—</h3>
+          <div class="summary-elapsed" id="summary-elapsed">—</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="summary-checklist-title">did you cover</div>
+        <div class="summary-checklist" id="summary-checklist"></div>
+      </div>
+
+      <div class="summary-actions">
+        <div class="summary-extend-group">
+          <button data-ext="5">+5 min</button>
+          <button data-ext="10">+10 min</button>
+          <button data-ext="15">+15 min</button>
+        </div>
+        <button class="summary-dismiss" id="summary-dismiss">back to problem</button>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <span class="verdict-label">log &amp; close:</span>
+      <button class="verdict-btn green" data-v="green">🟢 solved <kbd>G</kbd></button>
+      <button class="verdict-btn yellow" data-v="yellow">🟡 needed help <kbd>Y</kbd></button>
+      <button class="verdict-btn red" data-v="red">🔴 missed <kbd>R</kbd></button>
+    </div>
+  </div>
+</div>
+
+<!-- Mock modal -->
+<div class="modal-backdrop" id="mock-modal" hidden>
+  <div class="modal" style="max-width:580px;" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div class="modal-title-wrap">
+        <div class="modal-tag">60-minute mock · score 0–25</div>
+        <h2 class="modal-title">Rate the pass</h2>
+        <div class="modal-meta">Target 4+/5 by Full-Mode week 6 · 5/5 by week 10.</div>
+      </div>
+      <button class="modal-close" id="mock-close" aria-label="Close">✕</button>
+    </div>
+    <div style="padding:24px;">
+      <div class="mock-scores" id="mock-scores"></div>
+      <div style="margin-top:24px; display:flex; gap:12px; align-items:center;">
+        <div style="flex:1; font-family:var(--font-mono); font-size:14px; color:var(--muted);">
+          total <span id="mock-total" style="color:var(--accent); font-weight:600; font-size:22px;">0</span> <span style="color:var(--faint);">/ 25</span>
+        </div>
+        <button class="mini-btn" id="mock-save" style="border-color:var(--accent); color:var(--accent);">save mock</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Roadmap modal -->
+<div class="modal-backdrop" id="roadmap-modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div class="modal-title-wrap">
+        <div class="modal-tag">150-day map · varyani + ai-native overlay</div>
+        <h2 class="modal-title">The road</h2>
+        <div class="modal-meta">⚡ ai-native · ✅ you've walked it · 🔵 design · 🟣 revision</div>
+      </div>
+      <button class="modal-close" id="roadmap-close" aria-label="Close">✕</button>
+    </div>
+    <div style="padding:16px 24px; max-height:70vh; overflow-y:auto;" id="roadmap-body"></div>
+  </div>
+</div>
+
+<!-- Library modal -->
+<div class="modal-backdrop" id="library-modal" hidden>
+  <div class="modal" style="max-width: 1040px;" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div class="modal-title-wrap">
+        <div class="modal-tag">library · workflows baked from your prep folders</div>
+        <h2 class="modal-title">Library</h2>
+        <div class="modal-meta" id="library-meta">—</div>
+      </div>
+      <button class="modal-close" id="library-close" aria-label="Close">✕</button>
+    </div>
+    <div class="lib-shell">
+      <div class="lib-sidebar">
+        <input type="text" class="lib-search" id="library-search" placeholder="filter workflows…" aria-label="Filter workflows">
+        <div id="library-list"></div>
+      </div>
+      <div class="lib-content" id="library-content">
+        <div class="lib-empty">Loading workflows…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sync modal -->
+<div class="modal-backdrop" id="sync-modal" hidden>
+  <div class="modal" style="max-width: 520px;" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div class="modal-title-wrap">
+        <div class="modal-tag">cross-device sync</div>
+        <h2 class="modal-title">Sync</h2>
+        <div class="modal-meta">Your log syncs to Vercel KV via a token kept in this browser.</div>
+      </div>
+      <button class="modal-close" id="sync-close" aria-label="Close">✕</button>
+    </div>
+    <div class="sync-info">
+      <div class="sync-row"><span class="sync-row-k">status</span><span class="sync-row-v" id="sync-status">—</span></div>
+      <div class="sync-row"><span class="sync-row-k">last synced</span><span class="sync-row-v" id="sync-last">—</span></div>
+      <div class="sync-row" style="border-bottom:none;"><span class="sync-row-k">entries</span><span class="sync-row-v" id="sync-entries">—</span></div>
+      <div style="margin-top: 14px; font-size: 12px; color: var(--muted);">your sync token · copy to another device to continue the streak there</div>
+      <div class="sync-token" id="sync-token">—</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="mini-btn" id="sync-copy">copy token</button>
+        <button class="mini-btn" id="sync-restore">restore from token</button>
+        <button class="mini-btn" id="sync-pull" style="border-color:var(--accent); color:var(--accent);">pull remote</button>
+        <button class="mini-btn" id="sync-push" style="border-color:var(--accent); color:var(--accent);">push now</button>
+      </div>
+      <div style="margin-top:14px; font-size:11px; color:var(--muted); line-height:1.5;">no account · no email · deleting your browser data without copying this token loses your remote log.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Weekly modal -->
+<div class="modal-backdrop" id="weekly-modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div class="modal-title-wrap">
+        <div class="modal-tag">weekly summary</div>
+        <h2 class="modal-title" id="weekly-title">Week of —</h2>
+        <div class="modal-meta" id="weekly-meta"></div>
+      </div>
+      <button class="modal-close" id="weekly-close" aria-label="Close">✕</button>
+    </div>
+    <div class="week-nav">
+      <button id="weekly-prev">◂ prev week</button>
+      <div class="week-nav-label" id="weekly-range">—</div>
+      <button id="weekly-next">next week ▸</button>
+    </div>
+    <div class="week-body" id="weekly-body"></div>
+  </div>
+</div>
+
+<!-- Help modal -->
+<div class="modal-backdrop" id="help-modal" hidden>
+  <div class="modal" style="max-width:540px;" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div class="modal-title-wrap">
+        <div class="modal-tag">keyboard</div>
+        <h2 class="modal-title">Shortcuts</h2>
+        <div class="modal-meta">Operate without the mouse. Hit <kbd style="background:var(--panel-raised); padding:1px 5px; border-radius:2px; font-family:var(--font-mono);">esc</kbd> to close anything.</div>
+      </div>
+      <button class="modal-close" id="help-close" aria-label="Close">✕</button>
+    </div>
+    <div style="padding:16px 24px 24px;">
+      <div class="help-grid">
+        <div class="help-row"><div class="help-row-desc">Open problem 1-9 from today's queue</div><div class="help-keys"><kbd>1</kbd>–<kbd>9</kbd></div></div>
+        <div class="help-row"><div class="help-row-desc">Cycle today's problems</div><div class="help-keys"><kbd>J</kbd><kbd>K</kbd></div></div>
+        <div class="help-row"><div class="help-row-desc">Open focused problem</div><div class="help-keys"><kbd>↵</kbd></div></div>
+        <div class="help-row"><div class="help-row-desc">Start / pause timer (in modal)</div><div class="help-keys"><kbd>Space</kbd></div></div>
+        <div class="help-row"><div class="help-row-desc">Focus mode (auto on timer start · <kbd style="font-family:inherit;background:var(--panel-raised);padding:1px 4px;border-radius:2px;">F</kbd> to toggle)</div><div class="help-keys"><kbd>F</kbd></div></div>
+        <div class="help-row"><div class="help-row-desc">Verdict · solved / needed-help / missed</div><div class="help-keys"><kbd>G</kbd><kbd>Y</kbd><kbd>R</kbd></div></div>
+        <div class="help-row"><div class="help-row-desc">Decision tree · prev / next / random</div><div class="help-keys"><kbd>[</kbd><kbd>]</kbd><kbd>?</kbd></div></div>
+        <div class="help-row"><div class="help-row-desc">Toggle theme</div><div class="help-keys"><kbd>T</kbd></div></div>
+        <div class="help-row"><div class="help-row-desc">Toggle maintenance / full mode</div><div class="help-keys"><kbd>M</kbd></div></div>
+        <div class="help-row"><div class="help-row-desc">Open 150-day map</div><div class="help-keys"><kbd>⇧</kbd><kbd>M</kbd></div></div>
+        <div class="help-row"><div class="help-row-desc">Weekly summary</div><div class="help-keys"><kbd>W</kbd></div></div>
+        <div class="help-row"><div class="help-row-desc">Open library (baked workflow content)</div><div class="help-keys"><kbd>L</kbd></div></div>
+        <div class="help-row"><div class="help-row-desc">Sync status (click the dot in the hero)</div><div class="help-keys"><kbd>·</kbd></div></div>
+        <div class="help-row"><div class="help-row-desc">Help</div><div class="help-keys"><kbd>⇧</kbd><kbd>?</kbd></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="focus-badge" id="focus-badge" title="Exit focus mode (F)"><span class="focus-badge-dot"></span>focus<kbd>F</kbd></div>
+<div class="toast-stack" id="toast-stack"></div>
+
+<script>
+'use strict';
+
+/* ============ CONSTANTS ============ */
+const START_DATE = new Date('2026-10-06T06:00:00Z');
+const FULL_MODE_START = new Date('2026-12-11T06:00:00Z');
+const MS_DAY = 86400000;
+
+/* ============ ROADMAP ============ */
+const ROADMAP = {
+  1: { p: 'arrays', q: [[1,'Two Sum','ai'],[121,'Best Time to Buy and Sell Stock'],[169,'Majority Element'],[283,'Move Zeroes'],[977,'Squares of a Sorted Array'],[88,'Merge Sorted Array']] },
+  2: { p: 'arrays', q: [[26,'Remove Duplicates from Sorted Array'],[80,'Remove Duplicates II'],[448,'Find All Numbers Disappeared'],[349,'Intersection of Two Arrays'],[350,'Intersection II'],[1854,'Max Population Year'],[724,'Find Pivot Index']] },
+  3: { p: 'arrays', q: [[1480,'Running Sum of 1d Array'],[27,'Remove Element'],[1275,'Find Winner Tic Tac Toe'],[1920,'Build Array from Permutation'],[414,'Third Maximum Number'],[941,'Valid Mountain Array']] },
+  4: { p: 'arrays-prefix', q: [[1002,'Find Common Characters'],[1588,'Sum of All Odd Length Subarrays'],[303,'Range Sum Query — Immutable','ai'],[1470,'Shuffle the Array'],[485,'Max Consecutive Ones'],[905,'Sort Array By Parity']] },
+  5: { p: 'linked-lists', q: [[206,'Reverse Linked List'],[203,'Remove Linked List Elements'],[83,'Remove Duplicates from Sorted List'],[21,'Merge Two Sorted Lists'],[876,'Middle of the Linked List'],[234,'Palindrome Linked List']] },
+  6: { p: 'stacks', q: [[160,'Intersection of Two LLs'],[141,'Linked List Cycle'],[20,'Valid Parentheses'],[232,'Implement Queue using Stacks'],[844,'Backspace String Compare'],[496,'Next Greater Element I','ai']] },
+  7: { p: 'design', kind: 'design', q: [[0,'Design a Rate Limiter · SD','ai'],[0,'Design a Library Management System · OOD']] },
+  8: { p: 'trees', q: [[144,'Binary Tree Preorder'],[94,'Inorder Traversal'],[145,'Postorder Traversal'],[104,'Max Depth of Binary Tree'],[226,'Invert Binary Tree'],[101,'Symmetric Tree']] },
+  9: { p: 'trees', q: [[572,'Subtree of Another Tree'],[543,'Diameter of Binary Tree'],[110,'Balanced Binary Tree'],[617,'Merge Two Binary Trees'],[100,'Same Tree']] },
+  10: { p: 'trees', q: [[112,'Path Sum'],[257,'Binary Tree Paths'],[993,'Cousins in Binary Tree'],[108,'Convert Sorted Array to BST'],[938,'Range Sum of BST']] },
+  11: { p: 'strings', q: [[125,'Valid Palindrome'],[680,'Valid Palindrome II'],[409,'Longest Palindrome'],[14,'Longest Common Prefix'],[242,'Valid Anagram','ai'],[387,'First Unique Character']] },
+  12: { p: 'strings', q: [[392,'Is Subsequence'],[344,'Reverse String'],[541,'Reverse String II'],[557,'Reverse Words III'],[205,'Isomorphic Strings'],[1047,'Remove All Adjacent Duplicates']] },
+  13: { p: 'strings', q: [[1108,'Defanging IP Address'],[917,'Reverse Only Letters'],[345,'Reverse Vowels'],[58,'Length of Last Word'],[415,'Add Strings'],[412,'Fizz Buzz']] },
+  14: { p: 'design', kind: 'design', q: [[0,'Design Consistent Hashing · SD','ai'],[0,'Design a Parking Lot · OOD']] },
+  15: { p: 'revision', kind: 'revision', q: [[0,'Revise days 1–14']] },
+  16: { p: 'numbers', q: [[13,'Roman to Integer'],[9,'Palindrome Number'],[202,'Happy Number'],[231,'Power of Two'],[69,'Sqrt(x)'],[66,'Plus One']] },
+  17: { p: 'numbers', q: [[1523,'Count Odd Numbers in Interval'],[836,'Rectangle Overlap'],[258,'Add Digits'],[628,'Max Product of Three'],[171,'Excel Sheet Column Number']] },
+  18: { p: 'bits', q: [[67,'Add Binary'],[338,'Counting Bits'],[191,'Number of 1 Bits'],[136,'Single Number'],[268,'Missing Number'],[190,'Reverse Bits'],[461,'Hamming Distance']] },
+  19: { p: 'binary-search', q: [[704,'Binary Search'],[35,'Search Insert Position'],[278,'First Bad Version','ai'],[367,'Valid Perfect Square'],[1539,'Kth Missing Positive'],[703,'Kth Largest Element in a Stream','ai']] },
+  20: { p: 'hashing', q: [[706,'Design HashMap'],[383,'Ransom Note'],[217,'Contains Duplicate'],[219,'Contains Duplicate II'],[771,'Jewels and Stones'],[1207,'Unique Number of Occurrences']] },
+  36: { p: 'sliding-window', q: [[3,'Longest Substring Without Repeating Characters','ai'],[209,'Minimum Size Subarray Sum','ai'],[424,'Longest Repeating Character Replacement','ai'],[438,'Find All Anagrams'],[567,'Permutation in String']] },
+  37: { p: 'sliding-window', q: [[76,'Minimum Window Substring','ai'],[1004,'Max Consecutive Ones III'],[1358,'Number of Substrings With Three Distinct Characters'],[395,'Longest Substring with At Least K Repeating']] },
+  43: { p: 'heap', q: [[215,'Kth Largest Element in Array'],[347,'Top K Frequent Elements','ai'],[692,'Top K Frequent Words'],[973,'K Closest Points to Origin','ai']] },
+  44: { p: 'design', q: [[146,'LRU Cache','ai'],[460,'LFU Cache','ai']] },
+  52: { p: 'dp', q: [[91,'Decode Ways','ai'],[139,'Word Break','ai'],[322,'Coin Change'],[518,'Coin Change II']] },
+  54: { p: 'dp', q: [[72,'Edit Distance','ai'],[221,'Maximal Square'],[64,'Minimum Path Sum']] },
+  55: { p: 'binary-search', q: [[33,'Search in Rotated Sorted Array'],[81,'Search in Rotated Sorted Array II'],[981,'Time Based Key-Value Store','ai'],[153,'Find Minimum in Rotated Sorted Array']] },
+  57: { p: 'binary-search', q: [[162,'Find Peak Element','ai'],[1011,'Capacity to Ship Packages Within D Days','ai'],[875,'Koko Eating Bananas','ai'],[852,'Peak Index in Mountain Array']] },
+  63: { p: 'graphs', q: [[200,'Number of Islands'],[542,'01 Matrix'],[133,'Clone Graph'],[994,'Rotting Oranges']] },
+  64: { p: 'graphs', q: [[207,'Course Schedule'],[210,'Course Schedule II','ai'],[721,'Accounts Merge','ai'],[79,'Word Search']] },
+  65: { p: 'graphs', q: [[310,'Minimum Height Trees'],[417,'Pacific Atlantic Water Flow'],[787,'Cheapest Flights Within K Stops','ai'],[695,'Max Area of Island']] },
+  66: { p: 'graphs', q: [[399,'Evaluate Division','ai'],[547,'Number of Provinces'],[130,'Surrounded Regions'],[743,'Network Delay Time','ai']] },
+  67: { p: 'design', kind: 'design', q: [[0,'Design A Notification System · SD','ai'],[0,'Design a Hotel Management System · OOD']] },
+  107: { p: 'heap', q: [[895,'Maximum Frequency Stack','ai'],[218,'The Skyline Problem'],[76,'Minimum Window Substring','ai']] },
+  111: { p: 'graphs', q: [[127,'Word Ladder','ai'],[126,'Word Ladder II','ai'],[329,'Longest Increasing Path in a Matrix']] },
+  112: { p: 'design', kind: 'design', q: [[0,'Design Twitter · SD','ai'],[0,'Design Facebook · SD + OOD']] },
+  113: { p: 'graphs', q: [[212,'Word Search II','ai'],[815,'Bus Routes'],[1192,'Critical Connections in a Network']] },
+  115: { p: 'heap', q: [[23,'Merge k Sorted Lists','ai'],[295,'Find Median from Data Stream'],[632,'Smallest Range Covering Elements from K Lists']] },
+  117: { p: 'backtracking', q: [[51,'N-Queens'],[60,'Permutation Sequence'],[37,'Sudoku Solver'],[132,'Palindrome Partitioning II']] },
+  119: { p: 'design', kind: 'design', q: [[0,'Proximity Service · SD','ai'],[0,'Design Cricinfo · OOD']] },
+  131: { p: 'design', kind: 'design', q: [[0,'Payment System · SD','ai'],[0,'Digital Wallet · SD','ai']] },
+  134: { p: 'design', kind: 'design', q: [[0,'Design Uber backend · SD','ai'],[0,'Design Ticketmaster · SD + OOD']] },
+};
+function expandRoadmap() {
+  const bands = [
+    [21, 29, 'arrays-mix'], [30, 30, 'revision'], [31, 42, 'intermediate'],
+    [45, 45, 'revision'], [46, 51, 'bfs-dfs-dp'], [53, 53, 'dp'], [56, 56, 'binary-search'],
+    [58, 59, 'matrix'], [60, 60, 'revision'], [61, 62, 'matrix'], [68, 70, 'graphs-ext'],
+    [71, 74, 'graphs-strings'], [75, 75, 'revision'], [76, 89, 'dp-advanced'],
+    [90, 90, 'revision'], [91, 104, 'strings-trees-advanced'], [105, 105, 'revision'],
+    [106, 110, 'stacks-heaps'], [114, 114, 'graphs'], [116, 118, 'backtracking-recursion'],
+    [120, 120, 'revision'], [121, 126, 'hard-mix'], [127, 127, 'behav'],
+    [128, 128, 'design'], [129, 129, 'dp'], [130, 130, 'behav'], [132, 132, 'dp-hard'],
+    [133, 133, 'behav'], [135, 135, 'revision'], [136, 150, 'full-review'],
+  ];
+  for (const [a, b, p] of bands) {
+    for (let d = a; d <= b; d++) {
+      if (!ROADMAP[d]) ROADMAP[d] = {
+        p,
+        q: [[0, `Day ${d} · ${p} practice`]],
+        kind: (p === 'revision' || p === 'full-review') ? 'revision' : (p === 'behav' ? 'behav' : (p === 'design' ? 'design' : undefined))
+      };
+    }
+  }
+}
+expandRoadmap();
+
+/* ============ DEEP WALKTHROUGHS ============ */
+const WT = {};
+function wt(lc, data) { WT[lc] = data; }
+
+wt(1, {
+  name: 'Two Sum', pattern: 'arrays-hashing', diff: 'easy', vday: 1, tag: 'ai · hash-indexing warm-up',
+  sections: {
+    clarify: `<p>Return the <em>indices</em> of the two numbers summing to target.</p><ul><li>Exactly one solution guaranteed?</li><li>Same element reused? (No — distinct indices.)</li><li>Negatives, duplicates? (Both allowed.)</li></ul>`,
+    brute: `<p>Nested loop. <code>O(n²)</code>. State it, then move on in 30s.</p>`,
+    optimal: `<p>Single pass with hash map <code>value → index</code>. For each <code>x</code>, look up <code>target - x</code>.</p><p><strong>O(n) time, O(n) space.</strong></p>`,
+    edges: `<ul><li>Duplicates: <code>[3,3], t=6</code> — insert after lookup.</li><li>Empty / single element — constraints guard but mention it.</li></ul>`,
+    example: `<pre><code>nums=[2,7,11,15], t=9
+i=0, x=2, need 7, map={}  → miss, map={2:0}
+i=1, x=7, need 2, map={2:0} → hit → return [0,1]</code></pre>`,
+    aiNative: `<p>The <strong>hash-indexing kernel</strong> under every production system: embedding cache lookup, API request dedup, feature-store joins.</p>`,
+    followUps: `<ul><li>Return all pairs → sort + two-pointer, O(n log n).</li><li>Streaming → count-min sketch for approximate recall.</li></ul>`,
+  },
+  code: {
+    java: `public int[] twoSum(int[] nums, int target) {
+  Map<Integer, Integer> seen = new HashMap<>();
+  for (int i = 0; i < nums.length; i++) {
+    int need = target - nums[i];
+    if (seen.containsKey(need)) return new int[]{seen.get(need), i};
+    seen.put(nums[i], i);
+  }
+  return new int[0];
+}`,
+    python: `def two_sum(nums, target):
+    seen = {}
+    for i, x in enumerate(nums):
+        need = target - x
+        if need in seen: return [seen[need], i]
+        seen[x] = i
+    return []`
+  }
+});
+
+wt(146, {
+  name: 'LRU Cache', pattern: 'design-lite', diff: 'medium', vday: 44, tag: 'ai ⭐ · KV-cache eviction',
+  sections: {
+    clarify: `<p>O(1) get and put. Evict least-recently-used on overflow.</p><ul><li><strong>Does <code>get</code> refresh recency?</strong> Yes.</li><li>Capacity ≥ 1 by constraint.</li></ul>`,
+    brute: `<p>Array scan — O(n) per op. Rejected.</p>`,
+    optimal: `<p><strong>HashMap + Doubly Linked List.</strong> Map keys to nodes; move hit nodes to head; evict tail on overflow.</p><p>You <em>can</em> use <code>LinkedHashMap</code>, but hand-roll — interviewer wants to see the invariant.</p><p><strong>O(1) get and put · O(capacity) space.</strong></p>`,
+    edges: `<ul><li>Repeated <code>put</code> on same key → update + bump recency, don't grow.</li><li>Capacity 1 → every put evicts.</li><li><code>get</code> absent → -1.</li></ul>`,
+    example: `<pre><code>cap=2
+put(1,1) → {1:1}
+put(2,2) → {1:1, 2:2}
+get(1)   → 1, order: [1, 2]
+put(3,3) → evict 2 → {1:1, 3:3}
+get(2)   → -1</code></pre>`,
+    aiNative: `<p>The crown jewel of AI-infra questions. <strong>vLLM, TensorRT-LLM, SGLang</strong> all do exactly this at the GPU memory layer:</p><ul><li>key = prompt-prefix hash</li><li>value = KV tensors for those tokens</li><li>eviction = LRU (LFU for stable system prompts)</li><li>sharded with consistent hashing</li></ul><p>Volunteer this unprompted — the Anthropic/OpenAI/Scale signal.</p>`,
+    followUps: `<p><strong>Expect every one:</strong></p><ul><li><strong>TTL</strong> — <code>expiresAt</code> per node; lazy-remove on get.</li><li><strong>Thread-safe</strong> — <code>ReentrantLock</code>, or stripe-shard.</li><li><strong>Sharded KV across workers</strong> — consistent hashing; mention <em>prefix caching</em>.</li><li><strong>LFU alternative</strong> — LC 460.</li><li><strong>Observability</strong> — hit rate, evictions/sec, avg entry age.</li></ul>`,
+  },
+  code: {
+    java: `class LRUCache {
+  private static class Node { int k, v; Node p, n; Node(int k, int v){this.k=k; this.v=v;} }
+  private final int cap;
+  private final Map<Integer, Node> map = new HashMap<>();
+  private final Node head = new Node(0,0), tail = new Node(0,0);
+  public LRUCache(int capacity) {
+    cap = capacity; head.n = tail; tail.p = head;
+  }
+  public int get(int k) {
+    Node x = map.get(k);
+    if (x == null) return -1;
+    unlink(x); addFirst(x);
+    return x.v;
+  }
+  public void put(int k, int v) {
+    Node x = map.get(k);
+    if (x != null) { x.v = v; unlink(x); addFirst(x); return; }
+    if (map.size() == cap) { map.remove(tail.p.k); unlink(tail.p); }
+    Node fresh = new Node(k, v);
+    addFirst(fresh); map.put(k, fresh);
+  }
+  private void addFirst(Node n) { n.n = head.n; n.p = head; head.n.p = n; head.n = n; }
+  private void unlink(Node n) { n.p.n = n.n; n.n.p = n.p; }
+}`,
+    python: `from collections import OrderedDict
+class LRUCache:
+    def __init__(self, cap):
+        self.cap = cap; self.data = OrderedDict()
+    def get(self, k):
+        if k not in self.data: return -1
+        self.data.move_to_end(k)
+        return self.data[k]
+    def put(self, k, v):
+        if k in self.data: self.data.move_to_end(k)
+        self.data[k] = v
+        if len(self.data) > self.cap: self.data.popitem(last=False)`,
+  }
+});
+
+wt(210, {
+  name: 'Course Schedule II', pattern: 'graphs-topo', diff: 'medium', vday: 64, tag: 'ai · toposort = compute-DAG scheduling',
+  sections: {
+    clarify: `<p><code>prerequisites[i]=[a,b]</code> means take <code>b</code> before <code>a</code>, edge <code>b → a</code>. Return any valid order, or <code>[]</code> if cycle.</p>`,
+    brute: `<p>Permutations check — <code>O(n!·n)</code>. Rejected on sight.</p>`,
+    optimal: `<p><strong>Kahn's (BFS, in-degree)</strong> — peel zero-indegree nodes. If fewer than <code>n</code> emerge → cycle.</p><p>Alt: DFS with three-colour cycle detection. Prefer Kahn's in Java (iterative, no stack-overflow on deep DAGs).</p><p><strong>O(V+E).</strong></p>`,
+    edges: `<ul><li><code>n=1, []</code> → <code>[0]</code>.</li><li>Self-loop <code>[0,0]</code> → cycle → <code>[]</code>.</li><li>Disconnected DAG — seeds every zero-indegree node.</li></ul>`,
+    example: `<pre><code>n=4, pre=[[1,0],[2,0],[3,1],[3,2]]
+edges: 0→1, 0→2, 1→3, 2→3
+indeg: [0,1,1,2]
+q=[0] → order=[0], indeg=[0,0,0,2]
+q=[1,2] → order=[0,1,2], indeg=[0,0,0,0]
+q=[3] → order=[0,1,2,3] ✓</code></pre>`,
+    aiNative: `<p>Toposort shapes:</p><ul><li>PyTorch autograd backward pass</li><li>Pipeline stages: chunk → embed → index → serve</li><li>Agent tool chains when <code>tool_b</code> consumes <code>tool_a</code>'s output</li></ul><p>Mention unprompted in an Anthropic / Perplexity screen.</p>`,
+    followUps: `<ul><li><strong>Lex-smallest order</strong> → swap queue for min-heap.</li><li><strong>Distributed graph</strong> → Pregel-style, each node reports in-degree.</li><li><strong>Duplicate edges</strong> → set-of-edges or dedupe adjacency.</li></ul>`,
+  },
+  code: {
+    java: `public int[] findOrder(int n, int[][] pre) {
+  List<List<Integer>> g = new ArrayList<>();
+  for (int i = 0; i < n; i++) g.add(new ArrayList<>());
+  int[] indeg = new int[n];
+  for (int[] p : pre) { g.get(p[1]).add(p[0]); indeg[p[0]]++; }
+  Queue<Integer> q = new ArrayDeque<>();
+  for (int i = 0; i < n; i++) if (indeg[i] == 0) q.offer(i);
+  int[] order = new int[n]; int k = 0;
+  while (!q.isEmpty()) {
+    int u = q.poll(); order[k++] = u;
+    for (int v : g.get(u)) if (--indeg[v] == 0) q.offer(v);
+  }
+  return k == n ? order : new int[0];
+}`,
+    python: `from collections import deque
+def findOrder(n, pre):
+    g = [[] for _ in range(n)]
+    indeg = [0] * n
+    for a, b in pre:
+        g[b].append(a); indeg[a] += 1
+    q = deque(i for i in range(n) if indeg[i] == 0)
+    order = []
+    while q:
+        u = q.popleft(); order.append(u)
+        for v in g[u]:
+            indeg[v] -= 1
+            if indeg[v] == 0: q.append(v)
+    return order if len(order) == n else []`,
+  }
+});
+
+wt(721, {
+  name: 'Accounts Merge', pattern: 'union-find', diff: 'medium', vday: 64, tag: 'ai · entity resolution',
+  sections: {
+    clarify: `<p>Each account = <code>[name, email1, email2, …]</code>. Merge accounts sharing any email. Return name + sorted emails.</p>`,
+    brute: `<p>Build email → account graph, DFS. Works but DSU is cleaner.</p>`,
+    optimal: `<p><strong>Union-Find on account indices.</strong> For each email, remember first owner; union if seen before. Group by root, attach name, sort.</p><p><strong>O(N·α(N) + N log N).</strong></p>`,
+    edges: `<ul><li>Account with no emails — stays isolated.</li><li>Duplicate email within one account — <code>containsKey</code> handles it.</li></ul>`,
+    example: `<pre><code>[["John","a","b"], ["John","c"], ["John","b","d"]]
+acct 0: a→0, b→0
+acct 1: c→1
+acct 2: b owned by 0 → union(2,0); d→2
+roots: {a,b,d}→0, {c}→1</code></pre>`,
+    aiNative: `<p><strong>Entity resolution in retrieval graphs</strong> — same document across chunks, same user across sessions, same tool across registries.</p>`,
+    followUps: `<ul><li>Too big for memory → external sort by email, or shard by hash.</li><li>Streaming merges → DSU + persistence.</li></ul>`,
+  },
+  code: {
+    java: `private int[] par;
+private int find(int x) { while (par[x] != x) { par[x] = par[par[x]]; x = par[x]; } return x; }
+public List<List<String>> accountsMerge(List<List<String>> acc) {
+  int n = acc.size(); par = new int[n];
+  for (int i = 0; i < n; i++) par[i] = i;
+  Map<String, Integer> owner = new HashMap<>();
+  for (int i = 0; i < n; i++)
+    for (int j = 1; j < acc.get(i).size(); j++) {
+      String e = acc.get(i).get(j);
+      if (owner.containsKey(e)) par[find(i)] = find(owner.get(e));
+      else owner.put(e, i);
+    }
+  Map<Integer, TreeSet<String>> groups = new HashMap<>();
+  for (var e : owner.entrySet())
+    groups.computeIfAbsent(find(e.getValue()), k -> new TreeSet<>()).add(e.getKey());
+  List<List<String>> res = new ArrayList<>();
+  for (var e : groups.entrySet()) {
+    List<String> row = new ArrayList<>();
+    row.add(acc.get(e.getKey()).get(0));
+    row.addAll(e.getValue());
+    res.add(row);
+  }
+  return res;
+}`,
+    python: `def accountsMerge(acc):
+    par = list(range(len(acc)))
+    def find(x):
+        while par[x] != x: par[x] = par[par[x]]; x = par[x]
+        return x
+    owner = {}
+    for i, a in enumerate(acc):
+        for e in a[1:]:
+            if e in owner: par[find(i)] = find(owner[e])
+            else: owner[e] = i
+    from collections import defaultdict
+    groups = defaultdict(list)
+    for e, i in owner.items(): groups[find(i)].append(e)
+    return [[acc[r][0]] + sorted(es) for r, es in groups.items()]`,
+  }
+});
+
+wt(79, {
+  name: 'Word Search', pattern: 'backtracking', diff: 'medium', vday: 64, tag: 'DFS with mark-and-restore',
+  sections: {
+    clarify: `<p>Word exists as a path of 4-connected cells, no reuse? Case-sensitive. Word ≥ 1 char.</p>`,
+    brute: `<p>DFS from every cell matching <code>word[0]</code>.</p>`,
+    optimal: `<p>DFS with <strong>backtracking</strong>. Mutate board in-place (<code>'#'</code>) as visited marker; restore on backtrack. Avoids per-call <code>visited</code> allocation.</p><p><strong>O(R·C·4^L)</strong> worst case, L = word length.</p>`,
+    edges: `<ul><li>Word longer than total cells → early-return impossible.</li><li>Single-cell board.</li></ul>`,
+    example: `<pre><code>board=[['A','B'],['C','D']], word='ABDC'
+(0,0)='A' ✓ → (0,1)='B' ✓ → (1,1)='D' ✓ → (1,0)='C' ✓ → true</code></pre>`,
+    aiNative: `<p>Backtracking + Trie is the direct setup for <strong>Word Search II</strong> (LC 212), which Perplexity reportedly asks when the base is solved fast. Bring it up unprompted.</p>`,
+    followUps: `<ul><li>Many words → build a Trie, DFS once, prune.</li><li>Avoid mutation → <code>boolean[][] visited</code>.</li></ul>`,
+  },
+  code: {
+    java: `public boolean exist(char[][] b, String w) {
+  for (int r = 0; r < b.length; r++)
+    for (int c = 0; c < b[0].length; c++)
+      if (dfs(b, w, r, c, 0)) return true;
+  return false;
+}
+private boolean dfs(char[][] b, String w, int r, int c, int i) {
+  if (i == w.length()) return true;
+  if (r<0 || r>=b.length || c<0 || c>=b[0].length || b[r][c] != w.charAt(i)) return false;
+  char tmp = b[r][c]; b[r][c] = '#';
+  boolean found = dfs(b,w,r+1,c,i+1) || dfs(b,w,r-1,c,i+1)
+               || dfs(b,w,r,c+1,i+1) || dfs(b,w,r,c-1,i+1);
+  b[r][c] = tmp;
+  return found;
+}`,
+    python: `def exist(b, w):
+    R, C = len(b), len(b[0])
+    def dfs(r, c, i):
+        if i == len(w): return True
+        if r<0 or r>=R or c<0 or c>=C or b[r][c] != w[i]: return False
+        t = b[r][c]; b[r][c] = '#'
+        ok = dfs(r+1,c,i+1) or dfs(r-1,c,i+1) or dfs(r,c+1,i+1) or dfs(r,c-1,i+1)
+        b[r][c] = t
+        return ok
+    return any(dfs(r, c, 0) for r in range(R) for c in range(C))`,
+  }
+});
+
+wt(310, {
+  name: 'Minimum Height Trees', pattern: 'graphs', diff: 'medium', vday: 65, tag: 'peel-leaves (BFS inward)',
+  sections: {
+    clarify: `<p>Undirected tree. Return all root candidates giving minimum-height tree. At most 2 answers.</p>`,
+    brute: `<p>Try every node as root, BFS to find height → <code>O(n²)</code>. Rejected.</p>`,
+    optimal: `<p>The answer is the <strong>centre(s) of the tree</strong> — the last 1 or 2 nodes standing when peeling leaves inward.</p><p>A tree has either 1 or 2 centres (diameter lemma).</p><p><strong>O(n).</strong></p>`,
+    edges: `<ul><li><code>n=1</code> → <code>[0]</code>.</li><li><code>n=2</code> → both leaves, return both.</li></ul>`,
+    example: `<p>n=6 star + chain. Peel leaves → their neighbours become new leaves → finish with [3,4].</p>`,
+    aiNative: `<p>Graph diameter settings — latency-aware service placement, picking a central cache node for a cluster of inference workers.</p>`,
+    followUps: `<ul><li>Prove ≤ 2 centres: 3+ would contradict the longest-path lemma.</li><li>Not-a-tree input → compute components first.</li></ul>`,
+  },
+  code: {
+    java: `public List<Integer> findMinHeightTrees(int n, int[][] edges) {
+  if (n == 1) return List.of(0);
+  List<Set<Integer>> g = new ArrayList<>();
+  for (int i = 0; i < n; i++) g.add(new HashSet<>());
+  for (int[] e : edges) { g.get(e[0]).add(e[1]); g.get(e[1]).add(e[0]); }
+  Queue<Integer> leaves = new ArrayDeque<>();
+  for (int i = 0; i < n; i++) if (g.get(i).size() == 1) leaves.offer(i);
+  int rem = n;
+  while (rem > 2) {
+    int sz = leaves.size(); rem -= sz;
+    for (int i = 0; i < sz; i++) {
+      int leaf = leaves.poll();
+      int nb = g.get(leaf).iterator().next();
+      g.get(nb).remove(leaf);
+      if (g.get(nb).size() == 1) leaves.offer(nb);
+    }
+  }
+  return new ArrayList<>(leaves);
+}`,
+    python: `from collections import deque, defaultdict
+def findMinHeightTrees(n, edges):
+    if n == 1: return [0]
+    g = defaultdict(set)
+    for a, b in edges: g[a].add(b); g[b].add(a)
+    leaves = deque(i for i in range(n) if len(g[i]) == 1)
+    rem = n
+    while rem > 2:
+        sz = len(leaves); rem -= sz
+        for _ in range(sz):
+            u = leaves.popleft()
+            nb = next(iter(g[u]))
+            g[nb].remove(u)
+            if len(g[nb]) == 1: leaves.append(nb)
+    return list(leaves)`,
+  }
+});
+
+wt(417, {
+  name: 'Pacific Atlantic Water Flow', pattern: 'bfs-dfs', diff: 'medium', vday: 65, tag: 'reverse-DFS from oceans',
+  sections: {
+    clarify: `<p>Water flows high→low or equal. Return cells reaching both oceans.</p>`,
+    brute: `<p>DFS from every cell checking both oceans — <code>O((RC)²)</code>. Rejected.</p>`,
+    optimal: `<p><strong>Flip the problem.</strong> Ask which cells each ocean can reach uphill. DFS from border cells into the interior. Answer = intersection.</p><p><strong>O(R·C)</strong> — each cell visited at most twice.</p>`,
+    edges: `<p>Single row or column — every cell touches both.</p>`,
+    example: `<p>Start from (0,0)=1, walk uphill to (1,0)=3, (0,1)=2, etc.</p>`,
+    aiNative: `<p>Reverse-DFS from <strong>boundary conditions</strong> reappears often: flooded regions escape, agents reaching terminal state, tokens attending across a mask.</p>`,
+    followUps: `<p>Oceans on arbitrary edges → seed DFS from those edges. Dynamic heights → incremental recomputation.</p>`,
+  },
+  code: {
+    java: `private int R, C; private int[][] h;
+public List<List<Integer>> pacificAtlantic(int[][] heights) {
+  h = heights; R = h.length; C = h[0].length;
+  boolean[][] pac = new boolean[R][C], atl = new boolean[R][C];
+  for (int c = 0; c < C; c++) { dfs(0,c,pac); dfs(R-1,c,atl); }
+  for (int r = 0; r < R; r++) { dfs(r,0,pac); dfs(r,C-1,atl); }
+  List<List<Integer>> res = new ArrayList<>();
+  for (int r = 0; r < R; r++)
+    for (int c = 0; c < C; c++)
+      if (pac[r][c] && atl[r][c]) res.add(List.of(r, c));
+  return res;
+}
+private void dfs(int r, int c, boolean[][] seen) {
+  seen[r][c] = true;
+  int[][] d = {{1,0},{-1,0},{0,1},{0,-1}};
+  for (int[] x : d) {
+    int nr = r+x[0], nc = c+x[1];
+    if (nr>=0 && nr<R && nc>=0 && nc<C && !seen[nr][nc] && h[nr][nc] >= h[r][c])
+      dfs(nr, nc, seen);
+  }
+}`,
+    python: `def pacificAtlantic(h):
+    R, C = len(h), len(h[0])
+    pac, atl = [[False]*C for _ in range(R)], [[False]*C for _ in range(R)]
+    def dfs(r, c, seen):
+        seen[r][c] = True
+        for dr, dc in ((1,0),(-1,0),(0,1),(0,-1)):
+            nr, nc = r+dr, c+dc
+            if 0<=nr<R and 0<=nc<C and not seen[nr][nc] and h[nr][nc] >= h[r][c]:
+                dfs(nr, nc, seen)
+    for c in range(C): dfs(0, c, pac); dfs(R-1, c, atl)
+    for r in range(R): dfs(r, 0, pac); dfs(r, C-1, atl)
+    return [[r,c] for r in range(R) for c in range(C) if pac[r][c] and atl[r][c]]`,
+  }
+});
+
+wt(787, {
+  name: 'Cheapest Flights Within K Stops', pattern: 'bellman-ford', diff: 'medium', vday: 65, tag: 'ai · Bellman-Ford for bounded hops',
+  sections: {
+    clarify: `<p><strong>Critical:</strong> is <code>k</code> stops or <code>k</code> edges? Stops. So path can have up to <code>k+1</code> edges.</p>`,
+    brute: `<p>DFS all paths with depth cap → exponential.</p>`,
+    optimal: `<p>Dijkstra misses because it ignores edge count. Use <strong>Bellman-Ford</strong> with <code>k+1</code> rounds. Each round, relax every edge using a <em>snapshot</em> of the previous round's <code>cost</code> — otherwise one relaxation feeds another in the same round.</p><p><strong>O(k · E) time, O(V) space.</strong></p>`,
+    edges: `<ul><li>Source = destination → 0.</li><li>Unreachable → -1.</li></ul>`,
+    example: `<pre><code>flights=[[0,1,100],[1,2,100],[0,2,500]], k=0
+Round: edge 0→1 → next[1]=100, edge 0→2 → next[2]=500.
+Answer: 500. With k=1: next[2] = min(500, 100+100) = 200.</code></pre>`,
+    aiNative: `<p>Bellman-Ford with a bound = shape of <strong>constrained decoding</strong>: shortest path through logits with a cost cap. Also <strong>SLA-bounded routing</strong> for inference request fan-out.</p>`,
+    followUps: `<ul><li>Negative edges — only Bellman-Ford works.</li><li><code>k ≈ n</code> → standard Bellman-Ford / Dijkstra.</li></ul>`,
+  },
+  code: {
+    java: `public int findCheapestPrice(int n, int[][] flights, int src, int dst, int k) {
+  int[] cost = new int[n];
+  Arrays.fill(cost, Integer.MAX_VALUE);
+  cost[src] = 0;
+  for (int i = 0; i <= k; i++) {
+    int[] next = cost.clone();
+    for (int[] f : flights) {
+      if (cost[f[0]] == Integer.MAX_VALUE) continue;
+      next[f[1]] = Math.min(next[f[1]], cost[f[0]] + f[2]);
+    }
+    cost = next;
+  }
+  return cost[dst] == Integer.MAX_VALUE ? -1 : cost[dst];
+}`,
+    python: `def findCheapestPrice(n, flights, src, dst, k):
+    INF = float('inf')
+    cost = [INF] * n; cost[src] = 0
+    for _ in range(k + 1):
+        nxt = cost[:]
+        for a, b, w in flights:
+            if cost[a] == INF: continue
+            nxt[b] = min(nxt[b], cost[a] + w)
+        cost = nxt
+    return -1 if cost[dst] == INF else cost[dst]`,
+  }
+});
+
+wt(695, {
+  name: 'Max Area of Island', pattern: 'bfs-dfs', diff: 'medium', vday: 65, tag: 'grid DFS baseline',
+  sections: {
+    clarify: `<p>4-connected 1s form islands. Return max area. Empty → 0.</p>`,
+    brute: `<p>Same as optimal — nothing cheaper.</p>`,
+    optimal: `<p>DFS from every unvisited 1, count component. Mutate grid (<code>1→0</code>) as visited marker.</p><p><strong>O(R·C).</strong></p>`,
+    edges: `<p>All 1s → single island R·C. Empty → 0.</p>`,
+    example: `<pre><code>[[1,1,0],[1,0,0],[0,0,1]] → 3</code></pre>`,
+    aiNative: `<p>Grid DFS = atom under <strong>connected-component clustering</strong>: segmentation masks, pixel-art prompts, geo region queries.</p>`,
+    followUps: `<ul><li>Huge grid → BFS to avoid stack overflow.</li><li>Flip one 0 to 1 → LC 827.</li></ul>`,
+  },
+  code: {
+    java: `public int maxAreaOfIsland(int[][] grid) {
+  int R = grid.length, C = grid[0].length, best = 0;
+  for (int r = 0; r < R; r++)
+    for (int c = 0; c < C; c++)
+      if (grid[r][c] == 1) best = Math.max(best, dfs(grid, r, c));
+  return best;
+}
+private int dfs(int[][] g, int r, int c) {
+  if (r<0 || r>=g.length || c<0 || c>=g[0].length || g[r][c] == 0) return 0;
+  g[r][c] = 0;
+  return 1 + dfs(g,r+1,c) + dfs(g,r-1,c) + dfs(g,r,c+1) + dfs(g,r,c-1);
+}`,
+    python: `def maxAreaOfIsland(g):
+    R, C = len(g), len(g[0])
+    def dfs(r, c):
+        if r<0 or r>=R or c<0 or c>=C or g[r][c] == 0: return 0
+        g[r][c] = 0
+        return 1 + dfs(r+1,c) + dfs(r-1,c) + dfs(r,c+1) + dfs(r,c-1)
+    return max((dfs(r,c) for r in range(R) for c in range(C) if g[r][c] == 1), default=0)`,
+  }
+});
+
+wt(399, {
+  name: 'Evaluate Division', pattern: 'graphs-weighted', diff: 'medium', vday: 66, tag: 'ai · weighted-DFS',
+  sections: {
+    clarify: `<p>Equations like <code>a/b = 2.0</code>. Answer <code>a/c</code> queries. Unknown var → <code>-1.0</code>. <code>x/x</code> known → <code>1.0</code>.</p>`,
+    brute: `<p>Precompute all pairs — <code>O(V²)</code> space; too much.</p>`,
+    optimal: `<p>Weighted graph: edge <code>a→b</code> weight <code>2.0</code>, reverse <code>b→a</code> weight <code>0.5</code>. Query = DFS multiplying weights.</p>`,
+    edges: `<ul><li>Query var not in graph → <code>-1.0</code>.</li><li><code>src == dst</code> and known → <code>1.0</code>.</li></ul>`,
+    example: `<p><code>a/b=2</code>, <code>b/c=3</code>. Query <code>a/c</code>: a→b (×2) → b→c (×3) → <code>6.0</code>.</p>`,
+    aiNative: `<p>Think of it as <strong>relative embedding ratios</strong> across a dependency graph — cross-currency price lookup, RAG unit conversion.</p>`,
+    followUps: `<ul><li>Many queries → <strong>Weighted Union-Find</strong>: nodes store ratio to root, query O(α).</li></ul>`,
+  },
+  code: {
+    java: `public double[] calcEquation(List<List<String>> eq, double[] v, List<List<String>> q) {
+  Map<String, Map<String, Double>> g = new HashMap<>();
+  for (int i = 0; i < eq.size(); i++) {
+    String a = eq.get(i).get(0), b = eq.get(i).get(1);
+    g.computeIfAbsent(a, k -> new HashMap<>()).put(b, v[i]);
+    g.computeIfAbsent(b, k -> new HashMap<>()).put(a, 1.0 / v[i]);
+  }
+  double[] res = new double[q.size()];
+  for (int i = 0; i < q.size(); i++)
+    res[i] = dfs(q.get(i).get(0), q.get(i).get(1), g, new HashSet<>());
+  return res;
+}
+private double dfs(String s, String d, Map<String, Map<String, Double>> g, Set<String> seen) {
+  if (!g.containsKey(s)) return -1.0;
+  if (s.equals(d)) return 1.0;
+  seen.add(s);
+  for (var e : g.get(s).entrySet()) {
+    if (seen.contains(e.getKey())) continue;
+    double r = dfs(e.getKey(), d, g, seen);
+    if (r != -1.0) return r * e.getValue();
+  }
+  return -1.0;
+}`,
+    python: `def calcEquation(eq, v, q):
+    from collections import defaultdict
+    g = defaultdict(dict)
+    for (a, b), w in zip(eq, v):
+        g[a][b] = w; g[b][a] = 1.0 / w
+    def dfs(s, d, seen):
+        if s not in g: return -1.0
+        if s == d: return 1.0
+        seen.add(s)
+        for nb, w in g[s].items():
+            if nb in seen: continue
+            r = dfs(nb, d, seen)
+            if r != -1.0: return r * w
+        return -1.0
+    return [dfs(a, b, set()) for a, b in q]`,
+  }
+});
+
+wt(547, {
+  name: 'Number of Provinces', pattern: 'union-find', diff: 'medium', vday: 66, tag: 'connected components',
+  sections: {
+    clarify: `<p>Adjacency matrix, symmetric, self-loops ignored. Count connected components.</p>`,
+    brute: `<p>Visit each cell — same complexity.</p>`,
+    optimal: `<p>DSU with path compression. Union neighbours; count roots. <strong>O(n²·α(n)).</strong></p>`,
+    edges: `<p>Diagonal only → n provinces. All connected → 1.</p>`,
+    example: `<p>3-node matrix with 0 connected to 1, 2 isolated → 2.</p>`,
+    aiNative: `<p>Component counting = <strong>sharding entity clusters</strong>, cluster-level anomaly detection, agent-group isolation for safety sandboxes.</p>`,
+    followUps: `<p>Streaming edges → DSU near-O(1) union. Dynamic deletions → link-cut trees.</p>`,
+  },
+  code: {
+    java: `private int[] par;
+private int find(int x) { while (par[x] != x) { par[x] = par[par[x]]; x = par[x]; } return x; }
+public int findCircleNum(int[][] m) {
+  int n = m.length; par = new int[n];
+  for (int i = 0; i < n; i++) par[i] = i;
+  for (int i = 0; i < n; i++)
+    for (int j = i+1; j < n; j++)
+      if (m[i][j] == 1) par[find(i)] = find(j);
+  int c = 0;
+  for (int i = 0; i < n; i++) if (find(i) == i) c++;
+  return c;
+}`,
+    python: `def findCircleNum(m):
+    n = len(m); par = list(range(n))
+    def find(x):
+        while par[x] != x: par[x] = par[par[x]]; x = par[x]
+        return x
+    for i in range(n):
+        for j in range(i+1, n):
+            if m[i][j]: par[find(i)] = find(j)
+    return sum(find(i) == i for i in range(n))`,
+  }
+});
+
+wt(130, {
+  name: 'Surrounded Regions', pattern: 'bfs-dfs', diff: 'medium', vday: 66, tag: 'flood-from-border',
+  sections: {
+    clarify: `<p>Flip interior <code>'O'</code>s to <code>'X'</code>, keep border-connected. In-place.</p>`,
+    brute: `<p>Check every region for border connectivity → repeated work.</p>`,
+    optimal: `<p><strong>Flood from the complement.</strong> From every border <code>'O'</code>, DFS/BFS and mark as <code>'#'</code>. Final pass: <code>'#' → 'O'</code>, else <code>'X'</code>.</p><p><strong>O(R·C).</strong></p>`,
+    edges: `<p>Grid with only one row/col → no interior → no flips.</p>`,
+    example: `<p>Border 'O' at (3,1) marks '#'. Interior unreached → flip.</p>`,
+    aiNative: `<p>Boundary-complement reasoning in <strong>mask inversion</strong>, attention-safe region computation, sandboxed-area detection for agent action spaces.</p>`,
+    followUps: `<p>Union-Find: union border 'O's to virtual SAFE node; non-connected flip. Mention unprompted.</p>`,
+  },
+  code: {
+    java: `public void solve(char[][] b) {
+  int R = b.length, C = b[0].length;
+  for (int r = 0; r < R; r++) { dfs(b, r, 0); dfs(b, r, C-1); }
+  for (int c = 0; c < C; c++) { dfs(b, 0, c); dfs(b, R-1, c); }
+  for (int r = 0; r < R; r++)
+    for (int c = 0; c < C; c++)
+      b[r][c] = b[r][c] == '#' ? 'O' : 'X';
+}
+private void dfs(char[][] b, int r, int c) {
+  if (r<0 || r>=b.length || c<0 || c>=b[0].length || b[r][c] != 'O') return;
+  b[r][c] = '#';
+  dfs(b,r+1,c); dfs(b,r-1,c); dfs(b,r,c+1); dfs(b,r,c-1);
+}`,
+    python: `def solve(b):
+    R, C = len(b), len(b[0])
+    def dfs(r, c):
+        if r<0 or r>=R or c<0 or c>=C or b[r][c] != 'O': return
+        b[r][c] = '#'
+        dfs(r+1,c); dfs(r-1,c); dfs(r,c+1); dfs(r,c-1)
+    for r in range(R): dfs(r, 0); dfs(r, C-1)
+    for c in range(C): dfs(0, c); dfs(R-1, c)
+    for r in range(R):
+        for c in range(C):
+            b[r][c] = 'O' if b[r][c] == '#' else 'X'`,
+  }
+});
+
+wt(743, {
+  name: 'Network Delay Time', pattern: 'dijkstra', diff: 'medium', vday: 66, tag: 'ai · Dijkstra = SLA fan-out',
+  sections: {
+    clarify: `<p>Directed, non-negative weights. Min time for signal from <code>k</code> to reach every node = max of shortest paths.</p>`,
+    brute: `<p>Bellman-Ford — <code>O(V·E)</code>. Overkill.</p>`,
+    optimal: `<p><strong>Dijkstra</strong> from <code>k</code> with min-heap. Return max dist; <code>-1</code> if unreached.</p><p><strong>O((V+E) log V).</strong></p>`,
+    edges: `<ul><li>Isolated node → -1.</li><li>Single node → 0.</li></ul>`,
+    example: `<p>Trace heap pops; record first-finalised dist per node.</p>`,
+    aiNative: `<p><strong>SLA-weighted request fan-out</strong>: Dijkstra with latency distributions. Shortest-path time predicts slowest-tenant tail.</p>`,
+    followUps: `<ul><li>Negative edges → Bellman-Ford.</li><li>All-pairs → Floyd-Warshall or Dijkstra from each node.</li><li>Fibonacci heap → <code>O(E + V log V)</code>.</li></ul>`,
+  },
+  code: {
+    java: `public int networkDelayTime(int[][] times, int n, int k) {
+  Map<Integer, List<int[]>> g = new HashMap<>();
+  for (int[] t : times) g.computeIfAbsent(t[0], x -> new ArrayList<>()).add(new int[]{t[1], t[2]});
+  PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);
+  pq.offer(new int[]{0, k});
+  Map<Integer, Integer> dist = new HashMap<>();
+  while (!pq.isEmpty()) {
+    int[] cur = pq.poll();
+    if (dist.containsKey(cur[1])) continue;
+    dist.put(cur[1], cur[0]);
+    for (int[] nb : g.getOrDefault(cur[1], List.of()))
+      if (!dist.containsKey(nb[0])) pq.offer(new int[]{cur[0] + nb[1], nb[0]});
+  }
+  if (dist.size() < n) return -1;
+  int max = 0;
+  for (int v : dist.values()) max = Math.max(max, v);
+  return max;
+}`,
+    python: `import heapq
+def networkDelayTime(times, n, k):
+    g = {}
+    for u, v, w in times:
+        g.setdefault(u, []).append((v, w))
+    pq = [(0, k)]; dist = {}
+    while pq:
+        d, u = heapq.heappop(pq)
+        if u in dist: continue
+        dist[u] = d
+        for v, w in g.get(u, []):
+            if v not in dist: heapq.heappush(pq, (d + w, v))
+    return -1 if len(dist) < n else max(dist.values())`,
+  }
+});
+
+/* ============ PRIMITIVES ============ */
+const PRIMITIVES = [
+  { key: 'softmax', title: 'Numerically-stable softmax', interview: 'DeepMind · Anthropic · Google',
+    note: 'The atom under every classifier head. Subtract the max before exp.',
+    code: `import numpy as np
+def softmax(logits, temperature=1.0, axis=-1):
+    scaled = logits / temperature
+    shifted = scaled - np.max(scaled, axis=axis, keepdims=True)
+    exp = np.exp(shifted)
+    return exp / np.sum(exp, axis=axis, keepdims=True)` },
+  { key: 'topk', title: 'Top-k / top-p (nucleus) sampling', interview: 'OpenAI · Together · Fireworks',
+    note: 'Composed from softmax. Shows up as a follow-up after you implement attention.',
+    code: `def sample_top_p(logits, p=0.9, temperature=1.0):
+    probs = softmax(logits, temperature)
+    order = np.argsort(-probs)
+    cumulative = np.cumsum(probs[order])
+    cutoff = int(np.searchsorted(cumulative, p)) + 1
+    kept = order[:cutoff]
+    renorm = probs[kept] / probs[kept].sum()
+    return int(np.random.choice(kept, p=renorm))` },
+  { key: 'attention', title: 'Scaled dot-product attention', interview: 'DeepMind · Google AI',
+    note: 'Clarify: scaled or additive? Masked? Multi-head? Write the 5-line version first.',
+    code: `def attention(Q, K, V, mask=None):
+    d_k = Q.shape[-1]
+    scores = (Q @ K.T) / np.sqrt(d_k)
+    if mask is not None:
+        scores = np.where(mask, scores, -np.inf)
+    weights = softmax(scores, axis=-1)
+    return weights @ V` },
+  { key: 'lru', title: 'LRU KV-cache', interview: 'Anthropic · OpenAI · Scale · Speechify',
+    note: 'The AI-infra question. Extend to TTL, then to sharded. Full walkthrough on day 44.',
+    code: `from collections import OrderedDict
+class LRU:
+    def __init__(self, cap):
+        self.cap, self.data = cap, OrderedDict()
+    def get(self, k):
+        if k not in self.data: return -1
+        self.data.move_to_end(k)
+        return self.data[k]
+    def put(self, k, v):
+        if k in self.data: self.data.move_to_end(k)
+        self.data[k] = v
+        if len(self.data) > self.cap:
+            self.data.popitem(last=False)` },
+  { key: 'ratelimiter', title: 'Rate limiter — token bucket', interview: 'Scale · OpenAI · QuickReply',
+    note: 'Varyani Day 7 System Design. Know this cold in two algorithms.',
+    code: `import time
+class TokenBucket:
+    def __init__(self, cap, refill_per_sec):
+        self.cap, self.rate = cap, refill_per_sec
+        self.tokens, self.last = cap, time.monotonic()
+    def allow(self, cost=1):
+        now = time.monotonic()
+        self.tokens = min(self.cap, self.tokens + (now - self.last) * self.rate)
+        self.last = now
+        if self.tokens >= cost:
+            self.tokens -= cost
+            return True
+        return False` },
+  { key: 'beam', title: 'Beam search decoder', interview: 'MAI · DeepMind',
+    note: 'BFS + k-size min-heap. Composes top-k and logsumexp.',
+    code: `import heapq
+def beam_search(step_fn, start, k=4, max_len=20, eos=None):
+    beams = [(0.0, [start])]
+    for _ in range(max_len):
+        cands = []
+        for score, seq in beams:
+            if eos is not None and seq[-1] == eos:
+                cands.append((score, seq)); continue
+            for tok, logp in step_fn(seq):
+                cands.append((score + logp, seq + [tok]))
+        beams = heapq.nlargest(k, cands)
+    return beams` },
+  { key: 'knn', title: 'Cosine top-k retrieval', interview: 'Scale · Databricks · Perplexity',
+    note: 'The retrieval loop everyone will ask about. Vectorise.',
+    code: `def cosine_top_k(query, matrix, k=5):
+    q = query / (np.linalg.norm(query) + 1e-9)
+    norms = np.linalg.norm(matrix, axis=1, keepdims=True) + 1e-9
+    sims = (matrix / norms) @ q
+    idx = np.argpartition(-sims, k)[:k]
+    return idx[np.argsort(-sims[idx])]` },
+  { key: 'bpe', title: 'BPE encode (minimal)', interview: 'HuggingFace · Cohere · Anthropic',
+    note: 'Build the merge table from frequency pairs. Follow-up: WordPiece diff.',
+    code: `def bpe_encode(word, merges):
+    tokens = list(word) + ['</w>']
+    while True:
+        pairs = [(tokens[i], tokens[i+1]) for i in range(len(tokens)-1)]
+        best = min(((merges[p], i, p) for i, p in enumerate(pairs) if p in merges),
+                   default=None)
+        if best is None: break
+        _, i, (a, b) = best
+        tokens = tokens[:i] + [a+b] + tokens[i+2:]
+    return tokens` },
+];
+
+/* ============ DECISION CLUES ============ */
+const DECISION_CLUES = [
+  { clue: 'Sorted array · search · "find X" · "monotonic answer"', answer: 'Binary Search · Binary Search on Answer', why: 'LC 704 base. "Find min capacity such that X works" → binary search over the answer space (Koko LC 875, Capacity to Ship LC 1011).' },
+  { clue: 'Shortest path · unweighted graph · "fewest steps"', answer: 'BFS', why: 'First time you reach the target = shortest. Weighted → Dijkstra; bounded hops → Bellman-Ford.' },
+  { clue: 'Dependencies · "take A before B" · ordering', answer: 'Topological Sort (Kahn\'s)', why: 'Course Schedule II (LC 210). Peel zero-indegree nodes; fewer than n → cycle. Prefer iterative Kahn\'s in Java.' },
+  { clue: '"k-th smallest / largest" · running top-k · streaming', answer: 'Heap (PriorityQueue)', why: 'Min-heap of size k for top-k largest; max for top-k smallest. Streaming medians → two heaps (LC 295). k-way merge → min-heap of pointers (LC 23).' },
+  { clue: 'Longest substring / subarray with constraint X', answer: 'Sliding Window', why: 'Fixed-size → single loop. Variable-size → two pointers, expand right, shrink left when invariant breaks (LC 3, 76, 424, 209).' },
+  { clue: 'Connected components · "same group as"', answer: 'Union-Find (DSU) or BFS/DFS', why: 'DSU wins for streaming edges (near-O(α) union). BFS/DFS wins when you need the component itself. Accounts Merge (LC 721) → DSU.' },
+  { clue: 'Range sums · "sum from i to j" · multiple queries', answer: 'Prefix Sum · Fenwick/BIT · Segment Tree', why: 'Static array → prefix sum O(1). Dynamic updates → BIT O(log n). Range mins/maxes → segment tree.' },
+  { clue: 'Enumerate every valid configuration · all paths · all subsets', answer: 'Backtracking', why: 'DFS with mark + restore (Word Search LC 79). Combinations 77, Permutations 46, Subsets 78, N-Queens 51.' },
+  { clue: 'Weighted graph · non-negative edges · one source', answer: 'Dijkstra (min-heap)', why: 'O((V+E) log V). Push (dist, node); skip if finalised. Network Delay LC 743. Bounded stops → Bellman-Ford.' },
+  { clue: 'Weighted graph · bounded hops · "at most k edges"', answer: 'Bellman-Ford (k rounds)', why: 'Cheapest Flights K Stops LC 787. Use a snapshot of cost each round.' },
+  { clue: '"Next greater" · "previous smaller" · stock span', answer: 'Monotonic Stack', why: 'Stack holds indices whose answer is pending. Pop when current breaks monotonicity. LC 496, 739, 42, 84.' },
+  { clue: 'Overlapping subproblems · "min/max/count" over sequences', answer: 'Dynamic Programming', why: 'Define state crisply. Prove recurrence. 1D first (LC 70, 322), then 2D (LC 72, 1143), then on trees/graphs.' },
+  { clue: 'Palindromic structure · "expand around centre"', answer: 'Two pointers from centre, or DP[i][j]', why: 'LC 5, 647. Expand around 2n-1 centres → O(n²) time, O(1) space.' },
+  { clue: '"Reach" · flood fill · water flow · region', answer: 'DFS / BFS from boundary', why: 'Pacific Atlantic LC 417, Surrounded Regions LC 130. Reverse the question: ask what the edge can reach.' },
+  { clue: 'Autocomplete · prefix lookup · dictionary of words', answer: 'Trie', why: 'LC 208, 212, 642. For Word Search II, build trie from dictionary and DFS the grid once, pruning branches not in trie.' },
+  { clue: 'LRU · "evict least recently used" · O(1) get and put', answer: 'HashMap + Doubly Linked List', why: 'LC 146 — the AI-infra interview question. Follow-ups: TTL, thread-safe, sharded KV cache.' },
+  { clue: 'Grid · 4-connected regions · islands', answer: 'DFS or BFS on the grid', why: 'LC 200, 695, 463. Mutate grid as visited marker. BFS if recursion stack risk.' },
+  { clue: 'Minimise maximum of X · maximise minimum of Y', answer: 'Binary Search on Answer', why: 'LC 410 Split Array Largest Sum, LC 875 Koko, LC 1011 Capacity. Verify feasibility of mid, then shrink range.' },
+];
+
+/* ============ TEMPLATES ============ */
+const TEMPLATES = [
+  { key: 'bfs', title: 'BFS (grid)', when: 'Shortest path · level-order · unweighted',
+    python: `from collections import deque
+def bfs(grid, start):
+    R, C = len(grid), len(grid[0])
+    seen = {start}
+    q = deque([(start, 0)])
+    while q:
+        (r, c), d = q.popleft()
+        # process (r, c) at distance d
+        for dr, dc in ((1,0),(-1,0),(0,1),(0,-1)):
+            nr, nc = r+dr, c+dc
+            if 0 <= nr < R and 0 <= nc < C and (nr,nc) not in seen and grid[nr][nc] != BLOCKED:
+                seen.add((nr,nc))
+                q.append(((nr,nc), d+1))`,
+    java: `int[][] DIRS = {{1,0},{-1,0},{0,1},{0,-1}};
+Queue<int[]> q = new ArrayDeque<>();
+boolean[][] seen = new boolean[R][C];
+q.offer(new int[]{sr, sc, 0}); seen[sr][sc] = true;
+while (!q.isEmpty()) {
+  int[] cur = q.poll();
+  int r = cur[0], c = cur[1], d = cur[2];
+  for (int[] dir : DIRS) {
+    int nr = r + dir[0], nc = c + dir[1];
+    if (nr>=0 && nr<R && nc>=0 && nc<C && !seen[nr][nc] && grid[nr][nc] != BLOCKED) {
+      seen[nr][nc] = true;
+      q.offer(new int[]{nr, nc, d+1});
+    }
+  }
+}` },
+  { key: 'dfs', title: 'DFS with mark + restore', when: 'Backtracking · all paths · grid search',
+    python: `def dfs(r, c, i):
+    if i == len(word): return True
+    if not (0 <= r < R and 0 <= c < C) or board[r][c] != word[i]: return False
+    tmp = board[r][c]; board[r][c] = '#'
+    found = any(dfs(r+dr, c+dc, i+1) for dr, dc in ((1,0),(-1,0),(0,1),(0,-1)))
+    board[r][c] = tmp
+    return found`,
+    java: `private boolean dfs(char[][] b, String w, int r, int c, int i) {
+  if (i == w.length()) return true;
+  if (r<0 || r>=b.length || c<0 || c>=b[0].length || b[r][c] != w.charAt(i)) return false;
+  char tmp = b[r][c]; b[r][c] = '#';
+  boolean found = dfs(b,w,r+1,c,i+1) || dfs(b,w,r-1,c,i+1)
+               || dfs(b,w,r,c+1,i+1) || dfs(b,w,r,c-1,i+1);
+  b[r][c] = tmp;
+  return found;
+}` },
+  { key: 'dsu', title: 'Union-Find (DSU)', when: 'Connected components · streaming merges',
+    python: `par = list(range(n))
+def find(x):
+    while par[x] != x:
+        par[x] = par[par[x]]
+        x = par[x]
+    return x
+def union(a, b):
+    par[find(a)] = find(b)`,
+    java: `int[] par = new int[n];
+for (int i = 0; i < n; i++) par[i] = i;
+int find(int x) {
+  while (par[x] != x) { par[x] = par[par[x]]; x = par[x]; }
+  return x;
+}
+void union(int a, int b) { par[find(a)] = find(b); }` },
+  { key: 'topo', title: 'Topological sort (Kahn\'s)', when: 'DAG ordering · dependency scheduling',
+    python: `from collections import deque, defaultdict
+g = defaultdict(list); indeg = [0] * n
+for a, b in prereqs:
+    g[b].append(a); indeg[a] += 1
+q = deque(i for i in range(n) if indeg[i] == 0)
+order = []
+while q:
+    u = q.popleft(); order.append(u)
+    for v in g[u]:
+        indeg[v] -= 1
+        if indeg[v] == 0: q.append(v)
+return order if len(order) == n else []`,
+    java: `List<List<Integer>> g = new ArrayList<>();
+for (int i = 0; i < n; i++) g.add(new ArrayList<>());
+int[] indeg = new int[n];
+for (int[] p : prereqs) { g.get(p[1]).add(p[0]); indeg[p[0]]++; }
+Queue<Integer> q = new ArrayDeque<>();
+for (int i = 0; i < n; i++) if (indeg[i] == 0) q.offer(i);
+int[] order = new int[n]; int k = 0;
+while (!q.isEmpty()) {
+  int u = q.poll(); order[k++] = u;
+  for (int v : g.get(u)) if (--indeg[v] == 0) q.offer(v);
+}
+return k == n ? order : new int[0];` },
+  { key: 'dijkstra', title: 'Dijkstra (min-heap)', when: 'Shortest path · non-negative weights',
+    python: `import heapq
+def dijkstra(g, src):
+    dist = {}
+    pq = [(0, src)]
+    while pq:
+        d, u = heapq.heappop(pq)
+        if u in dist: continue
+        dist[u] = d
+        for v, w in g.get(u, []):
+            if v not in dist:
+                heapq.heappush(pq, (d + w, v))
+    return dist`,
+    java: `PriorityQueue<int[]> pq = new PriorityQueue<>((a,b) -> a[0] - b[0]);
+pq.offer(new int[]{0, src});
+Map<Integer, Integer> dist = new HashMap<>();
+while (!pq.isEmpty()) {
+  int[] cur = pq.poll();
+  int d = cur[0], u = cur[1];
+  if (dist.containsKey(u)) continue;
+  dist.put(u, d);
+  for (int[] nb : g.getOrDefault(u, List.of()))
+    if (!dist.containsKey(nb[0])) pq.offer(new int[]{d + nb[1], nb[0]});
+}` },
+  { key: 'binsearch', title: 'Binary search on answer', when: '"Min x such that feasible(x)"',
+    python: `def binary_search_on_answer(lo, hi, feasible):
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if feasible(mid): hi = mid
+        else: lo = mid + 1
+    return lo`,
+    java: `int lo = low, hi = high;
+while (lo < hi) {
+  int mid = lo + (hi - lo) / 2;
+  if (feasible(mid)) hi = mid;
+  else lo = mid + 1;
+}
+return lo;` },
+  { key: 'window', title: 'Sliding window (variable)', when: 'Longest / shortest substring with constraint',
+    python: `l = 0; best = 0; state = {}
+for r in range(len(s)):
+    state[s[r]] = state.get(s[r], 0) + 1
+    while invariant_broken(state):
+        state[s[l]] -= 1
+        if state[s[l]] == 0: del state[s[l]]
+        l += 1
+    best = max(best, r - l + 1)
+return best`,
+    java: `int l = 0, best = 0;
+Map<Character, Integer> state = new HashMap<>();
+for (int r = 0; r < s.length(); r++) {
+  state.merge(s.charAt(r), 1, Integer::sum);
+  while (invariantBroken(state)) {
+    char c = s.charAt(l);
+    if (state.get(c) == 1) state.remove(c);
+    else state.put(c, state.get(c) - 1);
+    l++;
+  }
+  best = Math.max(best, r - l + 1);
+}
+return best;` },
+  { key: 'twop', title: 'Two pointers (sorted array)', when: 'Pair sum · 3Sum · partition',
+    python: `nums.sort()
+l, r = 0, len(nums) - 1
+while l < r:
+    s = nums[l] + nums[r]
+    if s == target: return [l, r]
+    elif s < target: l += 1
+    else: r -= 1
+return [-1, -1]`,
+    java: `Arrays.sort(nums);
+int l = 0, r = nums.length - 1;
+while (l < r) {
+  int s = nums[l] + nums[r];
+  if (s == target) return new int[]{l, r};
+  else if (s < target) l++;
+  else r--;
+}
+return new int[]{-1, -1};` },
+  { key: 'monostack', title: 'Monotonic stack', when: 'Next greater · histogram · span',
+    python: `stack = []; res = [-1] * len(nums)
+for i, x in enumerate(nums):
+    while stack and nums[stack[-1]] < x:
+        res[stack.pop()] = x
+    stack.append(i)
+return res`,
+    java: `Deque<Integer> stack = new ArrayDeque<>();
+int[] res = new int[nums.length];
+Arrays.fill(res, -1);
+for (int i = 0; i < nums.length; i++) {
+  while (!stack.isEmpty() && nums[stack.peek()] < nums[i]) {
+    res[stack.pop()] = nums[i];
+  }
+  stack.push(i);
+}` },
+  { key: 'trie', title: 'Trie', when: 'Autocomplete · prefix queries · Word Search II',
+    python: `class Trie:
+    def __init__(self):
+        self.children = {}
+        self.end = False
+    def insert(self, w):
+        node = self
+        for c in w:
+            node = node.children.setdefault(c, Trie())
+        node.end = True
+    def search(self, w):
+        node = self
+        for c in w:
+            if c not in node.children: return False
+            node = node.children[c]
+        return node.end`,
+    java: `class Trie {
+  Trie[] ch = new Trie[26]; boolean end;
+  void insert(String w) {
+    Trie n = this;
+    for (char c : w.toCharArray()) {
+      int i = c - 'a';
+      if (n.ch[i] == null) n.ch[i] = new Trie();
+      n = n.ch[i];
+    }
+    n.end = true;
+  }
+  boolean search(String w) {
+    Trie n = this;
+    for (char c : w.toCharArray()) {
+      n = n.ch[c - 'a'];
+      if (n == null) return false;
+    }
+    return n.end;
+  }
+}` },
+];
+
+/* ============ COMPLEXITY ============ */
+const COMPLEXITY = [
+  ['HashMap get/put (amortised)', 'O(1)'],
+  ['Union-Find (path comp + rank)', 'O(α(n))'],
+  ['Binary search', 'O(log n)'],
+  ['Trie insert / search', 'O(L)'],
+  ['LRU get / put', 'O(1)'],
+  ['BFS / DFS on graph', 'O(V+E)'],
+  ['Topological sort (Kahn\'s)', 'O(V+E)'],
+  ['Dijkstra (binary heap)', 'O((V+E) log V)'],
+  ['Bellman-Ford', 'O(V·E)'],
+  ['Floyd-Warshall', 'O(V³)'],
+  ['Heap push / pop', 'O(log n)'],
+  ['Sorting (comparison)', 'O(n log n)'],
+  ['Fenwick/BIT update / query', 'O(log n)'],
+  ['Segment tree point / range', 'O(log n)'],
+  ['Backtracking (word length L)', 'O(R·C·4^L)'],
+  ['DP (states S, transitions T)', 'O(S·T)'],
+];
+
+/* ============ STATE ============ */
+const State = {
+  k: 'dsa.native.v1',
+  data: {
+    mode: 'maintenance', theme: null, day: null, log: [], srs: [], patternDots: {},
+    decisionIdx: 0, templateIdx: 0, templateLang: 'python',
+    primitiveIdx: 0, primitiveLang: 'python', mockHistory: [],
+    autoFullSet: false,
+  },
+  load() {
+    try {
+      const raw = localStorage.getItem(this.k);
+      if (raw) Object.assign(this.data, JSON.parse(raw));
+    } catch (e) {}
+    if (!this.data.day) this.data.day = this.computeDayFromDate();
+  },
+  save() {
+    try { localStorage.setItem(this.k, JSON.stringify(this.data)); } catch (e) {}
+  },
+  computeDayFromDate() {
+    const now = new Date();
+    const diff = Math.floor((now - START_DATE) / MS_DAY);
+    return Math.max(1, Math.min(150, diff + 1));
+  },
+  streak() {
+    if (!this.data.log.length) return 0;
+    const dates = [...new Set(this.data.log.map(e => e.date))].sort().reverse();
+    let streak = 0;
+    let cursor = new Date();
+    cursor.setHours(0,0,0,0);
+    for (const d of dates) {
+      const entry = new Date(d);
+      entry.setHours(0,0,0,0);
+      const diff = Math.floor((cursor - entry) / MS_DAY);
+      if (diff <= 1) { streak++; cursor = entry; cursor.setDate(cursor.getDate() - 1); }
+      else break;
+    }
+    return streak;
+  },
+  solvedCount() { return this.data.log.filter(e => e.verdict === 'green').length; },
+  logProblem(lc, name, pattern, verdict, timeMin) {
+    const today = new Date().toISOString().slice(0, 10);
+    this.data.log.push({ date: today, lc, name, pattern, verdict, timeMin });
+    this.data.patternDots[pattern] = (this.data.patternDots[pattern] || 0) + 1;
+    if (verdict === 'red' || verdict === 'yellow') {
+      if (!this.data.srs.find(s => s.lc === lc)) {
+        this.data.srs.push({ lc, name, pattern, due: today, attempts: 1 });
+      }
+    } else if (verdict === 'green') {
+      this.data.srs = this.data.srs.filter(s => s.lc !== lc);
+    }
+    this.save();
+  },
+};
+
+const PATTERNS = [
+  'arrays', 'linked-lists', 'stacks', 'trees',
+  'strings', 'binary-search', 'hashing', 'sliding-window',
+  'graphs', 'dp', 'heap', 'design',
+];
+
+/* ============ HELPERS ============ */
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, html) => {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html != null) e.innerHTML = html;
+  return e;
+};
+
+/* ============ TOASTS ============ */
+function toast(msg, kind = '') {
+  const stack = $('toast-stack');
+  const t = el('div', 'toast ' + kind, msg);
+  stack.appendChild(t);
+  setTimeout(() => t.remove(), 2900);
+}
+
+/* ============ COPY HELPER ============ */
+async function copyToClipboard(text, btn) {
+  try {
+    await navigator.clipboard.writeText(text);
+    if (btn) {
+      btn.classList.add('copied');
+      const prev = btn.textContent;
+      btn.textContent = 'copied';
+      setTimeout(() => { btn.classList.remove('copied'); btn.textContent = prev; }, 1400);
+    }
+    toast('copied to clipboard', 'good');
+  } catch (e) {
+    toast('clipboard blocked', 'warn');
+  }
+}
+
+/* ============ RENDERING ============ */
+function renderStats() {
+  $('ring-day').textContent = State.data.day;
+  const pct = Math.min(State.data.day / 150, 1);
+  const circ = 2 * Math.PI * 24;
+  $('ring-fg').setAttribute('stroke-dashoffset', circ * (1 - pct));
+
+  const streak = State.streak();
+  $('stat-streak').textContent = streak;
+  const flame = $('streak-flame');
+  flame.classList.toggle('on', streak > 0);
+  flame.classList.toggle('hot', streak >= 7);
+
+  $('stat-solved').textContent = State.solvedCount();
+
+  const ribbonPct = (State.data.day / 150) * 100;
+  $('ribbon-fill').style.width = ribbonPct + '%';
+  const mid =
+    State.data.day < 15 ? 'foundations' :
+    State.data.day < 46 ? 'intermediate' :
+    State.data.day < 76 ? 'graphs · dp onset' :
+    State.data.day < 106 ? 'hard dp · stacks' :
+    State.data.day < 136 ? 'hard + design + behavioural' : 'full-review';
+  $('ribbon-mid').textContent = `day ${State.data.day} · ${mid}`;
+}
+
+function renderMode() {
+  const btn = $('btn-mode');
+  const banner = $('mode-banner');
+  if (State.data.mode === 'full') {
+    btn.textContent = 'F';
+    btn.classList.add('active');
+    banner.hidden = true;
+  } else {
+    btn.textContent = 'M';
+    btn.classList.remove('active');
+    const fullStartText = FULL_MODE_START.toISOString().slice(0,10);
+    banner.hidden = false;
+    banner.innerHTML = `<strong>MAINTENANCE</strong> · 1 problem · 15 min · 06:30 WAT. Full mode auto-engages ${fullStartText}. Toggle manually with <kbd style="font-family:var(--font-mono);background:var(--panel-raised);padding:1px 5px;border-radius:3px;">M</kbd> if you're ready sooner.`;
+  }
+}
+
+let todayFocusIdx = 0;
+function renderToday() {
+  const dayData = ROADMAP[State.data.day];
+  $('today-num').textContent = State.data.day;
+  if (!dayData) {
+    $('today-pattern-main').textContent = '—';
+    $('today-sub').textContent = 'Beyond the map. Loop-ready — pick revision targets.';
+    $('today-list').innerHTML = '';
+    $('today-progress-wrap').hidden = true;
+    return;
+  }
+  $('today-pattern-main').textContent = dayData.p;
+  const kind = dayData.kind || 'coding';
+  $('today-sub').textContent = kind === 'design' ? '2 design prompts · 60min SD + 45min OOD'
+    : kind === 'revision' ? 'revision — re-walk previous 14 days'
+    : kind === 'behav' ? 'behavioural — rehearse STAR'
+    : `${dayData.q.length} problems · ${State.data.mode === 'full' ? '90 min total' : '15 min · pick one'}`;
+
+  const list = $('today-list');
+  list.innerHTML = '';
+  const problems = State.data.mode === 'maintenance' && kind === 'coding'
+    ? dayData.q.slice(0, 1)
+    : dayData.q;
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayLogs = State.data.log.filter(e => e.date === todayStr);
+  let doneCount = 0;
+
+  problems.forEach((p, idx) => {
+    const [lc, name, aiTag] = p;
+    const item = el('li', 'problem-item');
+    item.tabIndex = 0;
+    item.dataset.idx = idx;
+    if (WT[lc]) item.classList.add('has-walkthrough');
+    const logged = todayLogs.find(e => e.lc === lc && e.name === name);
+    if (logged) { item.classList.add('done'); doneCount++; }
+    if (idx === todayFocusIdx) item.classList.add('focus');
+
+    const badge = el('span', 'problem-badge', logged ? (logged.verdict === 'green' ? '✓' : logged.verdict === 'yellow' ? '!' : '✗') : (idx + 1));
+    if (logged) badge.classList.add('v-' + logged.verdict);
+    item.appendChild(badge);
+
+    const main = el('div', 'problem-main');
+    main.appendChild(el('div', 'problem-name', name));
+    const meta = el('div', 'problem-meta', (lc > 0 ? `LC-${lc} · ` : '') + dayData.p);
+    if (aiTag) meta.appendChild(el('span', 'ai-tag', '⚡ ai-native'));
+    if (WT[lc]) meta.appendChild(el('span', 'ready-tag', '· walkthrough ready'));
+    main.appendChild(meta);
+    item.appendChild(main);
+    item.appendChild(el('span', 'problem-arrow', WT[lc] ? '→' : '○'));
+    item.addEventListener('click', () => openWalkthrough(lc, name, dayData.p));
+    list.appendChild(item);
+  });
+
+  const progressWrap = $('today-progress-wrap');
+  if (problems.length > 1) {
+    progressWrap.hidden = false;
+    $('today-progress-text').textContent = `${doneCount} of ${problems.length} logged`;
+    $('today-progress-fill').style.width = (doneCount / problems.length * 100) + '%';
+  } else {
+    progressWrap.hidden = true;
+  }
+}
+
+function renderSRS() {
+  const list = $('srs-list');
+  const count = $('srs-count');
+  list.innerHTML = '';
+  count.textContent = State.data.srs.length;
+  if (State.data.srs.length === 0) {
+    list.appendChild(el('div', 'empty-state', 'Clean sheet. Nothing to revisit.'));
+    return;
+  }
+  for (const s of State.data.srs.slice(-6)) {
+    const item = el('li', 'problem-item');
+    if (WT[s.lc]) item.classList.add('has-walkthrough');
+    item.innerHTML = `<span class="problem-badge v-${WT[s.lc] ? 'yellow' : 'red'}">↻</span>
+      <div class="problem-main">
+        <div class="problem-name">${s.name}</div>
+        <div class="problem-meta">LC-${s.lc} · ${s.pattern} · attempts ${s.attempts}</div>
+      </div>
+      <span class="problem-arrow">→</span>`;
+    item.addEventListener('click', () => openWalkthrough(s.lc, s.name, s.pattern));
+    list.appendChild(item);
+  }
+}
+
+function renderPatternGrid() {
+  const grid = $('pattern-grid');
+  grid.innerHTML = '';
+  let total = 0;
+  for (const p of PATTERNS) {
+    const count = State.data.patternDots[p] || 0;
+    total += count;
+    const cell = el('div', 'pattern-cell');
+    const fill = Math.min(count / 6, 1);
+    cell.style.setProperty('--fill', fill);
+    cell.title = `${p} · ${count} ${count === 1 ? 'problem' : 'problems'} logged`;
+    cell.innerHTML = `
+      <div class="pattern-cell-label">${p}</div>
+      <div class="pattern-cell-count ${count === 0 ? 'zero' : ''}">${count}</div>`;
+    grid.appendChild(cell);
+  }
+  $('coverage-total').textContent = total;
+}
+
+function renderPrimitive() {
+  const p = PRIMITIVES[State.data.primitiveIdx % PRIMITIVES.length];
+  $('prim-title').textContent = p.title;
+  $('prim-interview').textContent = p.interview;
+  $('prim-note').textContent = p.note;
+  $('prim-code').textContent = p.code;
+  $('prim-count').textContent = `${(State.data.primitiveIdx % PRIMITIVES.length) + 1}/${PRIMITIVES.length}`;
+  const nav = $('prim-nav');
+  nav.innerHTML = '';
+  PRIMITIVES.forEach((pp, i) => {
+    const btn = el('button', '', pp.key);
+    if (i === State.data.primitiveIdx) btn.classList.add('active');
+    btn.addEventListener('click', () => { State.data.primitiveIdx = i; State.save(); renderPrimitive(); });
+    nav.appendChild(btn);
+  });
+}
+
+function renderDecisionTree() {
+  const d = DECISION_CLUES[State.data.decisionIdx % DECISION_CLUES.length];
+  $('dt-clue').textContent = d.clue;
+  $('dt-answer').textContent = d.answer;
+  $('dt-why').textContent = d.why;
+  $('dt-count').textContent = `${(State.data.decisionIdx % DECISION_CLUES.length) + 1}/${DECISION_CLUES.length}`;
+}
+
+function renderTemplate() {
+  const t = TEMPLATES[State.data.templateIdx % TEMPLATES.length];
+  $('tpl-title').textContent = t.title;
+  $('tpl-when').textContent = t.when;
+  $('tpl-count').textContent = `${(State.data.templateIdx % TEMPLATES.length) + 1}/${TEMPLATES.length}`;
+  $('tpl-code').textContent = t[State.data.templateLang];
+  const nav = $('tpl-nav');
+  nav.innerHTML = '';
+  TEMPLATES.forEach((tt, i) => {
+    const btn = el('button', '', tt.key);
+    if (i === State.data.templateIdx) btn.classList.add('active');
+    btn.addEventListener('click', () => { State.data.templateIdx = i; State.save(); renderTemplate(); });
+    nav.appendChild(btn);
+  });
+  document.querySelectorAll('#tpl-lang-nav button').forEach(b => {
+    b.classList.toggle('active', b.dataset.l === State.data.templateLang);
+  });
+}
+
+function renderComplexity() {
+  const grid = $('complexity-grid');
+  grid.innerHTML = '';
+  COMPLEXITY.forEach(([op, bigO]) => {
+    grid.appendChild(el('div', 'op', op));
+    grid.appendChild(el('div', 'big-o', bigO));
+  });
+}
+
+function renderDifficulty() {
+  const counts = { easy: 0, medium: 0, hard: 0 };
+  const seen = new Set();
+  for (const entry of State.data.log) {
+    if (entry.verdict !== 'green') continue;
+    const key = entry.lc + ':' + entry.name;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const w = WT[entry.lc];
+    const diff = w ? w.diff : 'medium';
+    counts[diff] = (counts[diff] || 0) + 1;
+  }
+  $('diff-easy').textContent = counts.easy;
+  $('diff-medium').textContent = counts.medium;
+  $('diff-hard').textContent = counts.hard;
+}
+
+function renderAll() {
+  renderStats();
+  renderMode();
+  renderToday();
+  renderSRS();
+  renderPatternGrid();
+  renderPrimitive();
+  renderDecisionTree();
+  renderTemplate();
+  renderComplexity();
+  renderDifficulty();
+}
+
+/* ============ WALKTHROUGH MODAL ============ */
+let currentWT = null, currentWTLC = null, currentWTName = null, currentWTPattern = null;
+let activeWTSection = 'clarify', activeCodeLang = 'python';
+let timerSeconds = 15 * 60, timerBaseline = 15 * 60, timerInterval = null;
+
+const SECTION_LABELS = {
+  clarify: 'clarify', brute: 'brute', optimal: 'optimal', code: 'code',
+  edges: 'edges', example: 'example', aiNative: 'ai-native', followUps: 'follow-ups',
+};
+
+function openWalkthrough(lc, name, pattern) {
+  currentWTLC = lc; currentWTName = name; currentWTPattern = pattern; currentWT = WT[lc];
+  $('wt-title').textContent = name;
+  $('wt-tag').textContent = currentWT ? currentWT.tag : (lc > 0 ? `LC-${lc} · ${pattern}` : pattern);
+  $('wt-meta').textContent = currentWT
+    ? `LC-${lc} · ${currentWT.diff} · pattern ${currentWT.pattern} · varyani day ${currentWT.vday}`
+    : (lc > 0 ? `LC-${lc} · ${pattern} · deep walkthrough not yet seeded — attempt on LeetCode and log verdict below.` : pattern);
+
+  const tabs = $('wt-tabs');
+  tabs.innerHTML = '';
+  const sections = currentWT ? Object.keys(SECTION_LABELS) : ['clarify'];
+  sections.forEach(s => {
+    const btn = el('button', 'wt-tab' + (s === 'clarify' ? ' active' : ''), SECTION_LABELS[s]);
+    btn.addEventListener('click', () => {
+      activeWTSection = s;
+      [...tabs.children].forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      renderWTBody();
+    });
+    tabs.appendChild(btn);
+  });
+  activeWTSection = 'clarify';
+  renderWTBody();
+  resetTimer(15);
+  summaryChecked = new Set();
+  hideSummary();
+  $('wt-modal').hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeWalkthrough() {
+  $('wt-modal').hidden = true;
+  document.body.style.overflow = '';
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  $('timer-disp').classList.remove('over');
+  $('timer-ring').classList.remove('over');
+  setFocusMode(false);
+  hideSummary();
+}
+
+/* ============ FOCUS MODE ============ */
+function setFocusMode(on) {
+  document.body.classList.toggle('focus-on', on);
+}
+function toggleFocusMode() {
+  const on = !document.body.classList.contains('focus-on');
+  setFocusMode(on);
+  toast(on ? 'focus on' : 'focus off', on ? 'good' : '');
+}
+
+/* ============ SESSION SUMMARY ============ */
+const SUMMARY_CHECKS = [
+  'Clarified before coding (2 min)',
+  'Brute force stated with complexity',
+  'Optimal approach picked + pattern named',
+  'Code compiles / passes mental test',
+  'Edge cases walked (empty · single · duplicate · overflow)',
+  'Worked example end-to-end',
+  'AI-native overlay or one follow-up anticipated',
+];
+let summaryChecked = new Set();
+
+function showSummary() {
+  const summary = $('session-summary');
+  if (!summary) return;
+  document.body.classList.add('summary-on');
+  summary.hidden = false;
+
+  // Elapsed / overrun calc
+  const elapsedSec = timerBaseline - timerSeconds;
+  const over = timerSeconds < 0;
+  const pct = Math.min(Math.round((elapsedSec / timerBaseline) * 100), 999);
+  const elapsedMin = Math.floor(Math.abs(elapsedSec) / 60);
+  const elapsedS = String(Math.abs(elapsedSec) % 60).padStart(2, '0');
+  const planMin = Math.floor(timerBaseline / 60);
+  const planS = String(timerBaseline % 60).padStart(2, '0');
+
+  $('summary-title').textContent = currentWTName || 'Session complete';
+  $('summary-pct').textContent = pct + '%';
+  $('summary-pct').classList.toggle('over', over);
+  $('summary-ring-fg').classList.toggle('over', over);
+
+  const circ = 2 * Math.PI * 40;
+  const ringPct = Math.min(1, elapsedSec / timerBaseline);
+  $('summary-ring-fg').setAttribute('stroke-dashoffset', circ * (1 - ringPct));
+
+  const overStr = over ? ` · <span class="over">+${elapsedMin}:${elapsedS} over</span>` : '';
+  $('summary-elapsed').innerHTML = `${Math.floor(elapsedSec / 60)}:${String(elapsedSec % 60).padStart(2,'0')} / ${planMin}:${planS} planned${overStr}`;
+
+  renderChecklist();
+  pingSound();
+}
+
+function renderChecklist() {
+  const wrap = $('summary-checklist');
+  wrap.innerHTML = '';
+  SUMMARY_CHECKS.forEach((label, i) => {
+    const row = el('div', 'summary-check-row' + (summaryChecked.has(i) ? ' checked' : ''));
+    row.innerHTML = `<span class="summary-check-box"></span><span>${label}</span>`;
+    row.addEventListener('click', () => {
+      if (summaryChecked.has(i)) summaryChecked.delete(i);
+      else summaryChecked.add(i);
+      renderChecklist();
+    });
+    wrap.appendChild(row);
+  });
+}
+
+function hideSummary() {
+  document.body.classList.remove('summary-on');
+  $('session-summary').hidden = true;
+}
+
+function extendTimer(mins) {
+  // Add minutes to the baseline and resume. Checklist state preserved.
+  hideSummary();
+  const addSec = mins * 60;
+  timerSeconds = addSec;
+  timerBaseline = timerBaseline + addSec;
+  $('timer-disp').classList.remove('over');
+  $('timer-ring').classList.remove('over');
+  updateTimerDisplay();
+  toast('+' + mins + 'm added — timer running', 'good');
+  // auto-start the added time with focus mode
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  startTimer();
+}
+
+function renderWTBody() {
+  const body = $('wt-body');
+  if (!currentWT) {
+    body.innerHTML = `
+      <div class="wt-section">
+        <h3>No deep walkthrough yet</h3>
+        <p>This problem is on the 150-day roadmap but hasn't been pre-seeded in-app. Open it on <strong>LeetCode</strong>, use the standard structure:</p>
+        <h4>Minimum pass</h4>
+        <ul>
+          <li><strong>Clarify</strong> · 2 min</li>
+          <li><strong>Brute force</strong> stated with complexity</li>
+          <li><strong>Optimal</strong> approach</li>
+          <li><strong>Code</strong> cleanly</li>
+          <li><strong>Edges</strong> walked</li>
+          <li><strong>Worked example</strong></li>
+          <li>If time · one AI-native overlay</li>
+        </ul>
+        <p>Log a verdict below.</p>
+      </div>`;
+    return;
+  }
+  if (activeWTSection === 'code') {
+    const codes = currentWT.code;
+    body.innerHTML = `
+      <div class="code-lang-nav">
+        <button class="${activeCodeLang === 'java' ? 'active' : ''}" data-l="java">Java</button>
+        <button class="${activeCodeLang === 'python' ? 'active' : ''}" data-l="python">Python</button>
+      </div>
+      <div class="code-block">
+        <button class="copy-btn" id="wt-copy">copy</button>
+        <pre id="wt-code"></pre>
+      </div>`;
+    $('wt-code').textContent = codes[activeCodeLang];
+    $('wt-copy').addEventListener('click', (e) => copyToClipboard(codes[activeCodeLang], e.target));
+    body.querySelectorAll('.code-lang-nav button').forEach(b => {
+      b.addEventListener('click', () => { activeCodeLang = b.dataset.l; renderWTBody(); });
+    });
+  } else {
+    body.innerHTML = `<div class="wt-section">${currentWT.sections[activeWTSection]}</div>`;
+  }
+}
+
+/* ============ TIMER (ring) ============ */
+const TIMER_CIRC = 2 * Math.PI * 32;
+function resetTimer(minutes) {
+  timerBaseline = minutes * 60;
+  timerSeconds = timerBaseline;
+  updateTimerDisplay();
+  $('timer-disp').classList.remove('over');
+  $('timer-ring').classList.remove('over');
+  $('timer-ring').setAttribute('stroke-dashoffset', 0);
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  document.querySelectorAll('.timer-btn[data-min]').forEach(b => {
+    b.classList.toggle('active', +b.dataset.min === minutes);
+  });
+  $('timer-start').textContent = 'start';
+  $('timer-start').innerHTML = 'start <kbd style="font-size:9px;opacity:0.6;margin-left:4px;">␣</kbd>';
+  setFocusMode(false);
+}
+function updateTimerDisplay() {
+  const abs = Math.abs(timerSeconds);
+  const mm = String(Math.floor(abs / 60)).padStart(2, '0');
+  const ss = String(abs % 60).padStart(2, '0');
+  $('timer-disp').textContent = (timerSeconds < 0 ? '-' : '') + `${mm}:${ss}`;
+  if (timerSeconds >= 0) {
+    const prog = 1 - (timerSeconds / timerBaseline);
+    $('timer-ring').setAttribute('stroke-dashoffset', TIMER_CIRC * prog);
+  }
+}
+function startTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+    $('timer-start').innerHTML = 'resume <kbd style="font-size:9px;opacity:0.6;margin-left:4px;">␣</kbd>';
+    setFocusMode(false);
+    return;
+  }
+  $('timer-start').innerHTML = 'pause <kbd style="font-size:9px;opacity:0.6;margin-left:4px;">␣</kbd>';
+  setFocusMode(true);
+  hideSummary();
+  timerInterval = setInterval(() => {
+    timerSeconds--;
+    updateTimerDisplay();
+    if (timerSeconds === 0) {
+      pingSound();
+      toast('time\'s up', 'warn');
+      setFocusMode(false);
+      showSummary();
+    }
+    if (timerSeconds <= 0) {
+      $('timer-disp').classList.add('over');
+      $('timer-ring').classList.add('over');
+    }
+  }, 1000);
+}
+function pingSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator(); const g = ctx.createGain();
+    o.frequency.value = 880; o.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.08, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    o.start(); o.stop(ctx.currentTime + 0.4);
+  } catch (e) {}
+}
+
+/* ============ MOCK ============ */
+const MOCK_DIMS = [
+  'Clarified before coding', 'Complexity stated unprompted',
+  'Clean first-pass code', 'Edge cases I surfaced', 'Walk-through completed',
+];
+const mockScoreState = { scores: [0,0,0,0,0] };
+
+function openMock() {
+  const container = $('mock-scores');
+  container.innerHTML = '';
+  mockScoreState.scores = [0,0,0,0,0];
+  MOCK_DIMS.forEach((label, idx) => {
+    const row = el('div', 'mock-score-row');
+    row.innerHTML = `<label>${label}</label>
+      <div class="mock-stars">
+        ${[1,2,3,4,5].map(n => `<button class="mock-star" data-dim="${idx}" data-n="${n}">${n}</button>`).join('')}
+      </div>`;
+    container.appendChild(row);
+  });
+  container.querySelectorAll('.mock-star').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const d = +btn.dataset.dim, n = +btn.dataset.n;
+      mockScoreState.scores[d] = n;
+      container.querySelectorAll(`.mock-star[data-dim="${d}"]`).forEach(b => {
+        b.classList.toggle('on', +b.dataset.n <= n);
+      });
+      $('mock-total').textContent = mockScoreState.scores.reduce((a,b) => a+b, 0);
+    });
+  });
+  $('mock-total').textContent = '0';
+  $('mock-modal').hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+function closeMock() { $('mock-modal').hidden = true; document.body.style.overflow = ''; }
+
+/* ============ ROADMAP MODAL ============ */
+function openRoadmap() {
+  const body = $('roadmap-body');
+  const rows = [];
+  for (let d = 1; d <= 150; d++) {
+    const data = ROADMAP[d];
+    if (!data) continue;
+    const kindMark = data.kind === 'design' ? '🔵' : data.kind === 'revision' ? '🟣' : data.kind === 'behav' ? '🧠' : '🟢';
+    const current = d === State.data.day ? 'style="background:var(--accent-wash); border-left:2px solid var(--accent);"' : '';
+    const prs = data.q.map(p => {
+      const walked = WT[p[0]] ? '<span style="color:var(--good);">✅</span>' : '';
+      const ai = p[2] === 'ai' ? '<span style="color:var(--accent);">⚡</span>' : '';
+      return `<li>${walked}${ai} ${p[1]}${p[0] > 0 ? ` <span style="color:var(--muted); font-size:11px;">LC-${p[0]}</span>` : ''}</li>`;
+    }).join('');
+    rows.push(`<div style="padding:12px 14px; border-bottom:1px solid var(--border);" ${current}>
+      <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:12px;">
+        <strong>${kindMark} Day ${d}</strong>
+        <span style="color:var(--muted); text-transform:uppercase; letter-spacing:0.1em;">${data.p}</span>
+      </div>
+      <ul style="margin:6px 0 0; padding-left:18px; font-size:13px; color:var(--fg-dim); line-height:1.6;">${prs}</ul>
+    </div>`);
+  }
+  body.innerHTML = rows.join('');
+  $('roadmap-modal').hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+function closeRoadmap() { $('roadmap-modal').hidden = true; document.body.style.overflow = ''; }
+
+/* ============ HELP MODAL ============ */
+function openHelp() { $('help-modal').hidden = false; document.body.style.overflow = 'hidden'; }
+function closeHelp() { $('help-modal').hidden = true; document.body.style.overflow = ''; }
+
+/* ============ WEEKLY VIEW ============ */
+let weeklyAnchor = null; // the Monday of the currently-viewed week
+
+function startOfWeek(d) {
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = day === 0 ? -6 : 1 - day; // Monday as start
+  date.setDate(date.getDate() + diff);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+function fmtMD(d) {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[d.getMonth()]} ${d.getDate()}`;
+}
+function fmtISO(d) { return d.toISOString().slice(0, 10); }
+
+function computeWeekStats(weekStart) {
+  const start = new Date(weekStart);
+  const end = new Date(start); end.setDate(end.getDate() + 7);
+  const startISO = fmtISO(start);
+  const endISO = fmtISO(end);
+
+  const logs = State.data.log.filter(e => e.date >= startISO && e.date < endISO);
+
+  const byDay = {};
+  const byPattern = {};
+  let green = 0, yellow = 0, red = 0, totalMin = 0;
+
+  for (const e of logs) {
+    (byDay[e.date] = byDay[e.date] || []).push(e);
+    byPattern[e.pattern] = (byPattern[e.pattern] || 0) + 1;
+    totalMin += (e.timeMin || 0);
+    if (e.verdict === 'green') green++;
+    else if (e.verdict === 'yellow') yellow++;
+    else if (e.verdict === 'red') red++;
+  }
+
+  const mocks = (State.data.mockHistory || []).filter(m => m.date >= startISO && m.date < endISO);
+
+  const activeDays = Object.keys(byDay).length;
+  const uniquePatterns = Object.keys(byPattern).length;
+
+  return { start, end, logs, byDay, byPattern, mocks, green, yellow, red, totalMin, activeDays, uniquePatterns };
+}
+
+function renderWeekly() {
+  const stats = computeWeekStats(weeklyAnchor);
+  const start = stats.start;
+  const end = new Date(start); end.setDate(end.getDate() + 6);
+
+  $('weekly-title').textContent = `Week of ${fmtMD(start)}`;
+  $('weekly-range').innerHTML = `${fmtMD(start)} — ${fmtMD(end)} <span class="sub">${start.getFullYear()}</span>`;
+  $('weekly-meta').textContent = `${stats.logs.length} problems · ${stats.activeDays}/7 active days · ${stats.uniquePatterns} patterns`;
+
+  const body = $('weekly-body');
+  const totalHrs = (stats.totalMin / 60).toFixed(1);
+  const todayISO = fmtISO(new Date());
+
+  // KPI row
+  let html = `
+    <div class="week-kpi-row">
+      <div class="week-kpi"><div class="week-kpi-val accent">${stats.logs.length}</div><div class="week-kpi-label">attempted</div></div>
+      <div class="week-kpi"><div class="week-kpi-val good">${stats.green}</div><div class="week-kpi-label">solved</div></div>
+      <div class="week-kpi"><div class="week-kpi-val warn">${stats.yellow}</div><div class="week-kpi-label">helped</div></div>
+      <div class="week-kpi"><div class="week-kpi-val crit">${stats.red}</div><div class="week-kpi-label">missed</div></div>
+      <div class="week-kpi"><div class="week-kpi-val">${totalHrs}h</div><div class="week-kpi-label">time</div></div>
+    </div>
+  `;
+
+  // Heatmap — 7 days (Mon–Sun)
+  const dayNames = ['mon','tue','wed','thu','fri','sat','sun'];
+  html += `<div class="week-section-title">daily activity</div>`;
+  html += `<div class="week-heatmap">`;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start); d.setDate(d.getDate() + i);
+    const iso = fmtISO(d);
+    const entries = stats.byDay[iso] || [];
+    const isToday = iso === todayISO;
+    const isFuture = iso > todayISO;
+    const dots = entries.slice(0, 6).map(e => `<span class="week-heat-dot v-${e.verdict}"></span>`).join('');
+    html += `<div class="week-heat-cell${isToday ? ' today' : ''}${isFuture ? ' future' : ''}" title="${iso} · ${entries.length} problem${entries.length === 1 ? '' : 's'}">
+      <div>
+        <div class="week-heat-day">${dayNames[i]}</div>
+        <div class="week-heat-date">${d.getDate()}</div>
+      </div>
+      <div class="week-heat-count ${entries.length === 0 ? 'zero' : ''}">${entries.length}</div>
+      <div class="week-heat-dots">${dots || '&nbsp;'}</div>
+    </div>`;
+  }
+  html += `</div>`;
+
+  // Pattern distribution
+  const patterns = Object.entries(stats.byPattern).sort((a, b) => b[1] - a[1]);
+  if (patterns.length) {
+    const maxCount = patterns[0][1];
+    html += `<div class="week-section-title">patterns practised</div>`;
+    html += `<div class="week-pattern-list">`;
+    for (const [name, count] of patterns) {
+      const pct = (count / maxCount) * 100;
+      html += `<div class="week-pattern-row">
+        <span class="week-pattern-name">${name}</span>
+        <div class="week-pattern-bar"><div class="week-pattern-bar-fill" style="width:${pct}%"></div></div>
+        <span class="week-pattern-count">${count}</span>
+      </div>`;
+    }
+    html += `</div>`;
+  }
+
+  // Problems grouped by day
+  if (stats.logs.length) {
+    html += `<div class="week-section-title">problems · chronological</div>`;
+    const sortedDays = Object.keys(stats.byDay).sort();
+    for (const date of sortedDays) {
+      const d = new Date(date + 'T00:00:00');
+      const dayLabel = `${dayNames[(d.getDay() + 6) % 7]} ${d.getDate()}`;
+      html += `<div class="week-day-group"><div class="week-day-header">${dayLabel}</div>`;
+      for (const e of stats.byDay[date]) {
+        const lcTag = e.lc > 0 ? `LC-${e.lc} ` : '';
+        const timeTag = e.timeMin > 0 ? `${e.timeMin}m` : '';
+        html += `<div class="week-problem-row">
+          <span class="week-problem-dot v-${e.verdict}"></span>
+          <span class="week-problem-name">${lcTag}${e.name}</span>
+          <span class="week-problem-time">${timeTag}</span>
+        </div>`;
+      }
+      html += `</div>`;
+    }
+  }
+
+  // Mocks
+  if (stats.mocks.length) {
+    html += `<div class="week-section-title">mocks (${stats.mocks.length})</div>`;
+    for (const m of stats.mocks) {
+      const mdate = new Date(m.date + 'T00:00:00');
+      const dayLabel = `${dayNames[(mdate.getDay() + 6) % 7]} ${mdate.getDate()}`;
+      html += `<div class="week-mock-row">
+        <span>${dayLabel}</span>
+        <span class="week-mock-score">${m.total}/25</span>
+      </div>`;
+    }
+  }
+
+  // Insight
+  html += renderInsight(stats);
+
+  if (stats.logs.length === 0) {
+    html = `<div class="week-empty">No activity this week yet.<br>Open a problem from Today to break the seal.</div>` + html;
+  }
+
+  body.innerHTML = html;
+}
+
+function renderInsight(stats) {
+  const total = stats.logs.length;
+  if (total === 0) return '';
+  const greenPct = Math.round((stats.green / total) * 100);
+  const topPattern = Object.entries(stats.byPattern).sort((a, b) => b[1] - a[1])[0];
+  const weakSpots = Object.entries(stats.byPattern)
+    .filter(([_, c]) => stats.logs.filter(e => e.pattern === _ && e.verdict !== 'green').length > 0)
+    .map(([p]) => p);
+
+  let line = '';
+  if (greenPct >= 80) line = `A clean week — ${stats.green}/${total} solved first-pass. Push into a harder pattern next week.`;
+  else if (greenPct >= 50) line = `Solid middle — ${greenPct}% solved. Weak surface: ${weakSpots.slice(0, 2).join(', ') || 'none'}. Spaced-repeat those.`;
+  else line = `Repair week — only ${greenPct}% solved. Pick one pattern (${topPattern ? topPattern[0] : 'graphs'}) and drill until clean.`;
+
+  return `<div class="week-insight">${line}</div>`;
+}
+
+function openWeekly() {
+  // Always reset to the current week when (re)opening.
+  weeklyAnchor = startOfWeek(new Date());
+  renderWeekly();
+  $('weekly-modal').hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+function closeWeekly() { $('weekly-modal').hidden = true; document.body.style.overflow = ''; }
+function shiftWeek(delta) {
+  weeklyAnchor.setDate(weeklyAnchor.getDate() + delta * 7);
+  renderWeekly();
+}
+
+/* ============ EXPORT ============ */
+function exportLog() {
+  const blob = JSON.stringify({
+    exported: new Date().toISOString(),
+    day: State.data.day,
+    mode: State.data.mode,
+    log: State.data.log,
+    srs: State.data.srs,
+    patternDots: State.data.patternDots,
+    mockHistory: State.data.mockHistory,
+  }, null, 2);
+  copyToClipboard(blob);
+  toast('log copied as JSON — ' + State.data.log.length + ' entries', 'good');
+}
+
+/* ============ EVENTS ============ */
+$('btn-mode').addEventListener('click', () => {
+  State.data.mode = State.data.mode === 'maintenance' ? 'full' : 'maintenance';
+  State.save();
+  renderAll();
+  toast(State.data.mode === 'full' ? 'full mode on' : 'maintenance mode on', 'good');
+});
+$('btn-theme').addEventListener('click', () => {
+  const curr = document.documentElement.getAttribute('data-theme');
+  const next = curr === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', next);
+  State.data.theme = next;
+  State.save();
+});
+$('btn-advance').addEventListener('click', () => {
+  if (State.data.day < 150) {
+    State.data.day++;
+    State.save();
+    renderAll();
+    toast('day ' + State.data.day, 'good');
+  }
+});
+$('btn-help').addEventListener('click', openHelp);
+$('btn-mock').addEventListener('click', openMock);
+$('btn-weekly').addEventListener('click', openWeekly);
+$('btn-view-roadmap').addEventListener('click', openRoadmap);
+$('btn-export').addEventListener('click', exportLog);
+$('mock-close').addEventListener('click', closeMock);
+$('roadmap-close').addEventListener('click', closeRoadmap);
+$('help-close').addEventListener('click', closeHelp);
+$('weekly-close').addEventListener('click', closeWeekly);
+$('weekly-prev').addEventListener('click', () => shiftWeek(-1));
+$('weekly-next').addEventListener('click', () => shiftWeek(1));
+$('wt-close').addEventListener('click', closeWalkthrough);
+$('focus-badge').addEventListener('click', toggleFocusMode);
+$('summary-dismiss').addEventListener('click', () => {
+  hideSummary();
+  toast('resumed — timer paused', '');
+});
+document.querySelectorAll('.summary-extend-group button').forEach(b => {
+  b.addEventListener('click', () => extendTimer(+b.dataset.ext));
+});
+
+$('mock-save').addEventListener('click', () => {
+  const total = mockScoreState.scores.reduce((a,b) => a+b, 0);
+  State.data.mockHistory.push({ date: new Date().toISOString().slice(0, 10), scores: mockScoreState.scores.slice(), total });
+  State.save();
+  closeMock();
+  toast('mock saved · ' + total + '/25', 'good');
+});
+
+$('dt-prev').addEventListener('click', () => {
+  State.data.decisionIdx = (State.data.decisionIdx - 1 + DECISION_CLUES.length) % DECISION_CLUES.length;
+  State.save(); renderDecisionTree();
+});
+$('dt-next').addEventListener('click', () => {
+  State.data.decisionIdx = (State.data.decisionIdx + 1) % DECISION_CLUES.length;
+  State.save(); renderDecisionTree();
+});
+$('dt-rand').addEventListener('click', () => {
+  State.data.decisionIdx = Math.floor(Math.random() * DECISION_CLUES.length);
+  State.save(); renderDecisionTree();
+});
+
+document.querySelectorAll('#tpl-lang-nav button').forEach(b => {
+  b.addEventListener('click', () => {
+    State.data.templateLang = b.dataset.l;
+    State.save(); renderTemplate();
+  });
+});
+$('tpl-copy').addEventListener('click', (e) => {
+  const t = TEMPLATES[State.data.templateIdx % TEMPLATES.length];
+  copyToClipboard(t[State.data.templateLang], e.target);
+});
+$('prim-copy').addEventListener('click', (e) => {
+  const p = PRIMITIVES[State.data.primitiveIdx % PRIMITIVES.length];
+  copyToClipboard(p.code, e.target);
+});
+
+document.querySelectorAll('.timer-btn[data-min]').forEach(b => {
+  b.addEventListener('click', () => resetTimer(+b.dataset.min));
+});
+$('timer-start').addEventListener('click', startTimer);
+$('timer-stop').addEventListener('click', () => resetTimer(timerBaseline / 60));
+
+document.querySelectorAll('.verdict-btn').forEach(b => {
+  b.addEventListener('click', () => logVerdict(b.dataset.v));
+});
+function logVerdict(v) {
+  if (!currentWTLC && currentWTLC !== 0) return;
+  const timeMin = Math.max(0, Math.round((timerBaseline - timerSeconds) / 60));
+  const checked = summaryChecked.size;
+  State.logProblem(currentWTLC, currentWTName, currentWTPattern, v, timeMin);
+  const name = currentWTName;
+  closeWalkthrough();
+  renderAll();
+  const checkedTag = checked > 0 ? ` · ${checked}/${SUMMARY_CHECKS.length} checks` : '';
+  toast(name + ' · ' + (v === 'green' ? 'solved' : v === 'yellow' ? 'help needed' : 'missed') + checkedTag,
+        v === 'green' ? 'good' : v === 'yellow' ? 'warn' : 'crit');
+}
+
+/* Backdrop close */
+document.querySelectorAll('.modal-backdrop').forEach(bd => {
+  bd.addEventListener('click', (e) => {
+    if (e.target === bd) {
+      bd.hidden = true;
+      document.body.style.overflow = '';
+      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    }
+  });
+});
+
+/* Keyboard shortcuts */
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  const modalOpen = !$('wt-modal').hidden || !$('mock-modal').hidden || !$('roadmap-modal').hidden || !$('help-modal').hidden;
+
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-backdrop:not([hidden])').forEach(bd => bd.hidden = true);
+    document.body.style.overflow = '';
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    return;
+  }
+
+  // In walkthrough modal
+  if (!$('wt-modal').hidden) {
+    if (e.key === ' ') { e.preventDefault(); startTimer(); return; }
+    if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleFocusMode(); return; }
+    if (e.key === 'g' || e.key === 'G') { e.preventDefault(); logVerdict('green'); return; }
+    if (e.key === 'y' || e.key === 'Y') { e.preventDefault(); logVerdict('yellow'); return; }
+    if (e.key === 'r' || e.key === 'R') { e.preventDefault(); logVerdict('red'); return; }
+    return;
+  }
+
+  if (modalOpen) return;
+
+  // Global
+  if (e.key === '?' && e.shiftKey) { e.preventDefault(); openHelp(); return; }
+  if (e.key === '?') { $('dt-rand').click(); return; }
+  if (e.key === 't' || e.key === 'T') { $('btn-theme').click(); return; }
+  if (e.key === 'm' && e.shiftKey) { e.preventDefault(); openRoadmap(); return; }
+  if (e.key === 'M' && !e.shiftKey) { $('btn-mode').click(); return; }
+  if (e.key === 'm' && !e.shiftKey) { $('btn-mode').click(); return; }
+  if (e.key === '[') { $('dt-prev').click(); return; }
+  if (e.key === ']') { $('dt-next').click(); return; }
+  if (e.key === 'w' || e.key === 'W') { openWeekly(); return; }
+
+  // Today list nav
+  const items = document.querySelectorAll('#today-list .problem-item');
+  if (!items.length) return;
+  if (e.key === 'j' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    todayFocusIdx = Math.min(items.length - 1, todayFocusIdx + 1);
+    renderToday();
+    return;
+  }
+  if (e.key === 'k' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    todayFocusIdx = Math.max(0, todayFocusIdx - 1);
+    renderToday();
+    return;
+  }
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    items[todayFocusIdx]?.click();
+    return;
+  }
+  // 1-9 opens that problem
+  if (/^[1-9]$/.test(e.key)) {
+    const idx = parseInt(e.key, 10) - 1;
+    if (idx < items.length) items[idx].click();
+  }
+});
+
+/* ============ LIBRARY ============ */
+const Library = {
+  loaded: false,
+  items: [],
+  categories: [],
+  activeSlug: null,
+  filter: '',
+
+  async load() {
+    if (this.loaded) return;
+    try {
+      const res = await fetch('./content.json');
+      const data = await res.json();
+      this.items = data.items || [];
+      this.categories = data.categories || [];
+      this.loaded = true;
+    } catch (e) {
+      console.warn('[library] failed to load content.json', e);
+      this.items = [];
+    }
+  },
+
+  async open(slug) {
+    $('library-modal').hidden = false;
+    document.body.style.overflow = 'hidden';
+    if (!this.loaded) await this.load();
+    this.renderList();
+    const target = slug || (this.items[0] && this.items[0].slug);
+    if (target) this.showItem(target);
+  },
+
+  close() {
+    $('library-modal').hidden = true;
+    document.body.style.overflow = '';
+  },
+
+  renderList() {
+    const list = $('library-list');
+    const search = (this.filter || '').trim().toLowerCase();
+    const grouped = {};
+    for (const it of this.items) {
+      if (search && !(it.title + ' ' + it.filename + ' ' + it.body.slice(0, 400)).toLowerCase().includes(search)) continue;
+      (grouped[it.category] = grouped[it.category] || []).push(it);
+    }
+    const html = [];
+    for (const cat of this.categories) {
+      const rows = grouped[cat];
+      if (!rows || !rows.length) continue;
+      html.push(`<div class="lib-cat">${cat} · ${rows.length}</div>`);
+      for (const it of rows) {
+        const cls = it.slug === this.activeSlug ? 'lib-item active' : 'lib-item';
+        html.push(`<div class="${cls}" data-slug="${it.slug}" title="${it.title}">${it.title}</div>`);
+      }
+    }
+    if (!html.length) html.push(`<div class="lib-empty">No matches.</div>`);
+    list.innerHTML = html.join('');
+    list.querySelectorAll('.lib-item').forEach(n => {
+      n.addEventListener('click', () => this.showItem(n.dataset.slug));
+    });
+    $('library-meta').textContent = `${this.items.length} workflows · ${this.categories.length} categories · last built ${new Date().toISOString().slice(0,10)}`;
+  },
+
+  showItem(slug) {
+    const it = this.items.find(x => x.slug === slug);
+    if (!it) return;
+    this.activeSlug = slug;
+    const content = $('library-content');
+    const html = (window.marked && window.marked.parse)
+      ? window.marked.parse(it.body, { gfm: true, breaks: false })
+      : `<pre>${it.body.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))}</pre>`;
+    content.innerHTML = html + `<div class="lib-meta">source · ${it.source}</div>`;
+    content.scrollTop = 0;
+    // Mark active in sidebar
+    document.querySelectorAll('#library-list .lib-item').forEach(n => {
+      n.classList.toggle('active', n.dataset.slug === slug);
+    });
+  },
+
+  setFilter(v) {
+    this.filter = v;
+    this.renderList();
+  },
+};
+
+/* ============ SYNC ============ */
+const Sync = {
+  endpoint: './api/sync',
+  tokenKey: 'dsa.native.sync.token',
+  lastSyncedKey: 'dsa.native.sync.last',
+  pending: false,
+  queued: false,
+
+  token() {
+    try {
+      let t = localStorage.getItem(this.tokenKey);
+      if (!t) {
+        t = this.generateToken();
+        localStorage.setItem(this.tokenKey, t);
+      }
+      return t;
+    } catch (e) { return 'offline-' + Date.now(); }
+  },
+
+  generateToken() {
+    const bytes = new Uint8Array(16);
+    (self.crypto || window.crypto).getRandomValues(bytes);
+    return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  },
+
+  setToken(t) {
+    if (!t || !/^[A-Za-z0-9_-]{8,}$/.test(t)) throw new Error('bad token');
+    localStorage.setItem(this.tokenKey, t);
+  },
+
+  setDot(cls) {
+    const d = document.getElementById('sync-dot');
+    if (!d) return;
+    d.classList.remove('on', 'syncing', 'error');
+    if (cls) d.classList.add(cls);
+  },
+
+  async pull() {
+    this.setDot('syncing');
+    try {
+      const res = await fetch(`${this.endpoint}?token=${encodeURIComponent(this.token())}`, { method: 'GET' });
+      if (res.status === 204) { this.setDot('on'); return null; }
+      if (res.status === 503) { this.setDot(''); this.configured = false; return null; }
+      if (!res.ok) throw new Error('pull failed ' + res.status);
+      const data = await res.json();
+      this.setDot('on'); this.configured = true;
+      return data.state;
+    } catch (e) {
+      console.warn('[sync] pull failed', e);
+      this.setDot('error');
+      return null;
+    }
+  },
+
+  async push(state) {
+    if (this.pending) { this.queued = true; return; }
+    if (this.configured === false) return; // Don't hammer a 503 route
+    this.pending = true;
+    this.setDot('syncing');
+    try {
+      const res = await fetch(this.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: this.token(), state }),
+      });
+      if (res.status === 503) { this.configured = false; this.setDot(''); return; }
+      if (!res.ok) throw new Error('push failed ' + res.status);
+      localStorage.setItem(this.lastSyncedKey, new Date().toISOString());
+      this.setDot('on'); this.configured = true;
+    } catch (e) {
+      console.warn('[sync] push failed', e);
+      this.setDot('error');
+    } finally {
+      this.pending = false;
+      if (this.queued) { this.queued = false; this.push(State.data); }
+    }
+  },
+
+  schedule() {
+    // Debounce — collapse rapid-fire saves into one request
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.push(State.data), 600);
+  },
+
+  async mergeIn(remote) {
+    if (!remote || typeof remote !== 'object') return false;
+    const localLen = (State.data.log || []).length;
+    const remoteLen = (remote.log || []).length;
+    // If remote is strictly ahead on log length, trust it. Otherwise keep local.
+    if (remoteLen > localLen) {
+      Object.assign(State.data, remote);
+      State.save();
+      renderAll();
+      toast('restored ' + remoteLen + ' entries from remote', 'good');
+      return true;
+    }
+    return false;
+  },
+
+  async bootstrap() {
+    // Kick off a pull — if remote has more entries, replace local.
+    this.setDot('syncing');
+    const remote = await this.pull();
+    if (remote) await this.mergeIn(remote);
+    this.setDot('on');
+  },
+
+  info() {
+    return {
+      token: this.token(),
+      last: localStorage.getItem(this.lastSyncedKey) || 'never',
+      entries: (State.data.log || []).length,
+    };
+  },
+};
+
+// Hook State.save() to push to the backend on every change.
+const _origSave = State.save.bind(State);
+State.save = function () {
+  _origSave();
+  Sync.schedule();
+};
+
+/* ============ LIBRARY + SYNC EVENTS ============ */
+$('btn-library').addEventListener('click', () => Library.open());
+$('library-close').addEventListener('click', () => Library.close());
+$('library-search').addEventListener('input', (e) => Library.setFilter(e.target.value));
+
+$('sync-dot').addEventListener('click', openSync);
+$('sync-close').addEventListener('click', () => { $('sync-modal').hidden = true; document.body.style.overflow = ''; });
+$('sync-copy').addEventListener('click', () => copyToClipboard(Sync.token(), null));
+$('sync-restore').addEventListener('click', async () => {
+  const t = prompt('Paste sync token from your other device:');
+  if (!t) return;
+  try {
+    Sync.setToken(t.trim());
+    toast('token saved — pulling remote', 'good');
+    await Sync.bootstrap();
+    renderSyncModal();
+  } catch (e) { toast('invalid token', 'crit'); }
+});
+$('sync-pull').addEventListener('click', async () => {
+  const remote = await Sync.pull();
+  if (remote) {
+    const changed = await Sync.mergeIn(remote);
+    if (!changed) toast('local is already ahead or equal', '');
+  } else {
+    toast('nothing on remote yet', 'warn');
+  }
+  renderSyncModal();
+});
+$('sync-push').addEventListener('click', async () => {
+  await Sync.push(State.data);
+  toast('pushed · ' + (State.data.log || []).length + ' entries', 'good');
+  renderSyncModal();
+});
+
+function openSync() {
+  $('sync-modal').hidden = false;
+  document.body.style.overflow = 'hidden';
+  renderSyncModal();
+}
+function renderSyncModal() {
+  const info = Sync.info();
+  $('sync-token').textContent = info.token;
+  $('sync-last').textContent = info.last === 'never' ? 'never' : new Date(info.last).toLocaleString();
+  $('sync-entries').textContent = info.entries;
+  const dot = document.getElementById('sync-dot');
+  $('sync-status').textContent = dot && dot.classList.contains('error') ? 'error' : (dot && dot.classList.contains('on') ? 'connected' : 'idle');
+}
+
+// Also expose 'L' keyboard shortcut for Library
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  const anyModalOpen = document.querySelectorAll('.modal-backdrop:not([hidden])').length > 0;
+  if (anyModalOpen) return;
+  if (e.key === 'l' || e.key === 'L') { Library.open(); }
+});
+
+/* ============ INIT ============ */
+State.load();
+Sync.bootstrap();
+if (State.data.theme) document.documentElement.setAttribute('data-theme', State.data.theme);
+if (new Date() >= FULL_MODE_START && State.data.mode === 'maintenance' && !State.data.autoFullSet) {
+  State.data.mode = 'full';
+  State.data.autoFullSet = true;
+  State.save();
+}
+renderAll();
+</script>
+</body>
+</html>

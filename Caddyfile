@@ -107,17 +107,16 @@
 	}
 
 	# DSA Native — 150-day DSA + AI-native interview prep daily driver.
-	# Deployed on Vercel (static SPA + Vercel KV serverless sync at /api/sync,
-	# baked workflow library at /content.json). Caddy reverse-proxies so the
-	# whole hub stays on one domain. The SPA uses relative URLs (./content.json,
-	# ./api/sync), so they resolve correctly under this mount without further
-	# rewriting; Vercel sees the path-stripped request as if served from root.
+	# Static SPA + Express /api/sync (MongoDB-backed) hosted in-container
+	# (apps/dsa-native). The SPA uses relative URLs (./content.json,
+	# ./api/sync) so handle_path's prefix strip is invisible to it.
+	# Migrated here from Vercel on 2026-10-14 because the Hobby plan blocked
+	# every deploy past the first.
 	handle /dsa-native {
 		redir * /dsa-native/ permanent
 	}
 	handle_path /dsa-native/* {
-		reverse_proxy https://dsa-native.vercel.app {
-			header_up Host dsa-native.vercel.app
+		reverse_proxy 127.0.0.1:8112 {
 			header_up X-Forwarded-Prefix /dsa-native
 		}
 	}

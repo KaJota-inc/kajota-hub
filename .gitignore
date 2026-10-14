@@ -1,10 +1,11 @@
-node_modules/
-.venv/
-__pycache__/
-*.pyc
 *.egg-info/
-dist/
-build/
+*.pyc
 .env
 .env.*
+.venv/
 .witness-index/
+__pycache__/
+apps/dsa-native/node_modules/
+build/
+dist/
+node_modules/

@@ -176,6 +176,15 @@ services:
       - { key: PFZD_ANTHROPIC_API_KEY, sync: false }
       - { key: PFZD_GEMINI_API_KEY, sync: false }
 
+      # ---- dsa-native (DSA + AI-native prep · static SPA + Mongo sync) ---
+      # Reuses the shared kajota Atlas cluster. One collection per DB
+      # (user_state keyed by random browser token). Prefix DSAN_* strips to
+      # MONGODB_URI inside scripts/run/dsa-native.sh. If DSAN_MONGODB_URI is
+      # unset, /api/sync returns 503 (not 500) so the sync dot can show
+      # "not configured" rather than "error".
+      - { key: DSAN_MONGODB_URI, sync: false }
+      - { key: DSAN_MONGODB_DB, value: dsa_native }
+
       # ---- ielts-sda-prep-api (PhD-prep sync + public content + walkthroughs) ---
       # Unprefixed KH_IELTS_* (like witness). Bearer token gates all WRITES
       # (progress sync + walkthrough create/edit); content + walkthrough reads
