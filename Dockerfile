@@ -79,6 +79,12 @@ RUN python -m venv /srv/venvs/mesh-skill && /srv/venvs/mesh-skill/bin/pip instal
 RUN python -m venv /srv/venvs/payflow && /srv/venvs/payflow/bin/pip install -q --upgrade pip \
  && /srv/venvs/payflow/bin/pip install -q -e '/srv/apps/payflow[webhook,gemini,beacon]'
 
+# ielts-sda-prep-api — single-user sync backend for the PhD prep React app.
+# FastAPI + uvicorn + stdlib sqlite3 + python-multipart. No external deps.
+RUN python -m venv /srv/venvs/ielts-sda-prep-api \
+ && /srv/venvs/ielts-sda-prep-api/bin/pip install -q --upgrade pip \
+ && /srv/venvs/ielts-sda-prep-api/bin/pip install -q -e /srv/apps/ielts-sda-prep-api
+
 # Pre-pull the MongoDB MCP server (Node) the agents spawn on first chat.
 RUN npx -y mongodb-mcp-server@latest --help > /dev/null 2>&1 || true
 

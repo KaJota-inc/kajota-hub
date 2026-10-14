@@ -1,0 +1,347 @@
+{
+  "docs": [
+    {
+      "slug": "workflows-00-melsan-operating-system",
+      "title": "MELSAN Operating System — the Melancholic-Sanguine way to run the 49-day campaign",
+      "group": "Workflows",
+      "file": "workflows-00-melsan-operating-system.md",
+      "bytes": 7315
+    },
+    {
+      "slug": "workflows-01-daily-domain-workflows",
+      "title": "Daily Domain Workflows — the four blocks, run the MELSAN way",
+      "group": "Workflows",
+      "file": "workflows-01-daily-domain-workflows.md",
+      "bytes": 8007
+    },
+    {
+      "slug": "workflows-02-lifecycle-workflows",
+      "title": "Lifecycle Workflows — the application campaign, run the MELSAN way",
+      "group": "Workflows",
+      "file": "workflows-02-lifecycle-workflows.md",
+      "bytes": 6360
+    },
+    {
+      "slug": "workflows-03-cadence-and-gates",
+      "title": "Cadence & Gates — when each workflow fires across the 7 weeks",
+      "group": "Workflows",
+      "file": "workflows-03-cadence-and-gates.md",
+      "bytes": 5749
+    },
+    {
+      "slug": "daily-plans-2026-10-14",
+      "title": "Day 1 — Wednesday, 2026-10-14 — Week 1",
+      "group": "Daily plans",
+      "file": "daily-plans-2026-10-14.md",
+      "bytes": 4947
+    },
+    {
+      "slug": "daily-plans-2026-10-15",
+      "title": "Day 2 — Thursday, 2026-10-15 — Week 1",
+      "group": "Daily plans",
+      "file": "daily-plans-2026-10-15.md",
+      "bytes": 5549
+    },
+    {
+      "slug": "daily-plans-2026-10-16",
+      "title": "Day 3 — Friday, 2026-10-16 — Week 1",
+      "group": "Daily plans",
+      "file": "daily-plans-2026-10-16.md",
+      "bytes": 4667
+    },
+    {
+      "slug": "daily-plans-2026-10-17",
+      "title": "Day 4 — Saturday, 2026-10-17 — Week 1",
+      "group": "Daily plans",
+      "file": "daily-plans-2026-10-17.md",
+      "bytes": 4299
+    },
+    {
+      "slug": "daily-plans-2026-10-18",
+      "title": "Day 5 — Sunday, 2026-10-18 — Week 1",
+      "group": "Daily plans",
+      "file": "daily-plans-2026-10-18.md",
+      "bytes": 5566
+    },
+    {
+      "slug": "daily-plans-2026-10-19",
+      "title": "Day 6 — Monday, 2026-10-19 — Week 1",
+      "group": "Daily plans",
+      "file": "daily-plans-2026-10-19.md",
+      "bytes": 4418
+    },
+    {
+      "slug": "daily-plans-2026-10-20",
+      "title": "Day 7 — Tuesday, 2026-10-20 — Week 1",
+      "group": "Daily plans",
+      "file": "daily-plans-2026-10-20.md",
+      "bytes": 4929
+    },
+    {
+      "slug": "daily-plans-2026-10-21",
+      "title": "Day 8 — Wednesday, 2026-10-21 — Week 2",
+      "group": "Daily plans",
+      "file": "daily-plans-2026-10-21.md",
+      "bytes": 5130
+    },
+    {
+      "slug": "daily-plans-template",
+      "title": "Day {N} — {DAY_NAME}, {DATE} — Week {W}",
+      "group": "Daily plans",
+      "file": "daily-plans-template.md",
+      "bytes": 2296
+    },
+    {
+      "slug": "supervisors-belardinelli",
+      "title": "Francesco Belardinelli — Imperial — Priority 8 (Backup)",
+      "group": "Supervisors",
+      "file": "supervisors-belardinelli.md",
+      "bytes": 3599
+    },
+    {
+      "slug": "supervisors-casale",
+      "title": "Giuliano Casale — Imperial — Priority 3",
+      "group": "Supervisors",
+      "file": "supervisors-casale.md",
+      "bytes": 3644
+    },
+    {
+      "slug": "supervisors-demetriou",
+      "title": "Soteris Demetriou — Imperial — Priority 1",
+      "group": "Supervisors",
+      "file": "supervisors-demetriou.md",
+      "bytes": 4347
+    },
+    {
+      "slug": "supervisors-fokaefs",
+      "title": "Marios Fokaefs — York EECS — Priority 5",
+      "group": "Supervisors",
+      "file": "supervisors-fokaefs.md",
+      "bytes": 3465
+    },
+    {
+      "slug": "supervisors-hongxiang-fan",
+      "title": "Hongxiang Fan — Imperial — Priority 7",
+      "group": "Supervisors",
+      "file": "supervisors-hongxiang-fan.md",
+      "bytes": 3691
+    },
+    {
+      "slug": "supervisors-nguyen",
+      "title": "Uyen Trang Nguyen — York EECS — Priority 6 (Backup)",
+      "group": "Supervisors",
+      "file": "supervisors-nguyen.md",
+      "bytes": 3417
+    },
+    {
+      "slug": "supervisors-song-wang",
+      "title": "Song Wang — York EECS — Priority 2",
+      "group": "Supervisors",
+      "file": "supervisors-song-wang.md",
+      "bytes": 4178
+    },
+    {
+      "slug": "supervisors-toni",
+      "title": "Francesca Toni — Imperial — Priority 4",
+      "group": "Supervisors",
+      "file": "supervisors-toni.md",
+      "bytes": 3975
+    },
+    {
+      "slug": "campaign-melsan-phd-prep-origin",
+      "title": "MELSAN — the operating grammar",
+      "group": "Campaign",
+      "file": "campaign-melsan-phd-prep-origin.md",
+      "bytes": 4234
+    },
+    {
+      "slug": "campaign-readme",
+      "title": "Imperial × York PhD Campaign — canonical workspace",
+      "group": "Campaign",
+      "file": "campaign-readme.md",
+      "bytes": 5234
+    },
+    {
+      "slug": "campaign-legacy-readme-phd-prep",
+      "title": "phd-prep — Imperial × York, 14 Oct – 1 Dec 2026",
+      "group": "Campaign",
+      "file": "campaign-legacy-readme-phd-prep.md",
+      "bytes": 3296
+    },
+    {
+      "slug": "campaign-performance-log",
+      "title": "Performance log — 49 days, one row per evening",
+      "group": "Campaign",
+      "file": "campaign-performance-log.md",
+      "bytes": 2329
+    },
+    {
+      "slug": "campaign-risk-register",
+      "title": "Application risk register — live copy of workbook Risk Register",
+      "group": "Campaign",
+      "file": "campaign-risk-register.md",
+      "bytes": 7481
+    },
+    {
+      "slug": "campaign-weekly-review-template",
+      "title": "Weekly review template — every Sunday, 30 minutes",
+      "group": "Campaign",
+      "file": "campaign-weekly-review-template.md",
+      "bytes": 3431
+    },
+    {
+      "slug": "outreach-00-york-eligibility-email",
+      "title": "York EECS — direct-entry eligibility question",
+      "group": "Outreach",
+      "file": "outreach-00-york-eligibility-email.md",
+      "bytes": 3896
+    },
+    {
+      "slug": "study-materials-00-ai-native-sda-interview-framework",
+      "title": "AI-Native System Design Interview — The Framework",
+      "group": "Study materials",
+      "file": "study-materials-00-ai-native-sda-interview-framework.md",
+      "bytes": 6739
+    },
+    {
+      "slug": "study-materials-01-concept-cards-ai-native-and-agents",
+      "title": "Concept Cards A — AI-Native Systems & Agents",
+      "group": "Study materials",
+      "file": "study-materials-01-concept-cards-ai-native-and-agents.md",
+      "bytes": 10038
+    },
+    {
+      "slug": "study-materials-02-concept-cards-ai4se-se4ai",
+      "title": "Concept Cards B — AI4SE & SE4AI",
+      "group": "Study materials",
+      "file": "study-materials-02-concept-cards-ai4se-se4ai.md",
+      "bytes": 8567
+    },
+    {
+      "slug": "study-materials-03-concept-cards-distributed-reliability",
+      "title": "Concept Cards C — Distributed Systems & Reliability",
+      "group": "Study materials",
+      "file": "study-materials-03-concept-cards-distributed-reliability.md",
+      "bytes": 8366
+    },
+    {
+      "slug": "study-materials-04-concept-cards-assurance",
+      "title": "Concept Cards D — Assurance: V&V, Safety, Explainability, Auditability",
+      "group": "Study materials",
+      "file": "study-materials-04-concept-cards-assurance.md",
+      "bytes": 7397
+    },
+    {
+      "slug": "study-materials-05-research-direction-and-portfolio",
+      "title": "Research Direction & Portfolio — AI Engineering for Reliable Autonomous Systems",
+      "group": "Study materials",
+      "file": "study-materials-05-research-direction-and-portfolio.md",
+      "bytes": 7768
+    },
+    {
+      "slug": "study-materials-06-foundations-drill",
+      "title": "Foundations Drill — Rapid-Recall Sheet",
+      "group": "Study materials",
+      "file": "study-materials-06-foundations-drill.md",
+      "bytes": 6294
+    },
+    {
+      "slug": "study-materials-07-twelve-week-programme",
+      "title": "The 12-Week IELTS × Systems × PhD Programme",
+      "group": "Study materials",
+      "file": "study-materials-07-twelve-week-programme.md",
+      "bytes": 9537
+    },
+    {
+      "slug": "study-materials-08-register-transformation",
+      "title": "Register Transformation — Engineer-Speak → Academic English",
+      "group": "Study materials",
+      "file": "study-materials-08-register-transformation.md",
+      "bytes": 7227
+    },
+    {
+      "slug": "study-materials-09-technical-vocabulary-bank",
+      "title": "Technical Vocabulary Bank — Usage, Not Lists",
+      "group": "Study materials",
+      "file": "study-materials-09-technical-vocabulary-bank.md",
+      "bytes": 7401
+    },
+    {
+      "slug": "study-materials-10-english-requirements-and-targets",
+      "title": "English Requirements & Targets",
+      "group": "Study materials",
+      "file": "study-materials-10-english-requirements-and-targets.md",
+      "bytes": 3855
+    },
+    {
+      "slug": "study-materials-11-daily-sda-interview-prep",
+      "title": "Daily SDA Interview Prep — AI-Native Engineering (60-Day Driver)",
+      "group": "Study materials",
+      "file": "study-materials-11-daily-sda-interview-prep.md",
+      "bytes": 18076
+    },
+    {
+      "slug": "study-materials-12-domain-curriculum",
+      "title": "IELTS × System Design × PhD — 12-Week Domain Curriculum",
+      "group": "Study materials",
+      "file": "study-materials-12-domain-curriculum.md",
+      "bytes": 35407
+    },
+    {
+      "slug": "study-materials-13-progress-tracker",
+      "title": "Progress Tracker — Daily SDA (AI-Native Engineering)",
+      "group": "Study materials",
+      "file": "study-materials-13-progress-tracker.md",
+      "bytes": 8773
+    },
+    {
+      "slug": "study-materials-14-imperial-york-49day-plan",
+      "title": "Imperial × York — Premium 49-Day PhD Prep Plan",
+      "group": "Study materials",
+      "file": "study-materials-14-imperial-york-49day-plan.md",
+      "bytes": 32413
+    },
+    {
+      "slug": "study-materials-15-melsan-delivery-workflows",
+      "title": "MELSAN Delivery Workflows — the operating method for the 49-day campaign",
+      "group": "Study materials",
+      "file": "study-materials-15-melsan-delivery-workflows.md",
+      "bytes": 5270
+    },
+    {
+      "slug": "study-materials-research-ielts-prep",
+      "title": "IELTS × PhD Prep — Reliable, Autonomous AI-Native Distributed Systems",
+      "group": "Study materials",
+      "file": "study-materials-research-ielts-prep.md",
+      "bytes": 54832
+    },
+    {
+      "slug": "study-materials-workflow-00-melsan-operating-system",
+      "title": "MELSAN Operating System — the Melancholic-Sanguine way to run the 49-day campaign",
+      "group": "Study materials",
+      "file": "study-materials-workflow-00-melsan-operating-system.md",
+      "bytes": 7315
+    },
+    {
+      "slug": "study-materials-workflow-01-daily-domain-workflows",
+      "title": "Daily Domain Workflows — the four blocks, run the MELSAN way",
+      "group": "Study materials",
+      "file": "study-materials-workflow-01-daily-domain-workflows.md",
+      "bytes": 8007
+    },
+    {
+      "slug": "study-materials-workflow-02-lifecycle-workflows",
+      "title": "Lifecycle Workflows — the application campaign, run the MELSAN way",
+      "group": "Study materials",
+      "file": "study-materials-workflow-02-lifecycle-workflows.md",
+      "bytes": 6360
+    },
+    {
+      "slug": "study-materials-workflow-03-cadence-and-gates",
+      "title": "Cadence & Gates — when each workflow fires across the 7 weeks",
+      "group": "Study materials",
+      "file": "study-materials-workflow-03-cadence-and-gates.md",
+      "bytes": 5749
+    }
+  ]
+}

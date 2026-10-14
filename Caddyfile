@@ -98,6 +98,14 @@
 		file_server
 	}
 
+	# IELTS × SD × PhD prep — sync backend for the Vercel-hosted React app.
+	# Single-user, bearer-token-auth. See apps/ielts-sda-prep-api/README.md.
+	handle_path /ielts-sda-prep-api/* {
+		reverse_proxy 127.0.0.1:8111 {
+			header_up X-Forwarded-Prefix /ielts-sda-prep-api
+		}
+	}
+
 	# Landing page = route map.
 	handle / {
 		root * /srv
