@@ -1,0 +1,14 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+
+# Local SQLite stores (prod uses the Render disk at /srv/data)
+*.sqlite3
+*.sqlite3-*
+
+# NOTE: content/ IS committed on purpose — it is the bundled public content
+# baked into the image (run scripts/bundle_content.py to refresh it).

@@ -19,6 +19,14 @@ services:
     dockerfilePath: Dockerfile
     dockerContext: .
     healthCheckPath: /healthz
+    # Persistent disk for the PhD-prep SQLite store (progress sync + authored
+    # walkthroughs). Without this, Render's filesystem is ephemeral and every
+    # deploy wipes authored content. Bundled read-only content ships in the
+    # image under the app dir and does NOT need the disk.
+    disk:
+      name: ielts-data
+      mountPath: /srv/data
+      sizeGB: 1
     envVars:
       # ---- coach-okx (OKX.AI Genesis ASP) ----------------------------
       - { key: COKX_GEMINI_MODEL, value: gemini-2.5-pro }
@@ -167,3 +175,14 @@ services:
       - { key: PFZD_PAYFLOW_INTERNAL_TOKEN, generateValue: true }
       - { key: PFZD_ANTHROPIC_API_KEY, sync: false }
       - { key: PFZD_GEMINI_API_KEY, sync: false }
+
+      # ---- ielts-sda-prep-api (PhD-prep sync + public content + walkthroughs) ---
+      # Unprefixed KH_IELTS_* (like witness). Bearer token gates all WRITES
+      # (progress sync + walkthrough create/edit); content + walkthrough reads
+      # are public. Set ALLOWED_ORIGINS to the Vercel site + localhost so the
+      # browser can call cross-origin. generateValue mints a strong token you
+      # copy into the site's author mode.
+      - { key: KH_IELTS_API_TOKEN, generateValue: true }
+      - { key: KH_IELTS_ALLOWED_ORIGINS, value: "https://ielts-sda-prep.vercel.app,http://localhost:5173,http://localhost:5174" }
+      - { key: KH_IELTS_CONTENT_DIR, value: /srv/apps/ielts-sda-prep-api/content }
+      - { key: KH_IELTS_DB_PATH, value: /srv/data/ielts-sda-prep-api.sqlite3 }
