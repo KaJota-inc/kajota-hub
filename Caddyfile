@@ -98,6 +98,29 @@
 		file_server
 	}
 
+	# Beacon — Mandate Beacon inspector (Vite SPA). Static like Shield; the
+	# dist/ is pre-built from kajota-zama/beacon and vendored into apps/beacon/
+	# by scripts/vendor-beacon.sh. BLI Legal Tech Hackathon 2 submission surface
+	# — three live Sepolia contracts (MandateAnchor + SakkMandate + EsusuMandate)
+	# rendered as inspector tabs with a 2D/3D toggle. The beacon-sepolia.json
+	# manifest gets a short s-maxage so the browser refreshes anchor rows within
+	# one anchor-cron tick without hammering the hub origin.
+	handle /beacon {
+		redir * /beacon/ permanent
+	}
+	@beacon_manifest path /beacon/beacon-sepolia.json
+	handle @beacon_manifest {
+		header Cache-Control "public, max-age=0, s-maxage=300, must-revalidate"
+		rewrite * /beacon-sepolia.json
+		root * /srv/apps/beacon
+		file_server
+	}
+	handle_path /beacon/* {
+		root * /srv/apps/beacon
+		try_files {path} /index.html
+		file_server
+	}
+
 	# IELTS × SD × PhD prep — sync backend for the Vercel-hosted React app.
 	# Single-user, bearer-token-auth. See apps/ielts-sda-prep-api/README.md.
 	handle_path /ielts-sda-prep-api/* {

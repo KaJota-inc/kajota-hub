@@ -1,0 +1,64 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "deployer": "0xC58A7717fdf1Bc40dFb63b02ab54D6CF6c8F7093",
+  "slaWindowSeconds": 86400,
+  "MandateAnchor": {
+    "address": "0x7A4C3c92cbf3cd3442B55bcFacdBdECfDF6a2504",
+    "txHash": "0x5827375bc9fb699bd284d965162661afef4be6f2c8a21f474cdaee9056bd7105"
+  },
+  "allowBankTx": "0x54df67ae298bcdf0847bb24097dd1a0cedff42d9e8e38a42f213fe92642a304a",
+  "deployedAt": "2026-10-06T21:45:14.601Z",
+  "branch": "hackathon/bli-mandate-beacon",
+  "lastSequence": 1,
+  "anchors": [
+    {
+      "sequence": 1,
+      "tickBucket": 5971077,
+      "mandateId": "0x45ef3ea028713aab0d397a589dd51839b72419d3625e8053b72a97bdcfc9da58",
+      "idempotencyKey": "0x73847433efedb1501bcea50551880ae5e539ef3fa8eb2dc4dcd0fd23aa825559",
+      "amount": "25100",
+      "commitment": "0xac0efc0cde467edce54e3389654e0aa02ea8db4967a6771fc816dd8643c6450b",
+      "txHash": "0xe1829bba1f3d1ca41722415325082f579dcacc462b7d4ca8f23e9562f7bf628b",
+      "blockNumber": 11858585,
+      "timestamp": "2026-10-06T21:45:40.751Z"
+    }
+  ],
+  "SakkMandate": {
+    "address": "0x0949aAa551d2Ea18D18b48D36063C9d7ce8349c1",
+    "txHash": "0x524615ce5748f2d23055a9364a46b084dd9568b9fd2a0a7ee541f9ceb28e89d0",
+    "allowPayerTx": "0x0076ef1326229e5c9f702c1d6776e8724167c4a1421b2eb2a1e2fda7597fc11a",
+    "seedSakkId": "0xa654392e49a09a51be85826c4e67a5a1d1c1e49da02acd9915fe4e51334c61d2",
+    "seedCommit": "0xcbbf7aaa56ebb59e99669dad55dabf9683f33acb964da25b3a4cb44b3a315a71",
+    "seedWitnesses": [
+      "0xE45E6b01742CDB4e3aECFEb364b2967415C551c1",
+      "0x2F76906b39a484cC43Cf911ffd9893F52258E4C2",
+      "0xe1baCF1F7c87F1dC03c401c8bD96CD48d3F13D4F"
+    ],
+    "seedBeneficiary": "0xe1baCF1F7c87F1dC03c401c8bD96CD48d3F13D4F",
+    "seedSealTx": "0xeb6361408fadea77966e8610986699067e6d12c58f27e4636a7617ff3ec55114",
+    "seedSealBlock": 11858671
+  },
+  "EsusuMandate": {
+    "address": "0x463463D0eE28fEdE89525cc28A261301f14Ab9fd",
+    "txHash": "0x852cca2645da76fd59c4f5e64610b61c6852120a9bd94eb472583b548d7ca375",
+    "allowOrganiserTx": "0xaa61fdd99295def65bb3ff95db677e97423f969cb835af8749ff98832df28ded",
+    "seedRotationId": "0x092de2aca4f5a45d5e56fead6916ad08c42f4526467637c5bf44e84b4d6401fb",
+    "seedMembers": [
+      "0xE45E6b01742CDB4e3aECFEb364b2967415C551c1",
+      "0x2F76906b39a484cC43Cf911ffd9893F52258E4C2",
+      "0xe1baCF1F7c87F1dC03c401c8bD96CD48d3F13D4F"
+    ],
+    "seedCollectorOrder": [
+      "0x2F76906b39a484cC43Cf911ffd9893F52258E4C2",
+      "0xe1baCF1F7c87F1dC03c401c8bD96CD48d3F13D4F",
+      "0xE45E6b01742CDB4e3aECFEb364b2967415C551c1"
+    ],
+    "seedContribution": "100",
+    "seedCycleLength": "604800",
+    "seedSealTx": "0x6a8fc41d2242dc360a1a0b9b7c1172c029cfe67090eac5c8a1ff43d9efd8b2d1",
+    "seedSealBlock": 11858672
+  },
+  "sakkEsusuDeployedAt": "2026-10-06T22:00:15.573Z",
+  "sakkEsusuSeededAt": "2026-10-06T22:03:05.150Z"
+}
