@@ -192,6 +192,6 @@ services:
       # browser can call cross-origin. generateValue mints a strong token you
       # copy into the site's author mode.
       - { key: KH_IELTS_API_TOKEN, generateValue: true }
-      - { key: KH_IELTS_ALLOWED_ORIGINS, value: "https://ielts-sda-prep.vercel.app,http://localhost:5173,http://localhost:5174" }
+      - { key: KH_IELTS_ALLOWED_ORIGINS, value: "https://app-swart-xi-33.vercel.app,https://ielts-sda-prep.vercel.app,http://localhost:5173,http://localhost:5174" }
       - { key: KH_IELTS_CONTENT_DIR, value: /srv/apps/ielts-sda-prep-api/content }
       - { key: KH_IELTS_DB_PATH, value: /srv/data/ielts-sda-prep-api.sqlite3 }
