@@ -211,10 +211,19 @@ def build_payment_requirements(cfg: X402Config, resource: str) -> dict[str, Any]
 def _payment_required_response(
     cfg: X402Config, resource: str, *, error: str
 ) -> JSONResponse:
-    """The 402 body + headers a client needs to construct its payment."""
+    """The 402 body + headers a client needs to construct its payment.
+
+    v2 wire shape (per ``onchainos payment pay --help``) is
+    ``{x402Version, resource, accepts}`` — ``resource`` MUST be a
+    top-level field. v1 nested it inside each accepts[] entry; v2 moved
+    it up. OKX's a2mcp verifier rejects any response without the
+    top-level key as "has no accepts" (misleading error wording), so we
+    always emit it even in v1-mode for forward compatibility.
+    """
     requirements = build_payment_requirements(cfg, resource)
     body = {
         "x402Version": X402_VERSION,
+        "resource": resource,
         "accepts": [requirements],
         "error": error,
     }
