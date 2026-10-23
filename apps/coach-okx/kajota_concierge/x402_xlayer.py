@@ -227,7 +227,18 @@ def _payment_required_response(
         "accepts": [requirements],
         "error": error,
     }
-    header_blob = base64.b64encode(json.dumps(requirements).encode()).decode()
+    # The PAYMENT-REQUIRED header must carry the FULL challenge wrapper
+    # (x402Version + resource + accepts[]) — OKX's a2mcp verifier decodes
+    # the header and asserts accepts[] exists on the decoded object. If
+    # we encode only the single requirement, it errors with
+    # "a2mcp_unsupported_payment_asset: challenge has no accepts" even
+    # though the body itself is well-formed.
+    header_payload = {
+        "x402Version": X402_VERSION,
+        "resource": resource,
+        "accepts": [requirements],
+    }
+    header_blob = base64.b64encode(json.dumps(header_payload).encode()).decode()
     return JSONResponse(
         status_code=402,
         content=body,
