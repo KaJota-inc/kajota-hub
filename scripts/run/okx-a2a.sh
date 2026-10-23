@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# OKX A2A daemon — hosts the XMTP identity that owns ASP 5855.
+# OKX A2A daemon — hosts the XMTP identity that owns ASP 15136.
 # See rejection notice from Jul 17: OKX platform online-check needs the
 # daemon reachable 24/7. On a laptop it goes down when the machine sleeps
 # or shuts, so we run it here in the always-on hub.
@@ -9,7 +9,7 @@
 # /etc/secrets/a2a-state.tar.gz and extracted on first boot. If the secret
 # file isn't present (e.g. Render preview envs, local docker run), the
 # daemon still starts — but it'll register a fresh XMTP identity, which
-# WON'T be the identity OKX has bound to ASP 5855. That's a red flag; log
+# WON'T be the identity OKX has bound to ASP 15136. That's a red flag; log
 # it loudly.
 
 set -euo pipefail
@@ -44,7 +44,7 @@ if ! extract_if_new "$SECRET_B64" base64 -d \
   echo "[okx-a2a]   $SECRET_B64"
   echo "[okx-a2a]   $SECRET_BIN"
   echo "[okx-a2a] Daemon will start with a FRESH XMTP identity, which is"
-  echo "[okx-a2a] NOT the one OKX bound to ASP 5855. Upload the base64"
+  echo "[okx-a2a] NOT the one OKX bound to ASP 15136. Upload the base64"
   echo "[okx-a2a] tarball as a Render secret file to fix."
 fi
 
