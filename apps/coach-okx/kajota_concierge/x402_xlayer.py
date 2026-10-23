@@ -143,10 +143,17 @@ class X402Config:
         safe. Facilitator URL, payTo, asset, and amount are always
         required from env — no wildcards.
         """
+        # `assetTransferMethod` disambiguates `scheme:"exact"` as EIP-3009
+        # vs Permit2 for OKX's a2mcp verifier. Without it, verify can fail
+        # with "no supported token/scheme candidate" even for a token that
+        # implements `transferWithAuthorization` on-chain.
         extra: dict[str, Any] = {
             "name": os.environ.get("X402_ASSET_NAME", "KaJota USD"),
             "version": os.environ.get("X402_ASSET_VERSION", "2"),
             "decimals": os.environ.get("X402_ASSET_DECIMALS", "6"),
+            "assetTransferMethod": os.environ.get(
+                "X402_ASSET_TRANSFER_METHOD", "eip3009"
+            ),
         }
         extra_raw = os.environ.get("X402_ASSET_EXTRA", "").strip()
         if extra_raw:
