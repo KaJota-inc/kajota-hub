@@ -147,14 +147,23 @@ class X402Config:
         # vs Permit2 for OKX's a2mcp verifier. Without it, verify can fail
         # with "no supported token/scheme candidate" even for a token that
         # implements `transferWithAuthorization` on-chain.
+        atm = os.environ.get("X402_ASSET_TRANSFER_METHOD", "eip3009")
         extra: dict[str, Any] = {
             "name": os.environ.get("X402_ASSET_NAME", "KaJota USD"),
             "version": os.environ.get("X402_ASSET_VERSION", "2"),
             "decimals": os.environ.get("X402_ASSET_DECIMALS", "6"),
-            "assetTransferMethod": os.environ.get(
-                "X402_ASSET_TRANSFER_METHOD", "eip3009"
-            ),
+            "assetTransferMethod": atm,
         }
+        # Permit2 schemes also need the on-chain facilitator address.
+        if atm in ("permit2", "upto"):
+            default_facilitator = (
+                "0x4020e7393B728A3939659E5732F87fdd8e680002"
+                if atm == "upto"
+                else "0x402085c248EeA27D92E8b30b2C58ed07f9E20001"
+            )
+            extra["facilitatorAddress"] = os.environ.get(
+                "X402_FACILITATOR_ADDRESS", default_facilitator
+            )
         extra_raw = os.environ.get("X402_ASSET_EXTRA", "").strip()
         if extra_raw:
             try:
