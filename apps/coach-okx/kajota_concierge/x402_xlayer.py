@@ -63,7 +63,7 @@ except Exception as e:  # pragma: no cover — surfaced at settle time
 # Coinbase's CDP x402 facilitator advertises v1 as its wire version; OKX
 # may adopt v2 to match Casper. Env-override lets us follow whichever the
 # selected facilitator speaks.
-X402_VERSION = int(os.environ.get("X402_VERSION", "1"))
+X402_VERSION = int(os.environ.get("X402_VERSION", "2"))
 
 # No canonical public URL is hard-baked in — set X402_FACILITATOR_URL to
 # your chosen facilitator (Coinbase CDP, OKX-hosted, or self-hosted
