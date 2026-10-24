@@ -27,6 +27,10 @@ webhook = [
     "fastapi>=0.110",
     "uvicorn>=0.29",
     "python-multipart>=0.0.9",
+    # Explicit httpx pin: the freshdesk/zendesk clients `import httpx`, but anthropic
+    # 2.x ships `httpx2` under a separate PyPI name, so without this pin the venv
+    # has httpx2 only and payflow fails to import — supervisord loops, Caddy 502s.
+    "httpx>=0.27,<1.0",
 ]
 gemini = [
     "google-genai>=1.0",

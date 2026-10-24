@@ -43,6 +43,14 @@
 			header_up X-Forwarded-Prefix /slack
 		}
 	}
+	# Bare /mesh-skill[/] gets a static 200 for the operator-dashboard probe —
+	# the FastAPI app has no root handler of its own and would 404 otherwise.
+	# Real endpoints (/healthz, /escrow/*, /docs) still reverse_proxy as normal.
+	@mesh_skill_root path /mesh-skill /mesh-skill/
+	handle @mesh_skill_root {
+		header Content-Type application/json
+		respond `{"ok":true,"service":"mesh-skill","health":"/mesh-skill/healthz","docs":"/mesh-skill/docs"}` 200
+	}
 	handle_path /mesh-skill/* {
 		reverse_proxy 127.0.0.1:8105 {
 			header_up X-Forwarded-Prefix /mesh-skill
@@ -63,12 +71,35 @@
 			header_up X-Forwarded-Prefix /judge
 		}
 	}
+	# /judge-casper is the operator-dashboard-friendly alias for /judge — kept
+	# in sync so the Casper Final Round judge demo URL survives whichever name
+	# the dashboard probe ends up using. Same upstream (8107), same prefix header
+	# (/judge) so the demo page's relative fetches resolve correctly either way.
+	handle /judge-casper {
+		redir * /judge-casper/ permanent
+	}
+	handle_path /judge-casper/* {
+		reverse_proxy 127.0.0.1:8107 {
+			header_up X-Forwarded-Prefix /judge
+		}
+	}
 	# Same story for keeperhub-escrow — the console's relative fetch("config",
 	# "status", "demo-release") must resolve under /keeperhub/, not the hub root.
 	handle /keeperhub {
 		redir * /keeperhub/ permanent
 	}
 	handle_path /keeperhub/* {
+		reverse_proxy 127.0.0.1:8108 {
+			header_up X-Forwarded-Prefix /keeperhub
+		}
+	}
+	# /keeper-hub is the operator-dashboard-friendly alias for /keeperhub.
+	# Same upstream (8108), same prefix header (/keeperhub) so the console's
+	# relative fetches resolve correctly under either mount.
+	handle /keeper-hub {
+		redir * /keeper-hub/ permanent
+	}
+	handle_path /keeper-hub/* {
 		reverse_proxy 127.0.0.1:8108 {
 			header_up X-Forwarded-Prefix /keeperhub
 		}

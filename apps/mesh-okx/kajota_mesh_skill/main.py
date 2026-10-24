@@ -20,7 +20,22 @@ app = FastAPI(
 )
 
 _settings = Settings()
-_client = MeshClient(_settings)
+try:
+    _client = MeshClient(_settings)
+except Exception as _mesh_init_err:  # noqa: BLE001 — any bad env must not kill boot
+    # A bad/empty MESH_RELEASE_AUTH_KEY, an unreachable MESH_RPC_URL, or a
+    # mis-formatted address will raise during MeshClient._connect() and crash
+    # the whole uvicorn boot — which supervisord then loops on and Caddy fronts
+    # as a persistent 502. Fail-open to a dry-run client so /healthz and / stay
+    # 200; chain-touching endpoints will return a clear error at call time.
+    import logging as _logging
+    _logging.getLogger(__name__).warning(
+        "mesh-okx: live client init failed (%s: %s) — falling back to dry_run",
+        type(_mesh_init_err).__name__,
+        _mesh_init_err,
+    )
+    _settings = Settings(rpc_url="", release_auth_key="", dry_run=True)
+    _client = MeshClient(_settings)
 
 
 def get_client() -> MeshClient:
